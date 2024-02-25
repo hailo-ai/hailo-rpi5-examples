@@ -1,0 +1,5 @@
+ipdb
+ipython
+numpy
+opencv-python
+setproctitle
