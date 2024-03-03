@@ -14,7 +14,7 @@ try:
     import hailo
 except ImportError:
     exit("Failed to import hailo python module. Make sure you are in hailo virtual environment.")
-from hailo_common_funcs import get_numpy_from_buffer
+from hailo_common_funcs import get_numpy_from_buffer, disable_qos
 
 # -----------------------------------------------------------------------------------------------
 # User defined class to be used in the callback function
@@ -115,7 +115,7 @@ def app_callback(pad, info, user_data):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         user_data.set_frame(frame)
 
-    # print(string_to_print)
+    print(string_to_print)
     return Gst.PadProbeReturn.OK
     # Additional option is Gst.PadProbeReturn.DROP to drop the buffer not passing in to the rest of the pipeline
     # See more options in Gstreamer documentation
@@ -123,7 +123,6 @@ def app_callback(pad, info, user_data):
 # This function is used to display the user data frame
 def display_user_data_frame(user_data):
     while user_data.running:
-        # import ipdb; ipdb.set_trace()
         frame = user_data.get_frame()
         if frame is not None:
             cv2.imshow("User Frame", frame)
@@ -209,14 +208,13 @@ class GStreamerApp:
         if tappas_workspace == '':
             print("TAPPAS_WORKSPACE environment variable is not set. Please set it to the path of the TAPPAS workspace.")
             exit(1)
-        self.current_path = os.getcwd()
+        self.current_path = os.path.dirname(os.path.abspath(__file__))
         self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libcenterpose_post.so')
         self.default_network_name = "centerpose"
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
-        self.hef_path = os.path.join(tappas_workspace, 'apps/h8/gstreamer/resources/hef/centerpose_regnetx_1.6gf_fpn.hef')
-        
+        self.hef_path = os.path.join(self.current_path, '../resources/centerpose_regnetx_1.6gf_fpn.hef')
         # Set user data parameters
         user_data.use_frame = self.options_menu.use_frame
 
@@ -266,12 +264,20 @@ class GStreamerApp:
             err, debug = message.parse_error()
             print(f"Error: {err}, {debug}")
             loop.quit()
+        # QOS
+        elif t == Gst.MessageType.QOS:
+            # Handle QoS message here
+            qos_element = message.src.get_name()
+            print(f"QoS message received from {qos_element}")
         return True
     
     
     def get_pipeline_string(self):
         if (self.source_type == "rpi"):
             source_element = f"libcamerasrc name=src_0 auto-focus-mode=2 ! "
+            source_element += f"video/x-raw, format={network_format}, width=1536, height=864 ! "
+            source_element += QUEUE("queue_src_scale")
+            source_element += f"videoscale ! "
             source_element += f"video/x-raw, format={network_format}, width={network_width}, height={network_height}, framerate=30/1 ! "
         
         elif (self.source_type == "usb"):
@@ -285,7 +291,7 @@ class GStreamerApp:
         source_element += QUEUE("queue_scale")
         source_element += f" videoscale n-threads=2 ! "
         source_element += QUEUE("queue_src_convert")
-        source_element += f" videoconvert n-threads=3 name=src_convert ! "
+        source_element += f" videoconvert n-threads=3 name=src_convert qos=false ! "
         source_element += f"video/x-raw, format={network_format}, width={network_width}, height={network_height}, pixel-aspect-ratio=1/1 ! "
         
         
@@ -305,7 +311,7 @@ class GStreamerApp:
         pipeline_string += QUEUE("queue_hailooverlay")
         pipeline_string += f"hailooverlay ! "
         pipeline_string += QUEUE("queue_videoconvert")
-        pipeline_string += f"videoconvert n-threads=3 ! "
+        pipeline_string += f"videoconvert n-threads=3 qos=false ! "
         pipeline_string += QUEUE("queue_hailo_display")
         pipeline_string += f"fpsdisplaysink video-sink={video_sink} name=hailo_display sync={self.sync} text-overlay={self.options_menu.show_fps} signal-fps-measurements=true "
         return pipeline_string
@@ -327,9 +333,14 @@ class GStreamerApp:
         identity_pad = identity.get_static_pad("src")
         identity_pad.add_probe(Gst.PadProbeType.BUFFER, app_callback, user_data)
 
-        # Set Timed callback to display user data frame
-        # if (self.options_menu.use_frame):
-        #     GLib.timeout_add_seconds(0.03, display_user_data_frame, user_data)
+        # get xvimagesink element and disable qos
+        # xvimagesink is instantiated by fpsdisplaysink
+        hailo_display = self.pipeline.get_by_name("hailo_display")
+        xvimagesink = hailo_display.get_by_name("xvimagesink0")
+        xvimagesink.set_property("qos", False)
+        
+        # disable qos for the entire pipeline
+        disable_qos(self.pipeline)
         
         # start a sub process to run the display_user_data_frame function
         if (self.options_menu.use_frame):

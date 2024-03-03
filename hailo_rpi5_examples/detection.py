@@ -3,16 +3,18 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
 import os
 import argparse
-import subprocess
+import multiprocessing
 import numpy as np
 import setproctitle
 import cv2
+import time
+
 # Try to import hailo python module
 try:
     import hailo
 except ImportError:
     exit("Failed to import hailo python module. Make sure you are in hailo virtual environment.")
-from hailo_common_funcs import get_numpy_from_buffer
+from hailo_common_funcs import get_numpy_from_buffer, disable_qos
 
 # -----------------------------------------------------------------------------------------------
 # User defined class to be used in the callback function
@@ -22,7 +24,8 @@ class app_callback_class:
     def __init__(self):
         self.frame_count = 0
         self.use_frame = False
-        self.frame = None
+        self.frame_queue = multiprocessing.Queue(maxsize=3)
+        self.running = True
 
     def increment(self):
         self.frame_count += 1
@@ -31,11 +34,16 @@ class app_callback_class:
         return self.frame_count 
 
     def set_frame(self, frame):
-        self.frame = frame
-    
+        if not self.frame_queue.full():
+            self.frame_queue.put(frame)
+
+        
     def get_frame(self):
-        return self.frame
-    
+        if not self.frame_queue.empty():
+            return self.frame_queue.get()
+        else:
+            return None
+
 # Create an instance of the class
 user_data = app_callback_class()
 
@@ -96,13 +104,15 @@ def app_callback(pad, info, user_data):
     # Additional option is Gst.PadProbeReturn.DROP to drop the buffer not passing in to the rest of the pipeline
     # See more options in Gstreamer documentation
 
-# This function will be called every 0.03 seconds to display the user data frame
+# This function is used to display the user data frame
 def display_user_data_frame(user_data):
-    frame = user_data.get_frame()
-    if frame is not None:
-        cv2.imshow("User Frame", frame)
-        cv2.waitKey(1)
-    return True
+    while user_data.running:
+        frame = user_data.get_frame()
+        if frame is not None:
+            cv2.imshow("User Frame", frame)
+            cv2.waitKey(1)
+        time.sleep(0.02)
+    
 
 # -----------------------------------------------------------------------------------------------
 # Do not edit below this line
@@ -164,13 +174,13 @@ class GStreamerApp:
         if tappas_workspace == '':
             print("TAPPAS_WORKSPACE environment variable is not set. Please set it to the path of the TAPPAS workspace.")
             exit(1)
-        self.current_path = os.getcwd()
+        self.current_path = os.path.dirname(os.path.abspath(__file__))
         self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolo_hailortpp_post.so')
         self.default_network_name = "yolov5"
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
-        self.hef_path = os.path.join(tappas_workspace, 'apps/h8/gstreamer/resources/hef/yolov5m_wo_spp_60p.hef')
+        self.hef_path = os.path.join(self.current_path, '../resources/yolov5m_wo_spp_60p.hef')
         
         # Set user data parameters
         user_data.use_frame = self.options_menu.use_frame
@@ -227,6 +237,9 @@ class GStreamerApp:
     def get_pipeline_string(self):
         if (self.source_type == "rpi"):
             source_element = f"libcamerasrc name=src_0 auto-focus-mode=2 ! "
+            source_element += f"video/x-raw, format={network_format}, width=1536, height=864 ! "
+            source_element += QUEUE("queue_src_scale")
+            source_element += f"videoscale ! "
             source_element += f"video/x-raw, format={network_format}, width={network_width}, height={network_height}, framerate=30/1 ! "
         
         elif (self.source_type == "usb"):
@@ -263,6 +276,7 @@ class GStreamerApp:
         pipeline_string += f"videoconvert n-threads=3 ! "
         pipeline_string += QUEUE("queue_hailo_display")
         pipeline_string += f"fpsdisplaysink video-sink={video_sink} name=hailo_display sync={self.sync} text-overlay={self.options_menu.show_fps} signal-fps-measurements=true "
+        print(pipeline_string)
         return pipeline_string
     
     def dump_dot_file(self):
@@ -281,7 +295,17 @@ class GStreamerApp:
         identity = self.pipeline.get_by_name("identity_callback")
         identity_pad = identity.get_static_pad("src")
         identity_pad.add_probe(Gst.PadProbeType.BUFFER, app_callback, user_data)
+        
+        # get xvimagesink element and disable qos
+        # xvimagesink is instantiated by fpsdisplaysink
+        hailo_display = self.pipeline.get_by_name("hailo_display")
+        xvimagesink = hailo_display.get_by_name("xvimagesink0")
+        xvimagesink.set_property("qos", False)
+        
+        # Disable QoS to prevent frame drops
+        disable_qos(self.pipeline)
 
+        
         # Set Timed callback to display user data frame
         if (self.options_menu.use_frame):
             GLib.timeout_add_seconds(0.03, display_user_data_frame, user_data)
