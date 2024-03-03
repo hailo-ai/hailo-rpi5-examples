@@ -1,9 +1,12 @@
 import numpy as np
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import Gst
+from gi.repository import Gst, GObject
 
 
+# ---------------------------------------------------------
+# Functions used to get numpy arrays from GStreamer buffers
+# ---------------------------------------------------------
 
 def handle_rgb(map_info, width, height):
     # The copy() method is used to create a copy of the numpy array. This is necessary because the original numpy array is created from buffer data, and it does not own the data it represents. Instead, it's just a view of the buffer's data.
@@ -51,3 +54,33 @@ def get_numpy_from_buffer(buffer, format, width, height):
         return handler(map_info, width, height)
     finally:
         buffer.unmap(map_info)
+
+# ---------------------------------------------------------
+# Useful functions for working with GStreamer
+# ---------------------------------------------------------
+        
+def disable_qos(pipeline):
+    """
+    Iterate through all elements in the given GStreamer pipeline and set the qos property to False
+    where applicable.
+    When the 'qos' property is set to True, the element will measure the time it takes to process each buffer and will drop frames if it latency is too high.
+    We are running on long pipelines, so we want to disable this feature to avoid dropping frames.
+    :param pipeline: A GStreamer pipeline object
+    """
+    # Ensure the pipeline is a Gst.Pipeline instance
+    if not isinstance(pipeline, Gst.Pipeline):
+        print("The provided object is not a GStreamer Pipeline")
+        return
+
+    # Iterate through all elements in the pipeline
+    it = pipeline.iterate_elements()
+    while True:
+        result, element = it.next()
+        if result != Gst.IteratorResult.OK:
+            break
+
+        # Check if the element has the 'qos' property
+        if 'qos' in GObject.list_properties(element):
+            # Set the 'qos' property to False
+            element.set_property('qos', False)
+            print(f"Set qos to False for {element.get_name()}")

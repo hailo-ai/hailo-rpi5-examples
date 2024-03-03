@@ -3,16 +3,18 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
 import os
 import argparse
-import subprocess
+import multiprocessing
 import numpy as np
 import setproctitle
 import cv2
+import time
+
 # Try to import hailo python module
 try:
     import hailo
 except ImportError:
     exit("Failed to import hailo python module. Make sure you are in hailo virtual environment.")
-from hailo_common_funcs import get_numpy_from_buffer
+from hailo_common_funcs import get_numpy_from_buffer, disable_qos
 
 # -----------------------------------------------------------------------------------------------
 # User defined class to be used in the callback function
@@ -22,7 +24,8 @@ class app_callback_class:
     def __init__(self):
         self.frame_count = 0
         self.use_frame = False
-        self.frame = None
+        self.frame_queue = multiprocessing.Queue(maxsize=3)
+        self.running = True
 
     def increment(self):
         self.frame_count += 1
@@ -31,11 +34,16 @@ class app_callback_class:
         return self.frame_count 
 
     def set_frame(self, frame):
-        self.frame = frame
-    
+        if not self.frame_queue.full():
+            self.frame_queue.put(frame)
+
+        
     def get_frame(self):
-        return self.frame
-    
+        if not self.frame_queue.empty():
+            return self.frame_queue.get()
+        else:
+            return None
+
 # Create an instance of the class
 user_data = app_callback_class()
 
@@ -84,42 +92,22 @@ def app_callback(pad, info, user_data):
         confidence = detection.get_confidence()
         if label == "person":
             string_to_print += (f"Detection: {label} {confidence:.2f}\n")
-            # Instance segmentation mask from detection (if available)
-            masks = detection.get_objects_typed(hailo.HAILO_CONF_CLASS_MASK)
-            if len(masks) != 0:
-                mask = masks[0]
-                # Note that the mask is a 1D array, you need to reshape it to get the original shape
-                mask_height = mask.get_height()
-                mask_width = mask.get_width()
-                data = np.array(mask.get_data())
-                data = data.reshape((mask_height, mask_width))
-                # data shuold be enlarged x4
-                mask_width = mask_width * 4
-                mask_height = mask_height * 4
-                data = cv2.resize(data, (mask_width, mask_height), interpolation=cv2.INTER_NEAREST)
-
-                if user_data.use_frame:
-                    # You can use the mask to do something
-                    # For example, you can use it to draw the mask on the frame
-                    # Mask should be aligined with the detection bbox
-                    # create a mask with the same shape as the frame
-                    frame_mask = np.zeros((height, width), dtype=float)
-                    # copy the mask to the frame starting from the bbox position
-                    
-                    x_min = int((bbox.xmin() * bbox.width() + bbox.xmin()) * width)
-                    y_min = int((bbox.ymin() * bbox.height() + bbox.ymin()) * height)
-
-                    # clamp the values to the frame size
-                    x_min = max(0, x_min)
-                    y_min = max(0, y_min)
-                    x_max = min(width, x_min + width)
-                    y_max = min(height, y_min + height)
-
-                    # frame_mask[bbox.ymin():bbox.ymin() + height, bbox.xmin():bbox.xmin() + width] = data
-                    frame_mask[y_min:y_min + mask_height, x_min:x_min + mask_width] = data
-                    
-                    frame[frame_mask > 0.5] = [0, 255, 0]
-                    # Note: using imshow will not work here, as the callback function is not running in the main thread
+            if user_data.use_frame:
+            
+                # Instance segmentation mask from detection (if available)
+                masks = detection.get_objects_typed(hailo.HAILO_CONF_CLASS_MASK)
+                if len(masks) != 0:
+                    mask = masks[0]
+                    # Note that the mask is a 1D array, you need to reshape it to get the original shape
+                    mask_height = mask.get_height()
+                    mask_width = mask.get_width()
+                    data = np.array(mask.get_data())
+                    data = data.reshape((mask_height, mask_width))
+                    # data shuold be enlarged x4
+                    mask_width = mask_width * 4
+                    mask_height = mask_height * 4
+                    data = cv2.resize(data, (mask_width, mask_height), interpolation=cv2.INTER_NEAREST)
+                    string_to_print += (f"Mask shape: {data.shape}\n")
     
     if user_data.use_frame:
         # Convert the frame to BGR
@@ -131,13 +119,15 @@ def app_callback(pad, info, user_data):
     # Additional option is Gst.PadProbeReturn.DROP to drop the buffer not passing in to the rest of the pipeline
     # See more options in Gstreamer documentation
 
-# This function will be called every 0.03 seconds to display the user data frame
+# This function is used to display the user data frame
 def display_user_data_frame(user_data):
-    frame = user_data.get_frame()
-    if frame is not None:
-        cv2.imshow("User Frame", frame)
-        cv2.waitKey(1)
-    return True
+    while user_data.running:
+        frame = user_data.get_frame()
+        if frame is not None:
+            cv2.imshow("User Frame", frame)
+            cv2.waitKey(1)
+        time.sleep(0.02)
+    
 
 
 # -----------------------------------------------------------------------------------------------
@@ -192,13 +182,13 @@ class GStreamerApp:
         if tappas_workspace == '':
             print("TAPPAS_WORKSPACE environment variable is not set. Please set it to the path of the TAPPAS workspace.")
             exit(1)
-        self.current_path = os.getcwd()
+        self.current_path = os.path.dirname(os.path.abspath(__file__))
         self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
         self.default_network_name = "yolov5seg"
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
-        self.hef_path = os.path.join(tappas_workspace, 'apps/h8/gstreamer/resources/hef/yolov5n_seg.hef')
+        self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg.hef')
         
         # Set user data parameters
         user_data.use_frame = self.options_menu.use_frame
@@ -249,12 +239,20 @@ class GStreamerApp:
             err, debug = message.parse_error()
             print(f"Error: {err}, {debug}")
             loop.quit()
+        # QOS
+        elif t == Gst.MessageType.QOS:
+            # Handle QoS message here
+            qos_element = message.src.get_name()
+            print(f"QoS message received from {qos_element}")
         return True
     
     
     def get_pipeline_string(self):
         if (self.source_type == "rpi"):
             source_element = f"libcamerasrc name=src_0 auto-focus-mode=2 ! "
+            source_element += f"video/x-raw, format={network_format}, width=1536, height=864 ! "
+            source_element += QUEUE("queue_src_scale")
+            source_element += f"videoscale ! "
             source_element += f"video/x-raw, format={network_format}, width={network_width}, height={network_height}, framerate=30/1 ! "
         
         elif (self.source_type == "usb"):
@@ -268,7 +266,7 @@ class GStreamerApp:
         source_element += QUEUE("queue_scale")
         source_element += f" videoscale n-threads=2 ! "
         source_element += QUEUE("queue_src_convert")
-        source_element += f" videoconvert n-threads=3 name=src_convert ! "
+        source_element += f" videoconvert n-threads=3 name=src_convert qos=false ! "
         source_element += f"video/x-raw, format={network_format}, width={network_width}, height={network_height}, pixel-aspect-ratio=1/1 ! "
         
         
@@ -288,7 +286,7 @@ class GStreamerApp:
         pipeline_string += QUEUE("queue_hailooverlay")
         pipeline_string += f"hailooverlay ! "
         pipeline_string += QUEUE("queue_videoconvert")
-        pipeline_string += f"videoconvert n-threads=3 ! "
+        pipeline_string += f"videoconvert n-threads=3 qos=false ! "
         pipeline_string += QUEUE("queue_hailo_display")
         pipeline_string += f"fpsdisplaysink video-sink={video_sink} name=hailo_display sync={self.sync} text-overlay={self.options_menu.show_fps} signal-fps-measurements=true "
         return pipeline_string
@@ -310,9 +308,19 @@ class GStreamerApp:
         identity_pad = identity.get_static_pad("src")
         identity_pad.add_probe(Gst.PadProbeType.BUFFER, app_callback, user_data)
 
-        # Set Timed callback to display user data frame
+        # get xvimagesink element and disable qos
+        # xvimagesink is instantiated by fpsdisplaysink
+        hailo_display = self.pipeline.get_by_name("hailo_display")
+        xvimagesink = hailo_display.get_by_name("xvimagesink0")
+        xvimagesink.set_property("qos", False)
+        
+        # disable qos for the entire pipeline
+        disable_qos(self.pipeline)
+
+        # start a sub process to run the display_user_data_frame function
         if (self.options_menu.use_frame):
-            GLib.timeout_add_seconds(0.03, display_user_data_frame, user_data)
+            display_process = multiprocessing.Process(target=display_user_data_frame, args=(user_data,))
+            display_process.start()
 
         # Set pipeline to PLAYING state
         self.pipeline.set_state(Gst.State.PLAYING)
@@ -328,7 +336,11 @@ class GStreamerApp:
             pass
 
         # Clean up
+        user_data.running = False
         self.pipeline.set_state(Gst.State.NULL)
+        if (self.options_menu.use_frame):
+            display_process.terminate()
+            display_process.join()
 
 # Example usage
 if __name__ == "__main__":
