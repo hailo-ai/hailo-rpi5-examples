@@ -4,6 +4,7 @@ This repository contains examples for running Hailo's AI processor on Raspberry 
 ## Pre-requisites:
 You should have Hailo's Driver and software installed on your Raspberry Pi 5.
 Hailo TAPPAS installation is required for running the examples.
+### For installation instructions see [install-raspberry-pi5.md](doc/install-raspberry-pi5.md)
 
 #### To run the examples, you should make sure your envirenmet is set up correctly.
 We require hailo pkgconfig file to be in the `PKG_CONFIG_PATH`.
