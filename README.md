@@ -42,7 +42,7 @@ Here are a few examples:
 ```bash
 python hailo_rpi5_examples/detection.py --input /dev/video2
 python hailo_rpi5_examples/detection.py --input rpi
-python hailo_rpi5_examples/detection.py --input ./detection15.mp4
+python hailo_rpi5_examples/detection.py --input $TAPPAS_WORKSPACE/apps/h8/gstreamer/resources/mp4/detection0.mp4
 ```
 See the help for more options:
 ```bash
