@@ -202,11 +202,11 @@ If you get an error saying Hailo driver is not installed, reinstall the driver a
 ####Clone TAAPAS repository from GitHub.
 
 ```bash
-git clone https://github.com/hailo-ai/tappas.git
+git clone https://github.com/giladnahor/tappas.git
 # enter the tappas directory
 cd tappas
-# checkout the rpi 3.27 branch
-git checkout rpi_3_27 TBD
+# checkout the rpi 3.27.0 branch
+git checkout rpi_v3.27.0
 ```
 
 #### get HailoRT required source code
@@ -221,16 +221,17 @@ git checkout 4.16.0
 #### Run the TAPPAS installation script
 ```bash
 # from the tappas directory
-./install.sh --skip-hailort
+./install.sh --skip-hailort --target-platform rpi
 ```
 
 ### Run the Object Detection app
+#### Note The TAPPAS applications are not built for RPi and some of them will not work. The detection app shuold work and you can use it to verify you installation. Please go back to the Hailo RPi examples doc to install RPi apps.
 
 The TAPPAS applications come with video files and different AI networks as Hailo Executable File (HEF).
 You can run any application by running a script file in each app folder.
 
 ```bash
-cd /local/workspace/tappas/apps/h8/gstreamer/general/detection
+cd [your-install-path]/tappas/apps/h8/gstreamer/general/detection
 ./detection.sh
 ```
 
