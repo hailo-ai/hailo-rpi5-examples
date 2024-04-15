@@ -177,7 +177,6 @@ class GStreamerApp:
         self.current_path = os.path.dirname(os.path.abspath(__file__))
         self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolo_hailortpp_post.so')
-        self.default_network_name = "yolov5"
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
         self.hef_path = os.path.join(self.current_path, '../resources/yolov5m_wo_spp_60p.hef')
@@ -265,7 +264,7 @@ class GStreamerApp:
         pipeline_string += "videoconvert n-threads=3 ! "
         pipeline_string += f"hailonet hef-path={self.hef_path} batch-size={batch_size} {thresholds_str} force-writable=true ! "
         pipeline_string += QUEUE("queue_hailofilter")
-        pipeline_string += f"hailofilter function-name={self.default_network_name} so-path={self.default_postprocess_so} qos=false ! "
+        pipeline_string += f"hailofilter so-path={self.default_postprocess_so} qos=false ! "
         pipeline_string += QUEUE("queue_hmuc") + " hmux.sink_1 "
         pipeline_string += "hmux. ! " + QUEUE("queue_hailo_python")
         pipeline_string += QUEUE("queue_user_callback")
