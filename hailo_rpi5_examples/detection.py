@@ -140,7 +140,7 @@ def parse_arguments():
                         Defaults to /dev/video0")
     parser.add_argument("--use-frame", "-u", action="store_true", help="Use frame from the callback function")
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
-    parser.add_argument("--disable-sync", action="store_true", help="Disables display sink sync, will run as fast possible.")
+    parser.add_argument("--disable-sync", action="store_true", help="Disables display sink sync, will run as fast possible. Relevant when using file source.")
     parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file pipeline.dot")
     return parser.parse_args()
 
@@ -185,7 +185,7 @@ class GStreamerApp:
         # Set user data parameters
         user_data.use_frame = self.options_menu.use_frame
 
-        if (self.options_menu.disable_sync):
+        if (self.options_menu.disable_sync or self.source_type != "file"):
             self.sync = "false" 
         else:
             self.sync = "true"
@@ -263,7 +263,7 @@ class GStreamerApp:
         pipeline_string += QUEUE("bypass_queue", max_size_buffers=20) + "hmux.sink_0 "
         pipeline_string += "t. ! " + QUEUE("queue_hailonet")
         pipeline_string += "videoconvert n-threads=3 ! "
-        pipeline_string += f"hailonet hef-path={self.hef_path} batch-size={batch_size} {thresholds_str} ! "
+        pipeline_string += f"hailonet hef-path={self.hef_path} batch-size={batch_size} {thresholds_str} force-writable=true ! "
         pipeline_string += QUEUE("queue_hailofilter")
         pipeline_string += f"hailofilter function-name={self.default_network_name} so-path={self.default_postprocess_so} qos=false ! "
         pipeline_string += QUEUE("queue_hmuc") + " hmux.sink_1 "
