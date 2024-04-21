@@ -14,12 +14,16 @@ if is_sourced; then
 
     if [ -z "$TAPPAS_WORKSPACE" ]; then
         echo "Error: TAPPAS_WORKSPACE could not be determined."
+        echo "Make sure PKG_CONFIG_PATH includes /opt/hailo/tappas/pkgconfig/"
         return 1 # Use 'return' instead of 'exit' to not exit the user's shell
     fi
-
-    # Export the environment variable so it's available to subprocesses
+    
     export TAPPAS_WORKSPACE
     echo "TAPPAS_WORKSPACE set to $TAPPAS_WORKSPACE"
+        
+    TAPPAS_LIBDIR=$(pkg-config --variable=tappas_libdir hailo_tappas)
+    export TAPPAS_LIBDIR
+    echo "TAPPAS_LIBDIR set to $TAPPAS_LIBDIR"
 
     # Activate the virtual environment
     VENV_PATH="${TAPPAS_WORKSPACE}/hailo_tappas_venv/bin/activate"
