@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 #### Download the models HEF files:
 ```bash
-./download_hefs.sh
+./download_resources.sh
 ```
 
 ## Runnign the examples:
