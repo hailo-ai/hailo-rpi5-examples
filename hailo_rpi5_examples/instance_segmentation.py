@@ -109,25 +109,10 @@ def app_callback(pad, info, user_data):
                     data = cv2.resize(data, (mask_width, mask_height), interpolation=cv2.INTER_NEAREST)
                     string_to_print += (f"Mask shape: {data.shape}\n")
     
-    if user_data.use_frame:
-        # Convert the frame to BGR
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        user_data.set_frame(frame)
-
     print(string_to_print)
     return Gst.PadProbeReturn.OK
     # Additional option is Gst.PadProbeReturn.DROP to drop the buffer not passing in to the rest of the pipeline
     # See more options in Gstreamer documentation
-
-# This function is used to display the user data frame
-def display_user_data_frame(user_data):
-    while user_data.running:
-        frame = user_data.get_frame()
-        if frame is not None:
-            cv2.imshow("User Frame", frame)
-        cv2.waitKey(1)
-    cv2.destroyAllWindows()
-    
 
 
 # -----------------------------------------------------------------------------------------------
@@ -318,11 +303,6 @@ class GStreamerApp:
         # Disable QoS to prevent frame drops
         disable_qos(self.pipeline)
 
-        # start a sub process to run the display_user_data_frame function
-        if (self.options_menu.use_frame):
-            display_process = multiprocessing.Process(target=display_user_data_frame, args=(user_data,))
-            display_process.start()
-
         # Set pipeline to PLAYING state
         self.pipeline.set_state(Gst.State.PLAYING)
         
@@ -339,9 +319,6 @@ class GStreamerApp:
         # Clean up
         user_data.running = False
         self.pipeline.set_state(Gst.State.NULL)
-        if (self.options_menu.use_frame):
-            display_process.terminate()
-            display_process.join()
 
 # Example usage
 if __name__ == "__main__":
