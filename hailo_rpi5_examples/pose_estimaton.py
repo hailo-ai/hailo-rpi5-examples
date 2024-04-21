@@ -126,8 +126,8 @@ def display_user_data_frame(user_data):
         frame = user_data.get_frame()
         if frame is not None:
             cv2.imshow("User Frame", frame)
-            cv2.waitKey(1)
-        time.sleep(0.02)
+        cv2.waitKey(1)
+    cv2.destroyAllWindows()
     
 
 
@@ -176,7 +176,7 @@ def parse_arguments():
                         Defaults to /dev/video0")
     parser.add_argument("--use-frame", "-u", action="store_true", help="Use frame from the callback function")
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
-    parser.add_argument("--disable-sync", action="store_true", help="Disables display sink sync, will run as fast possible.")
+    parser.add_argument("--disable-sync", action="store_true", help="Disables display sink sync, will run as fast possible. Relevant when using file source.")
     parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file pipeline.dot")
     return parser.parse_args()
 
@@ -204,17 +204,22 @@ class GStreamerApp:
         self.options_menu = args
         
         # Initialize variables
-        tappas_workspace = os.environ.get('TAPPAS_WORKSPACE', '')
-        if tappas_workspace == '':
-            print("TAPPAS_WORKSPACE environment variable is not set. Please set it to the path of the TAPPAS workspace.")
+        tappas_libdir = os.environ.get('TAPPAS_LIBDIR', '')
+        if tappas_libdir == '':
+            print("TAPPAS_LIBDIR environment variable is not set. Please set it to the path of the TAPPAS workspace.")
             exit(1)
         self.current_path = os.path.dirname(os.path.abspath(__file__))
-        self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
-        self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libcenterpose_post.so')
-        self.default_network_name = "centerpose"
+        self.postprocess_dir = os.path.join(tappas_libdir, 'post_processes')
+        self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolov8pose_post.so')
+        self.post_function_name = "filter"
+        self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l_pi.hef')
+        # self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
+            # self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libcenterpose_post.so')
+            # self.post_function_name = "centerpose"
+        # self.hef_path = os.path.join(self.current_path, '../resources/centerpose_regnetx_1.6gf_fpn.hef')
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
-        self.hef_path = os.path.join(self.current_path, '../resources/centerpose_regnetx_1.6gf_fpn.hef')
+        
         # Set user data parameters
         user_data.use_frame = self.options_menu.use_frame
 
@@ -303,7 +308,7 @@ class GStreamerApp:
         pipeline_string += "videoconvert n-threads=3 ! "
         pipeline_string += f"hailonet hef-path={self.hef_path} batch-size={batch_size} force-writable=true ! "
         pipeline_string += QUEUE("queue_hailofilter")
-        pipeline_string += f"hailofilter function-name={self.default_network_name} so-path={self.default_postprocess_so} qos=false ! "
+        pipeline_string += f"hailofilter function-name={self.post_function_name} so-path={self.default_postprocess_so} qos=false ! "
         pipeline_string += QUEUE("queue_hmuc") + " hmux.sink_1 "
         pipeline_string += "hmux. ! " + QUEUE("queue_hailo_python")
         pipeline_string += QUEUE("queue_user_callback")
@@ -314,6 +319,7 @@ class GStreamerApp:
         pipeline_string += f"videoconvert n-threads=3 qos=false ! "
         pipeline_string += QUEUE("queue_hailo_display")
         pipeline_string += f"fpsdisplaysink video-sink={video_sink} name=hailo_display sync={self.sync} text-overlay={self.options_menu.show_fps} signal-fps-measurements=true "
+        print(pipeline_string)
         return pipeline_string
     
     def dump_dot_file(self):
@@ -339,9 +345,9 @@ class GStreamerApp:
         xvimagesink = hailo_display.get_by_name("xvimagesink0")
         xvimagesink.set_property("qos", False)
         
-        # disable qos for the entire pipeline
+        # Disable QoS to prevent frame drops
         disable_qos(self.pipeline)
-        
+
         # start a sub process to run the display_user_data_frame function
         if (self.options_menu.use_frame):
             display_process = multiprocessing.Process(target=display_user_data_frame, args=(user_data,))

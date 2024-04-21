@@ -9,7 +9,7 @@ Hailo TAPPAS installation is required for running the examples.
 #### To run the examples, you should make sure your envirenmet is set up correctly.
 We require hailo pkgconfig file to be in the `PKG_CONFIG_PATH`.
 To run the examples, you should have:
-1. `TAPPAS_WORKSPACE` environment variable set to the path of your TAPPAS workspace.
+1. `TAPPAS_LIBDIR` environment variable set to the path of your TAPPAS installation. (/opt/hailo/tappas/lib/aarch64-linux-gnu)
 2. Hailo virtual environment activated.
 
 You can set it all up by sourcing the following script:
@@ -42,7 +42,7 @@ Here are a few examples:
 ```bash
 python hailo_rpi5_examples/detection.py --input /dev/video2
 python hailo_rpi5_examples/detection.py --input rpi
-python hailo_rpi5_examples/detection.py --input $TAPPAS_WORKSPACE/apps/h8/gstreamer/resources/mp4/detection0.mp4
+python hailo_rpi5_examples/detection.py --input resources/detection0.mp4
 ```
 See the help for more options:
 ```bash

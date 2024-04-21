@@ -110,8 +110,8 @@ def display_user_data_frame(user_data):
         frame = user_data.get_frame()
         if frame is not None:
             cv2.imshow("User Frame", frame)
-            cv2.waitKey(1)
-        time.sleep(0.02)
+        cv2.waitKey(1)
+    cv2.destroyAllWindows()
     
 
 # -----------------------------------------------------------------------------------------------
@@ -151,8 +151,6 @@ def get_source_type(input_source):
     # This function will return the source type based on the input source
     # return values can be "file", "mipi" or "usb"
     if input_source.startswith("/dev/video"):
-        # check if the device is available
-
         return 'usb'
     else:
         if input_source.startswith("rpi"):
@@ -170,16 +168,16 @@ class GStreamerApp:
         self.options_menu = args
         
         # Initialize variables
-        tappas_workspace = os.environ.get('TAPPAS_WORKSPACE', '')
-        if tappas_workspace == '':
-            print("TAPPAS_WORKSPACE environment variable is not set. Please set it to the path of the TAPPAS workspace.")
+        tappas_libdir = os.environ.get('TAPPAS_LIBDIR', '')
+        if tappas_libdir == '':
+            print("TAPPAS_LIBDIR environment variable is not set. Please set it to the path of the TAPPAS workspace.")
             exit(1)
         self.current_path = os.path.dirname(os.path.abspath(__file__))
-        self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
+        self.postprocess_dir = os.path.join(tappas_libdir, 'post_processes')
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolo_hailortpp_post.so')
+        self.hef_path = os.path.join(self.current_path, '../resources/yolov6n.hef')
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
-        self.hef_path = os.path.join(self.current_path, '../resources/yolov5m_wo_spp_60p.hef')
         
         # Set user data parameters
         user_data.use_frame = self.options_menu.use_frame
@@ -230,6 +228,11 @@ class GStreamerApp:
             err, debug = message.parse_error()
             print(f"Error: {err}, {debug}")
             loop.quit()
+        # QOS
+        elif t == Gst.MessageType.QOS:
+            # Handle QoS message here
+            qos_element = message.src.get_name()
+            print(f"QoS message received from {qos_element}")
         return True
     
     
@@ -252,7 +255,7 @@ class GStreamerApp:
         source_element += QUEUE("queue_scale")
         source_element += f" videoscale n-threads=2 ! "
         source_element += QUEUE("queue_src_convert")
-        source_element += f" videoconvert n-threads=3 name=src_convert ! "
+        source_element += f" videoconvert n-threads=3 name=src_convert qos=false ! "
         source_element += f"video/x-raw, format={network_format}, width={network_width}, height={network_height}, pixel-aspect-ratio=1/1 ! "
         
         
@@ -272,7 +275,7 @@ class GStreamerApp:
         pipeline_string += QUEUE("queue_hailooverlay")
         pipeline_string += f"hailooverlay ! "
         pipeline_string += QUEUE("queue_videoconvert")
-        pipeline_string += f"videoconvert n-threads=3 ! "
+        pipeline_string += f"videoconvert n-threads=3 qos=false ! "
         pipeline_string += QUEUE("queue_hailo_display")
         pipeline_string += f"fpsdisplaysink video-sink={video_sink} name=hailo_display sync={self.sync} text-overlay={self.options_menu.show_fps} signal-fps-measurements=true "
         print(pipeline_string)
@@ -294,7 +297,7 @@ class GStreamerApp:
         identity = self.pipeline.get_by_name("identity_callback")
         identity_pad = identity.get_static_pad("src")
         identity_pad.add_probe(Gst.PadProbeType.BUFFER, app_callback, user_data)
-        
+
         # get xvimagesink element and disable qos
         # xvimagesink is instantiated by fpsdisplaysink
         hailo_display = self.pipeline.get_by_name("hailo_display")
@@ -303,11 +306,11 @@ class GStreamerApp:
         
         # Disable QoS to prevent frame drops
         disable_qos(self.pipeline)
-
         
-        # Set Timed callback to display user data frame
+        # start a sub process to run the display_user_data_frame function
         if (self.options_menu.use_frame):
-            GLib.timeout_add_seconds(0.03, display_user_data_frame, user_data)
+            display_process = multiprocessing.Process(target=display_user_data_frame, args=(user_data,))
+            display_process.start()
 
         # Set pipeline to PLAYING state
         self.pipeline.set_state(Gst.State.PLAYING)
@@ -323,7 +326,11 @@ class GStreamerApp:
             pass
 
         # Clean up
+        user_data.running = False
         self.pipeline.set_state(Gst.State.NULL)
+        if (self.options_menu.use_frame):
+            display_process.terminate()
+            display_process.join()
 
 # Example usage
 if __name__ == "__main__":
