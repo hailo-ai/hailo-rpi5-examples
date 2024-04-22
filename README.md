@@ -30,9 +30,9 @@ pip install -r requirements.txt
 ## Runnign the examples:
 After setting up the environment (source setup_env.sh), you can run the examples by running the following commands:
 ```bash
-python hailo_rpi5_examples/detection.py
-python hailo_rpi5_examples/pose_estimaton.py
-python hailo_rpi5_examples/instance_segmentation.py
+python hailo_rpi5_examples/detection.py --input resources/detection0.mp4
+python hailo_rpi5_examples/pose_estimaton.py --input resources/detection0.mp4
+python hailo_rpi5_examples/instance_segmentation.py --input resources/detection0.mp4
 ```
 
 This examples are running with a USB camera as default. (/dev/video0)
