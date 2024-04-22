@@ -166,7 +166,7 @@ network_width = 640
 network_height = 640
 network_format = "RGB"
 video_sink = "xvimagesink"
-batch_size = 1
+batch_size = 2
 
 
 def parse_arguments():
