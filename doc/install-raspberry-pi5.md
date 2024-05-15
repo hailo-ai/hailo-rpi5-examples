@@ -11,14 +11,14 @@ What you'll need
 
 - A Raspberry Pi 5
 - A Raspberry M.2 M-Key HAT
-- A Hailo-8 M.2 module
+- A Hailo-8 / Hailo8L M.2 module
 
 From the Hailo Developer Zone
 
-- HailoRT – PCIe driver Ubuntu package (deb) version 4.16.0
-  - hailort-pcie-driver_4.16.0_all.deb
-- HailoRT Ubuntu package (deb) version 4.16.0
-  - hailort_4.16.0_arm64.deb
+- HailoRT – PCIe driver Ubuntu package (deb) version 4.17.0
+  - hailort-pcie-driver_4.17.0_all.deb
+- HailoRT Ubuntu package (deb) version 4.17.0
+  - hailort_4.17.0_arm64.deb
 
 ## Hardware
 
@@ -77,84 +77,52 @@ The following APT packages need to be installed, using the command below:
 * git
 * rsync
 * OpenCV 4
+* Gstreamer
+* PyObject
 
-```bash
-   sudo apt-get install -y rsync ffmpeg x11-utils python3-dev \
-   python3-pip python3-setuptools python3-virtualenv \
-   python-gi-dev libgirepository1.0-dev \
-   gcc-12 g++-12 cmake git libzmq3-dev \
-   libopencv-dev python3-opencv
-```
 #### TAPPAS GStreamer and pyobject requirements
 ```bash
-sudo apt-get install -y libcairo2-dev libgirepository1.0-dev \
+sudo apt-get install -y rsync ffmpeg x11-utils python3-dev \
+python3-pip python3-setuptools python3-virtualenv \
+python-gi-dev libgirepository1.0-dev \
+gcc-12 g++-12 cmake git libzmq3-dev \
+libopencv-dev python3-opencv \
+libcairo2-dev libgirepository1.0-dev \
 libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
 libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base \
 gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
 gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools \
 gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl \
 gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio \
+gstreamer1.0-libcamera \
 python-gi-dev python3-gi python3-gi-cairo gir1.2-gtk-3.0
 ```
+#### You may need to run the following command to fix apt dependencies
+```bash
+sudo apt-get  --fix-broken install
+```
+
+### Set PCIe to Gen3
+##### Setting Gen3 PCIe is required to get higher performance from the Hailo device.
+Add the following line to /boot/firmware/config.txt 
+```bash
+sudo nano /boot/firmware/config.txt
+# add the following line to the end of the file
+dtparam=pciex1_gen=3
+```
+For more information see:
+ https://www.jeffgeerling.com/blog/2023/forcing-pci-express-gen-30-speeds-on-pi-5
 
 ### Install PCIe driver
 
 ```bash
-sudo dpkg --install hailort-pcie-driver_4.16.0_all.deb
-```
-
-##### PCIe Page size issue
-Add the following line to /etc/modprobe.d/hailo_pci.conf
-You shuold create the file if it does not exist.
-
-```txt
-options hailo_pci force_desc_page_size=4096
-```
-
-You can do this with the following command.
-Somtimes there are permission issue, so you may need to use editor with sudo rights. See below.
-
-```bash
-sudo echo 'options hailo_pci force_desc_page_size=4096' >> \
-/etc/modprobe.d/hailo_pci.conf
-```
-
-If this does not work oopen the file with nano and add the line manually.
-(To save the file in nano press Ctrl+X, then Y and Enter.)
-
-```bash
-sudo nano /etc/modprobe.d/hailo_pci.conf
-```
-
-
-###### LD_LIBRARY_PATH issue 
-Shuold be fixed by adding this to your .bashrc file
-```bash
-echo 'export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1' \
- >> ~/.bashrc
-```
-
-This should fix the error causing some Gstreamer plugins to not load corretly.
-The error message is:
-```bash
-(gst-plugin-scanner:67): GStreamer-WARNING **: 12:20:39.178: Failed to load plugin '/usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstlibav.so': /lib/aarch64-linux-gnu/libgomp.so.1: cannot allocate memory in static TLS block
-```
-If you already encountered this error, you can fix it by running the following commands:
-
-```bash
-export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
-rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
-```
-
-Driver installation should be completed by rebooting the system.
-```bash
-sudo reboot
+sudo dpkg --install hailort-pcie-driver_4.17.0_all.deb
 ```
 
 ### Installing HailoRT
 
 ```bash
-sudo dpkg --install hailort_4.16.0_arm64.deb
+sudo dpkg --install hailort_4.17.0_arm64.deb
 ```
 When asked "Do you wish to activate hailort service? (required for most pyHailoRT use cases) [y/N]" press "y".
 
@@ -198,30 +166,110 @@ If the board is new you may need to update the firmware of the Raspberry Pi 5.
 ###### Driver issue
 If you get an error saying Hailo driver is not installed, reinstall the driver and reboot the system.
 
-### Instal TAPPAS
-####Clone TAAPAS repository from GitHub.
+#### Istall TAPPAS core
 
 ```bash
-git clone https://github.com/giladnahor/tappas.git
-# enter the tappas directory
-cd tappas
-# checkout the rpi 3.27.0 branch
-git checkout rpi_v3.27.0
+sudo dpkg -i tappas_3.28.1_arm64.deb
 ```
 
-#### get HailoRT required source code
+#### Installation should be completed by rebooting the system.
 ```bash
-mkdir hailort
-git clone https://github.com/hailo-ai/hailort.git hailort/sources
-# enter the hailort directory
-cd hailort/sources/
-# checkout the 4.16.0 branch
-git checkout 4.16.0
+sudo reboot
 ```
-#### Run the TAPPAS installation script
+#### Test installation by running the following commands:
+
+Hailotools:
 ```bash
-# from the tappas directory
-./install.sh --skip-hailort --target-platform rpi
+gst-inspect-1.0 hailotools
+# expected result:
+Plugin Details:
+  Name                     hailotools
+  Description              hailo tools plugin
+  Filename                 /lib/aarch64-linux-gnu/gstreamer-1.0/libgsthailotools.so
+  Version                  3.28.1
+  License                  unknown
+  Source module            gst-hailo-tools
+  Binary package           gst-hailo-tools
+  Origin URL               https://hailo.ai/
+
+  hailoaggregator: hailoaggregator - Cascading
+  hailocounter: hailocounter - postprocessing element
+  hailocropper: hailocropper
+  hailoexportfile: hailoexportfile - export element
+  hailoexportzmq: hailoexportzmq - export element
+  hailofilter: hailofilter - postprocessing element
+  hailogallery: Hailo gallery element
+  hailograytonv12: hailograytonv12 - postprocessing element
+  hailoimportzmq: hailoimportzmq - import element
+  hailomuxer: Muxer pipeline merging
+  hailonv12togray: hailonv12togray - postprocessing element
+  hailonvalve: HailoNValve element
+```
+
+Hailonet:
+```bash
+gst-inspect-1.0 hailo
+# expected result:
+Plugin Details:
+  Name                     hailo
+  Description              hailo gstreamer plugin
+  Filename                 /lib/aarch64-linux-gnu/gstreamer-1.0/libgsthailo.so
+  Version                  1.0
+  License                  unknown
+  Source module            hailo
+  Binary package           GStreamer
+  Origin URL               http://gstreamer.net/
+
+  hailodevicestats: hailodevicestats element
+  hailonet: hailonet element
+  synchailonet: sync hailonet element
+
+  3 features:
+  +-- 3 elements
+```
+
+
+##### PCIe Page size issue
+Add the following line to /etc/modprobe.d/hailo_pci.conf
+You shuold create the file if it does not exist.
+
+```txt
+options hailo_pci force_desc_page_size=4096
+```
+
+You can do this with the following command.
+Somtimes there are permission issue, so you may need to use editor with sudo rights. See below.
+
+```bash
+sudo echo 'options hailo_pci force_desc_page_size=4096' >> \
+/etc/modprobe.d/hailo_pci.conf
+```
+
+If this does not work oopen the file with nano and add the line manually.
+(To save the file in nano press Ctrl+X, then Y and Enter.)
+
+```bash
+sudo nano /etc/modprobe.d/hailo_pci.conf
+```
+
+
+###### LD_LIBRARY_PATH issue 
+Shuold be fixed by adding this to your .bashrc file
+```bash
+echo 'export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1' \
+ >> ~/.bashrc
+```
+
+This should fix the error causing some Gstreamer plugins to not load corretly.
+The error message is:
+```bash
+(gst-plugin-scanner:67): GStreamer-WARNING **: 12:20:39.178: Failed to load plugin '/usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstlibav.so': /lib/aarch64-linux-gnu/libgomp.so.1: cannot allocate memory in static TLS block
+```
+If you already encountered this error, you can fix it by running the following commands:
+
+```bash
+export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
+rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
 ```
 
 ### Run the Object Detection app
