@@ -4,20 +4,24 @@ This repository contains examples for running Hailo's AI processor on Raspberry 
 ## Pre-requisites:
 You should have Hailo's Driver and software installed on your Raspberry Pi 5.
 Hailo TAPPAS installation is required for running the examples.
-### For installation instructions see [install-raspberry-pi5.md](doc/install-raspberry-pi5.md)
+### Hailo installation: 
+For installation instructions see [install-raspberry-pi5.md](doc/install-raspberry-pi5.md)
 
-#### To run the examples, you should make sure your envirenmet is set up correctly.
-We require hailo pkgconfig file to be in the `PKG_CONFIG_PATH`.
-To run the examples, you should have:
-1. `TAPPAS_LIBDIR` environment variable set to the path of your TAPPAS installation. (/opt/hailo/tappas/lib/aarch64-linux-gnu)
-2. Hailo virtual environment activated.
+### Configure environment:
+To run the examples, you should make sure your environmet is set up correctly.
+We use hailo_tappas pkgconfig file to get Hailo dependencies.
 
 You can set it all up by sourcing the following script:
 ```bash
 source setup_env.sh
 ```
+To run the examples, you should have:
+1. `TAPPAS_POST_PROC_DIR` environment variable set to the path of your TAPPAS installation. (On `/usr/lib/aarch64-linux-gnu/hailo/tappas/post-process` as default)
+2. Hailo virtual environment activated.
+
 
 #### Install the required packages:
+Make sure you are in the virtual environment and run the following command:
 ```bash
 pip install -r requirements.txt
 ```
@@ -35,7 +39,7 @@ python hailo_rpi5_examples/pose_estimaton.py --input resources/detection0.mp4
 python hailo_rpi5_examples/instance_segmentation.py --input resources/detection0.mp4
 ```
 
-This examples are running with a USB camera as default. (/dev/video0)
+These examples are running with a USB camera as default. (/dev/video0)
 You can change the input source by using the --input flag.
 To run with a Raspberry Pi camera, you can use --input rpi
 Here are a few examples:
