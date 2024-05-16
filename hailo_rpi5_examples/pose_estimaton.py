@@ -166,7 +166,7 @@ network_width = 640
 network_height = 640
 network_format = "RGB"
 video_sink = "xvimagesink"
-batch_size = 2
+batch_size = 1
 
 
 def parse_arguments():
@@ -204,19 +204,15 @@ class GStreamerApp:
         self.options_menu = args
         
         # Initialize variables
-        tappas_libdir = os.environ.get('TAPPAS_LIBDIR', '')
-        if tappas_libdir == '':
-            print("TAPPAS_LIBDIR environment variable is not set. Please set it to the path of the TAPPAS workspace.")
+        tappas_postprocess_dir = os.environ.get('TAPPAS_POST_PROC_DIR', '')
+        if tappas_postprocess_dir == '':
+            print("TAPPAS_POST_PROC_DIR environment variable is not set. Please set it to by sourcing setup_env.sh")
             exit(1)
         self.current_path = os.path.dirname(os.path.abspath(__file__))
-        self.postprocess_dir = os.path.join(tappas_libdir, 'post_processes')
+        self.postprocess_dir = tappas_postprocess_dir
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolov8pose_post.so')
         self.post_function_name = "filter"
         self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l_pi.hef')
-        # self.postprocess_dir = os.path.join(tappas_workspace, 'apps/h8/gstreamer/libs/post_processes')
-            # self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libcenterpose_post.so')
-            # self.post_function_name = "centerpose"
-        # self.hef_path = os.path.join(self.current_path, '../resources/centerpose_regnetx_1.6gf_fpn.hef')
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
         
