@@ -148,7 +148,7 @@ Part Number: HM218B1C2FAE
 Product Name: HAILO-8 AI ACC M.2 M KEY MODULE EXT TEMP
 ```
 
-##### Trouble shooting
+##### PCIe Trouble shooting
 Make sure the PCIe board and trhe m.2 module are properly connected.
 To test if the PCIe board is recognized by the system, run the following command:
 
@@ -163,13 +163,20 @@ Then the PCIe board is recognized by the system.
 If not check the connection, power supply and make sure the PCIe is enabled see Raspberry Pi documentation.
 If the board is new you may need to update the firmware of the Raspberry Pi 5. 
 
-###### Driver issue
+##### Driver issue
 If you get an error saying Hailo driver is not installed, reinstall the driver and reboot the system.
+```bash
+[HailoRT] [error] Can't find hailo pcie class, this may happen if the driver is not installed (this may happen if the kernel was updated), or if there is no connected Hailo board
+```
+To reinstall the driver run the following command again:
+```bash
+sudo dpkg --install hailort-pcie-driver_4.17.0_all.deb
+```
 
-#### Istall TAPPAS core
+### Install TAPPAS core
 
 ```bash
-sudo dpkg -i tappas_3.28.1_arm64.deb
+sudo dpkg --install hailo-tappas-core_3.28.1_arm64.deb
 ```
 
 #### Installation should be completed by rebooting the system.
@@ -227,7 +234,15 @@ Plugin Details:
   3 features:
   +-- 3 elements
 ```
+##### If everything is ok you can continue installing the [hailo_rpi5_examples.](../README.md#configure-environment)
 
+## Trouble shooting
+If you get an error saying the plugin is not found, you may need to clear the GStreamer cache.
+
+```bash
+rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
+```
+#### The issues below should be handled by the installation script, but if you encounter them you can fix them manually.
 
 ##### PCIe Page size issue
 Add the following line to /etc/modprobe.d/hailo_pci.conf
@@ -272,43 +287,3 @@ export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1
 rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
 ```
 
-### Run the Object Detection app
-#### Note The TAPPAS applications are not built for RPi and some of them will not work. The detection app shuold work and you can use it to verify you installation. Please go back to the Hailo RPi examples doc to install RPi apps.
-
-The TAPPAS applications come with video files and different AI networks as Hailo Executable File (HEF).
-You can run any application by running a script file in each app folder.
-
-```bash
-cd [your-install-path]/tappas/apps/h8/gstreamer/general/detection
-./detection.sh
-```
-
-
-![TAPPAS Object Detection app](./images/tappas-detection.png)
-
-### Run the Object Detection app with a USB camera
-
-The object detection app can also be used with a USB camera that supports Video4Linux (v4l2) e.g. Logitech BRIO. Connect your camera and run the following command. You may need to find the right video device in the /dev directory.
-
-```bash
-./detection.sh -i /dev/video0
-```
-Additional options are shown when using the --help parameter.
-
-### Hailo Monitor
-
-The HailoRT CLI monitor command prints to the screen information about the models and devices which are currently running. The information is updated every second.
-
-Usage steps:
-In the app’s process, set the HAILO_MONITOR environment variable and run the inference application.
-```bash
-export HAILO_MONITOR=1
-./detection.sh -i /dev/video0
-```
-
-In a second TAPPAS docker instance run:
-```bash
-hailortcli monitor
-```
-
-![HailoRT monitor](./images/hailort-monitor.png)
