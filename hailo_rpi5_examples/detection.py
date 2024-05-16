@@ -126,12 +126,9 @@ network_format = "RGB"
 video_sink = "xvimagesink"
 batch_size = 1
 
-# If TAPPAS version is 3.26.0 or higher, use the following parameters:
 nms_score_threshold=0.3 
 nms_iou_threshold=0.45
 thresholds_str=f"nms-score-threshold={nms_score_threshold} nms-iou-threshold={nms_iou_threshold} output-format-type=HAILO_FORMAT_TYPE_FLOAT32"
-# else (TAPPAS version is 3.25.0)
-# thresholds_str=""
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Detection App")
