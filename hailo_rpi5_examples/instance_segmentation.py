@@ -163,12 +163,12 @@ class GStreamerApp:
         self.options_menu = args
         
         # Initialize variables
-        tappas_libdir = os.environ.get('TAPPAS_LIBDIR', '')
-        if tappas_libdir == '':
-            print("TAPPAS_LIBDIR environment variable is not set. Please set it to the path of the TAPPAS workspace.")
+        tappas_postprocess_dir = os.environ.get('TAPPAS_POST_PROC_DIR', '')
+        if tappas_postprocess_dir == '':
+            print("TAPPAS_POST_PROC_DIR environment variable is not set. Please set it to by sourcing setup_env.sh")
             exit(1)
         self.current_path = os.path.dirname(os.path.abspath(__file__))
-        self.postprocess_dir = os.path.join(tappas_libdir, 'post_processes')
+        self.postprocess_dir = tappas_postprocess_dir
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
         self.default_network_name = "yolov5seg"
         self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg_h8l_mz.hef')
