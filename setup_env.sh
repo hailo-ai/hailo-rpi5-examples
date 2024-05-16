@@ -2,6 +2,7 @@
 
 # Define the name of the virtual environment
 VENV_NAME="venv_hailo_rpi5_examples"
+REQUIRED_TAAPAS_VERSION="3.28.1"
 
 # Function to check if the script is being sourced
 is_sourced() {
@@ -16,11 +17,11 @@ if is_sourced; then
     # Get the TAPPAS_VERSION
     TAPPAS_VERSION=$(echo $TAPPAS_VERSION)
 
-    # Check if TAPPAS_VERSION is 3.28.1
-    if [ "$TAPPAS_VERSION" == "3.28.1" ]; then
-        echo "TAPPAS_VERSION is 3.28.1"
+    # Check if TAPPAS_VERSION is REQUIRED_TAAPAS_VERSION
+    if [ "$TAPPAS_VERSION" == $REQUIRED_TAAPAS_VERSION ]; then
+        echo "TAPPAS_VERSION is ${TAPPAS_VERSION}. Proceeding..."
     else
-        echo "TAPPAS_VERSION is not 3.28.1. Please ensure that TAPPAS_VERSION is set to 3.28.1."
+        echo "TAPPAS_VERSION is not the required version ${REQUIRED_TAPPAS_VERSION}."
     fi
     
     # Get the directory of the current script
