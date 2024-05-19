@@ -1,8 +1,4 @@
 
-<style>
-#term {color: white; background: black}
-</style>
-
 # HowTo setup Raspberry Pi 5 and Hailo-8L
 
 In this guide, you will learn how to set up the Raspberry Pi 5 with a Hailo-8L AI accelerator.
@@ -49,58 +45,6 @@ Select Raspberry Pi OS (64-bit)
 ![Raspberry Pi Imager Select OS](./images/RPI_select_os.png)
 
 ### Update System
-```bash
-sudo apt update
-sudo apt upgrade
-```
-
-### Installing Requirements
-
-#### Driver Requirements
-```bash
-sudo apt-get install -y raspberrypi-kernel-headers build-essential dkms
-```
-
-#### TAPPAS Requirements
-The following APT packages need to be installed:
-```bash
-sudo apt-get install -y rsync ffmpeg x11-utils python3-dev \
-python3-pip python3-setuptools python3-virtualenv \
-python-gi-dev libgirepository1.0-dev gcc-12 g++-12 cmake git \
-libzmq3-dev libopencv-dev python3-opencv libcairo2-dev \
-libgirepository1.0-dev libgstreamer1.0-dev \
-libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
-gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x \
-gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
-gstreamer1.0-qt5 gstreamer1.0-pulseaudio \
-gstreamer1.0-libcamera python-gi-dev python3-gi python3-gi-cairo \
-gir1.2-gtk-3.0
-```
-#### You may need to run the following command to fix apt dependencies
-```bash
-sudo apt-get --fix-broken install
-```
-
-### Set PCIe to Gen3
-Add the following line to /boot/firmware/config.txt:
-```bash
-sudo nano /boot/firmware/config.txt
-# add the following line to the end of the file
-dtparam=pciex1_gen=3
-```
-For more information, see:
-https://www.jeffgeerling.com/blog/2023/forcing-pci-express-gen-30-speeds-on-pi-5
-
-### Install PCIe Driver
-```bash
-sudo dpkg --install hailort-pcie-driver_4.17.0_all.deb
-```
-
-### Installing HailoRT
-```bash
-sudo dpkg --install hailort_4.17.0_arm64.deb
 ```
 When asked "Do you wish to activate hailort service? (required for most pyHailoRT use cases) [y/N]" press "N".
 Service can be activated later if needed.
