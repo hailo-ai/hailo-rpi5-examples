@@ -13,20 +13,21 @@ In this guide, you will learn how to set up the Raspberry Pi 5 with a Hailo-8L A
 - Raspberry Pi 5
 - Raspberry M.2 M-Key HAT
 - Hailo8L M.2 module (Hailo-8 is also supported)
-- From the Hailo Developer Zone:
-  - HailoRT – PCIe driver Ubuntu package (deb) version 4.17.0
-    - hailort-pcie-driver_4.17.0_all.deb
-  - HailoRT Ubuntu package (deb) version 4.17.0
-    - hailort_4.17.0_arm64.deb
+- Thermal pad
+- Optional: Heat sink
+- Optional: Raspberry Pi Camera Module v3
+- Optional: USB camera
 
 ## Hardware
-For this guide, the Raspberry Pi 5 (8 GB RAM) model with the official Active Cooler and 27W USB-C Power Supply was used. The official USB-C power supply is recommended to ensure the board can supply power to the M.2 hat.
+For this guide, the Raspberry Pi 5 (8 GB RAM) model with the official Active Cooler and 27W USB-C Power Supply was used. The official USB-C power supply is recommended to ensure the board can supply power to the M.2 HAT.
+
 
 ![Raspberry Pi 5](./images/Raspberry_Pi_5.png)
 
-### Raspberry Pi M.2 M-Key Hat
+### Raspberry Pi M.2 M-Key HAT
 The Raspberry Pi M.2 M-Key Hat can be used with the Hailo-8L M.2 key M or B+M. (Hailo-8 is also supported)
-
+When installing the M.2 module, make sure to use the thermal pad to ensure proper heat dissipation.
+If your project is encapsulated in a case, make sure to have proper ventilation to avoid overheating. If required, add a heat sink to the Hailo-8L module.
 ![Raspberry Pi M.2 HAT](./images/Raspberry_Pi_5_Hailo-8.png)
 
 ## Software
