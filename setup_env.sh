@@ -2,7 +2,7 @@
 
 # Define the name of the virtual environment
 VENV_NAME="venv_hailo_rpi5_examples"
-REQUIRED_TAAPAS_VERSION="3.28.1"
+REQUIRED_TAAPAS_VERSION="3.28.2"
 
 # Function to check if the script is being sourced
 is_sourced() {

@@ -148,7 +148,7 @@ Plugin Details:
   Name                     hailotools
   Description              hailo tools plugin
   Filename                 /lib/aarch64-linux-gnu/gstreamer-1.0/libgsthailotools.so
-  Version                  3.28.1
+  Version                  3.28.2
   License                  unknown
   Source module            gst-hailo-tools
   Binary package           gst-hailo-tools
