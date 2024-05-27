@@ -53,7 +53,7 @@ pip install -r requirements.txt
 This example demonstrates object detection. As Default it uses YOLOv6n model.
 To run the example use:
 ```bash
-python basic_piplines/detection.py --input resources/detection0.mp4
+python basic_pipelines/detection.py --input resources/detection0.mp4
 ```
 For more details about the detection example, see the [detection example documentation](doc/basic-pipelines.md#detection-example).
 
@@ -62,7 +62,7 @@ For more details about the detection example, see the [detection example documen
 This example demonstrates human pose estimation. It uses yolov8s_pose model.
 To run the example use:
 ```bash
-python basic_piplines/pose_estimation.py --input resources/detection0.mp4
+python basic_pipelines/pose_estimation.py --input resources/detection0.mp4
 ```
 For more details about the pose estimation example, see the [pose estimation example documentation](doc/basic-pipelines.md#pose-estimation-example).
 
@@ -71,7 +71,7 @@ For more details about the pose estimation example, see the [pose estimation exa
 This example demonstrates instance segmentation. It uses yolov5n_seg model.
 To run the example use:
 ```bash
-python basic_piplines/instance_segmentation.py --input resources/detection0.mp4
+python basic_pipelines/instance_segmentation.py --input resources/detection0.mp4
 ```
 For more details about the instance segmentation example, see the [instance segmentation example documentation](doc/basic-pipelines.md#instance-segmentation-example).
 
