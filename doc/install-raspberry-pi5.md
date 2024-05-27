@@ -99,7 +99,7 @@ For more information see:
 ```bash
 sudo apt install hailort-pcie-driver
 ```
-When asked "Do you wish to use DKMS? [Y/n]: " press "Y". 
+When asked "Do you wish to use DKMS? [Y/n]: " press "N". 
 ### Installing HailoRT
 
 ```bash
@@ -222,6 +222,11 @@ sudo dpkg --install hailort-pcie-driver_4.17.0_all.deb
 The issues below should be handled by the TAPPAS Core installation deb, but if you encounter them you can fix them manually.
 
 ### PCIe Page Size Issue
+Some hosts does not support certain PCIe descriptor page size.
+If you get an error which looks like this:
+```bash
+[HailoRT] [error] CHECK_AS_EXPECTED failed - max_desc_page_size given 16384 is bigger than hw max desc page size 4096"
+```
 Add the following line to /etc/modprobe.d/hailo_pci.conf. You should create the file if it does not exist.
 ```txt
 options hailo_pci force_desc_page_size=4096
