@@ -12,7 +12,9 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
     - [Requirements Installation](#requirements-installation)
     - [Resources Download](#resources-download)
   - [Running the Examples](#running-the-examples)
-  - [Adding Your Own Code](#adding-your-own-code)
+    - [Detection Example](#detection-example)
+    - [Pose Estimation Example](#pose-estimation-example)
+    - [Instance Segmentation Example](#instance-segmentation-example)
   - [Contributing](#contributing)
   - [License](#license)
   - [Disclaimer](#disclaimer)
@@ -45,28 +47,33 @@ pip install -r requirements.txt
 ```
 
 ## Running the Examples
-After setting up the environment (source setup_env.sh), you can run the examples by executing the following commands:
-```bash
-python hailo_rpi5_examples/detection.py --input resources/detection0.mp4
-python hailo_rpi5_examples/pose_estimation.py --input resources/detection0.mp4
-python hailo_rpi5_examples/instance_segmentation.py --input resources/detection0.mp4
-```
 
-These examples run with a USB camera by default (/dev/video0). You can change the input source using the --input flag. To run with a Raspberry Pi camera, use `--input rpi`. Here are a few examples:
+### Detection Example
+![Banner](doc/images/detection.gif)
+This example demonstrates object detection. As Default it uses YOLOv6n model.
+To run the example use:
 ```bash
-python hailo_rpi5_examples/detection.py --input /dev/video2
-python hailo_rpi5_examples/detection.py --input rpi
-python hailo_rpi5_examples/detection.py --input resources/detection0.mp4
+python basic_piplines/detection.py --input resources/detection0.mp4
 ```
-See the help for more options:
-```bash
-python hailo_rpi5_examples/detection.py --help
-python hailo_rpi5_examples/pose_estimation.py --help
-python hailo_rpi5_examples/instance_segmentation.py --help
-```
+For more details about the detection example, see the [detection example documentation](doc/basic-pipelines.md#detection-example).
 
-## Adding Your Own Code
-You can add your own code to the examples by editing the "app_callback" function in the examples. See the example code for more details. In the examples, you'll also find an "app_callback_class" example to pass user data to the callback function. Each example includes code for parsing the metadata inferred by the network. Note that extracting the video frame and displaying it can slow down the application. The way it is used is not optimized and is shown as a simple example.
+### Pose Estimation Example
+![Banner](doc/images/pose_estimation.gif)
+This example demonstrates human pose estimation. It uses yolov8s_pose model.
+To run the example use:
+```bash
+python basic_piplines/pose_estimation.py --input resources/detection0.mp4
+```
+For more details about the pose estimation example, see the [pose estimation example documentation](doc/basic-pipelines.md#pose-estimation-example).
+
+### Instance Segmentation Example
+![Banner](doc/images/instance_segmentation.gif)
+This example demonstrates instance segmentation. It uses yolov5n_seg model.
+To run the example use:
+```bash
+python basic_piplines/instance_segmentation.py --input resources/detection0.mp4
+```
+For more details about the instance segmentation example, see the [instance segmentation example documentation](doc/basic-pipelines.md#instance-segmentation-example).
 
 ## Contributing
 We welcome contributions from the community.
