@@ -6,8 +6,11 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 ## Table of Contents
 - [Hailo Raspberry Pi 5 examples](#hailo-raspberry-pi-5-examples)
   - [Table of Contents](#table-of-contents)
-  - [Pre-requisites](#pre-requisites)
-    - [Hailo Packages Installation](#hailo-packages-installation)
+  - [Hailo Packages Installation](#hailo-packages-installation)
+  - [Available Examples and Resources](#available-examples-and-resources)
+    - [Hailo examples](#hailo-examples)
+    - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
+  - [Basic Pipelines](#basic-pipelines)
     - [Environment Configuration](#environment-configuration)
     - [Requirements Installation](#requirements-installation)
     - [Resources Download](#resources-download)
@@ -21,11 +24,21 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 
 ![Raspberry Pi 5 with Hailo M.2](doc/images/Raspberry_Pi_5_Hailo-8.png)
 
-## Pre-requisites
-You should have Hailo's driver and software installed on your Raspberry Pi 5. Hailo TAPPAS installation is required for running the examples.
-
-### Hailo Packages Installation
+## Hailo Packages Installation
 For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md).
+
+## Available Examples and Resources
+### Hailo examples
+- [Basic Pipelines (Python)](#basic-pipelines)
+  - [Detection Example](#detection-example)
+  - [Pose Estimation Example](#pose-estimation-example)
+  - [Instance Segmentation Example](#instance-segmentation-example)
+- [CLIP Application (Python)]()
+
+### Raspberry Pi Official Examples
+- [Raspberry Pi rpicam_apps post process](#rpicam_app-examples)
+  
+## Basic Pipelines
 
 ### Environment Configuration
 To run the examples, you should ensure your environment is set up correctly. We use the hailo-tappas-core pkgconfig file to get Hailo dependencies.
