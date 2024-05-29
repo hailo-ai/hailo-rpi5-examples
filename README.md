@@ -1,23 +1,18 @@
 
 ![Banner](doc/images/hailo_rpi_examples_banner.png)
-# Hailo Raspberry Pi 5 examples
+
+# Hailo Raspberry Pi 5 Examples
+
 Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases various examples demonstrating the capabilities of the Hailo AI processor on a Raspberry Pi 5. These examples will help you get started with AI on embedded devices.
 
 ## Table of Contents
-- [Hailo Raspberry Pi 5 examples](#hailo-raspberry-pi-5-examples)
+
+- [Hailo Raspberry Pi 5 Examples](#hailo-raspberry-pi-5-examples)
   - [Table of Contents](#table-of-contents)
   - [Hailo Packages Installation](#hailo-packages-installation)
   - [Available Examples and Resources](#available-examples-and-resources)
-    - [Hailo examples](#hailo-examples)
+    - [Hailo Examples](#hailo-examples)
     - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
-  - [Basic Pipelines](#basic-pipelines)
-    - [Environment Configuration](#environment-configuration)
-    - [Requirements Installation](#requirements-installation)
-    - [Resources Download](#resources-download)
-  - [Running the Examples](#running-the-examples)
-    - [Detection Example](#detection-example)
-    - [Pose Estimation Example](#pose-estimation-example)
-    - [Instance Segmentation Example](#instance-segmentation-example)
   - [Contributing](#contributing)
   - [License](#license)
   - [Disclaimer](#disclaimer)
@@ -25,78 +20,37 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 ![Raspberry Pi 5 with Hailo M.2](doc/images/Raspberry_Pi_5_Hailo-8.png)
 
 ## Hailo Packages Installation
+
 For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md).
 
 ## Available Examples and Resources
-### Hailo examples
+
+### Hailo Examples
+
 - [Basic Pipelines (Python)](#basic-pipelines)
+  These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
   - [Detection Example](#detection-example)
+  ![Detection Example](doc/images/detection.gif)
   - [Pose Estimation Example](#pose-estimation-example)
+  ![Banner](doc/images/pose_estimation.gif)
   - [Instance Segmentation Example](#instance-segmentation-example)
-- [CLIP Application (Python)]()
+  ![Banner](doc/images/instance_segmentation.gif)
 
 ### Raspberry Pi Official Examples
-- [Raspberry Pi rpicam_apps post process](#rpicam_app-examples)
-  
-## Basic Pipelines
 
-### Environment Configuration
-To run the examples, you should ensure your environment is set up correctly. We use the hailo-tappas-core pkgconfig file to get Hailo dependencies.
-
-You can set it all up by sourcing the following script. This script will set the required environment variables and activate the Hailo virtual environment (if it doesn't exist, it will create it).
-```bash
-source setup_env.sh
-```
-
-### Requirements Installation
-Make sure you are in the virtual environment and run the following command:
-```bash
-pip install -r requirements.txt
-```
-
-### Resources Download
-```bash
-./download_resources.sh
-```
-
-## Running the Examples
-
-### Detection Example
-![Banner](doc/images/detection.gif)
-This example demonstrates object detection. As Default it uses YOLOv6n model.
-To run the example use:
-```bash
-python basic_pipelines/detection.py --input resources/detection0.mp4
-```
-For more details about the detection example, see the [detection example documentation](doc/basic-pipelines.md#detection-example).
-
-### Pose Estimation Example
-![Banner](doc/images/pose_estimation.gif)
-This example demonstrates human pose estimation. It uses yolov8s_pose model.
-To run the example use:
-```bash
-python basic_pipelines/pose_estimation.py --input resources/detection0.mp4
-```
-For more details about the pose estimation example, see the [pose estimation example documentation](doc/basic-pipelines.md#pose-estimation-example).
-
-### Instance Segmentation Example
-![Banner](doc/images/instance_segmentation.gif)
-This example demonstrates instance segmentation. It uses yolov5n_seg model.
-To run the example use:
-```bash
-python basic_pipelines/instance_segmentation.py --input resources/detection0.mp4
-```
-For more details about the instance segmentation example, see the [instance segmentation example documentation](doc/basic-pipelines.md#instance-segmentation-example).
+- [Raspberry Pi rpicam_apps AI post-process](#rpicam_app-examples)
+  This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework.
 
 ## Contributing
-We welcome contributions from the community.
-For now, you can contribute by:
+
+We welcome contributions from the community. You can contribute by:
 1. Opening a pull request.
 2. Reporting issues and bugs.
 3. Suggesting new features or improvements.
 4. Joining the discussion on the [Hailo Community Forum](https://community.hailo.ai/).
 
 ## License
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Disclaimer
