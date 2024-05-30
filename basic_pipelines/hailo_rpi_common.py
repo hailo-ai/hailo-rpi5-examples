@@ -75,8 +75,8 @@ def display_user_data_frame(user_data: app_callback_class):
         cv2.waitKey(1)
     cv2.destroyAllWindows()
     
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Detection App")
+def get_default_parser():
+    parser = argparse.ArgumentParser(description="Hailo App Help")
     parser.add_argument("--input", "-i", type=str, default="/dev/video0", help="Input source. Can be a file, USB or RPi camera (CSI camera module). \
                         For RPi camera use '-i rpi'. \
                         Defaults to /dev/video0")
@@ -84,7 +84,8 @@ def parse_arguments():
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
     parser.add_argument("--disable-sync", action="store_true", help="Disables display sink sync, will run as fast possible. Relevant when using file source.")
     parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file pipeline.dot")
-    return parser.parse_args()
+    return parser
+
 
 def QUEUE(name, max_size_buffers=3, max_size_bytes=0, max_size_time=0):
     return f"queue name={name} max-size-buffers={max_size_buffers} max-size-bytes={max_size_bytes} max-size-time={max_size_time} ! "

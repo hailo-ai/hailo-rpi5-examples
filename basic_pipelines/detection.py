@@ -11,7 +11,7 @@ import time
 
 import hailo
 from hailo_common_funcs import get_numpy_from_buffer, disable_qos
-from hailo_rpi_common import parse_arguments, QUEUE, get_caps_from_pad, GStreamerApp, app_callback_class
+from hailo_rpi_common import get_default_parser, QUEUE, get_caps_from_pad, GStreamerApp, app_callback_class
 
 # -----------------------------------------------------------------------------------------------
 # User defined class to be used in the callback function
@@ -93,12 +93,22 @@ class GStreamerDetectionApp(GStreamerApp):
         super().__init__(args, user_data)
         # Additional initialization code can be added here
         # Set Hailo parameters these parameters shuold be set based on the model used
-        self.batch_size = 1
+        self.batch_size = 2
         self.network_width = 640
         self.network_height = 640
         self.network_format = "RGB"
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolo_hailortpp_post.so')
-        self.hef_path = os.path.join(self.current_path, '../resources/yolov6n.hef')
+
+        # Set the HEF file path based on the network
+        if args.network == "yolov6n":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov6n.hef')
+        elif args.network == "yolov8s":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_h8l.hef')
+        elif args.network == "yolox_s_leaky":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolox_s_leaky_h8l_mz.hef')
+        else:
+            assert False, "Invalid network type"
+
         self.app_callback = app_callback
     
         nms_score_threshold = 0.3 
@@ -157,6 +167,9 @@ class GStreamerDetectionApp(GStreamerApp):
         return pipeline_string
 
 if __name__ == "__main__":
-    args = parse_arguments()
+    parser = get_default_parser()
+    # Add additional arguments here
+    parser.add_argument("--network", default="yolov6n", choices=['yolov6n', 'yolov8s', 'yolox_s_leaky'], help="Which Network to use, defult is yolov6n")
+    args = parser.parse_args()
     app = GStreamerDetectionApp(args, user_data)
     app.run()

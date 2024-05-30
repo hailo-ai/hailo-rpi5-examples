@@ -72,9 +72,9 @@ sudo apt install hailo-all rpicam-apps-hailo
 ```
 This will install the following software components:
 - Hailo firmware
-- HailoRT middleware software
-- Hailo TAPPAS Core package
-- The rpicam-apps Hailo post-processing software demo stages
+- HailoRT runtime software. See [HailoRT GitHub](https://github.com/hailo-ai/hailort) for more information.
+- Hailo TAPPAS Core package. Our application framework. See [Hailo TAPPAS Core GitHub](https://github.com/hailo-ai/tappas) for more information.
+- The `rpicam-apps` Hailo post-processing software demo stages. See [Raspberry Pi Official Examples](../README.md#raspberry-pi-official-examples) for more information.
 
 ##### Reboot your Raspberry Pi.
 ```bash
@@ -159,7 +159,7 @@ rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
 ##### If everything is OK you can continue installing the [hailo_rpi5_examples.](../README.md#configure-environment)
 
 ## Troubleshooting
-
+Got a question? Join the discussion on [Hailo Community Forum](https://community.hailo.ai/).
 ### PCIe Troubleshooting
 Make sure the PCIe board and the M.2 module are properly connected. To test if the PCIe board is recognized by the system, run the following command:
 ```bash

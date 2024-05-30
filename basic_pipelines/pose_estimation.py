@@ -11,7 +11,7 @@ import time
 
 import hailo
 from hailo_common_funcs import get_numpy_from_buffer, disable_qos
-from hailo_rpi_common import parse_arguments, QUEUE, get_caps_from_pad, GStreamerApp, app_callback_class
+from hailo_rpi_common import get_default_parser, QUEUE, get_caps_from_pad, GStreamerApp, app_callback_class
 
 # -----------------------------------------------------------------------------------------------
 # User defined class to be used in the callback function
@@ -128,7 +128,7 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         super().__init__(args, user_data)
         # Additional initialization code can be added here
         # Set Hailo parameters these parameters shuold be set based on the model used
-        self.batch_size = 1
+        self.batch_size = 2
         self.network_width = 640
         self.network_height = 640
         self.network_format = "RGB"
@@ -189,6 +189,7 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         return pipeline_string
     
 if __name__ == "__main__":
-    args = parse_arguments()
+    parser = get_default_parser()
+    args = parser.parse_args()
     app = GStreamerPoseEstimationApp(args, user_data)
     app.run()

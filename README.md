@@ -4,6 +4,7 @@
 # Hailo Raspberry Pi 5 Examples
 
 Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases various examples demonstrating the capabilities of the Hailo AI processor on a Raspberry Pi 5. These examples will help you get started with AI on embedded devices.
+Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
 
 ## Table of Contents
 
@@ -21,24 +22,24 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 
 ## Hailo Packages Installation
 
-For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md).
+For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo-8l).
 
 ## Available Examples and Resources
 
 ### Hailo Examples
 
-- [Basic Pipelines (Python)](#basic-pipelines)
+- [Basic Pipelines (Python)](doc/basic-pipelines.md#hailo-rpi5-basic-pipelines)
   These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
-  - [Detection Example](#detection-example)
+  - [Detection Example](doc/basic-pipelines.md#detection-example)
   ![Detection Example](doc/images/detection.gif)
-  - [Pose Estimation Example](#pose-estimation-example)
-  ![Banner](doc/images/pose_estimation.gif)
-  - [Instance Segmentation Example](#instance-segmentation-example)
-  ![Banner](doc/images/instance_segmentation.gif)
+  - [Pose Estimation Example](doc/basic-pipelines.md#pose-estimation-example)
+  ![Pose Estimation Example](doc/images/pose_estimation.gif)
+  - [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
+  ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
 
 ### Raspberry Pi Official Examples
 
-- [Raspberry Pi rpicam_apps AI post-process](#rpicam_app-examples)
+- Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post process examples.
   This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework.
 
 ## Contributing
