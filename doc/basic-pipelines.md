@@ -42,6 +42,7 @@ For more information about TAPPAS pipelines and elements see [TAPPAS Documentati
 
 # Detection Example
 ![Banner](images/detection.gif)
+
 This example demonstrates object detection. It uses YOLOv6n model as default. It supports also yolov8s and yolox_s_leaky models.
 It uses Hailo's NMS (Non-Maximum Suppression) layer as part of the HEF file, so all detection networks which are compiled with NMS can be used with the same code.
 
@@ -71,6 +72,7 @@ In this example we show and example how to add more options to the command line.
 
 # Pose Estimation Example
 ![Banner](images/pose_estimation.gif)
+
 This example demonstrates human pose estimation. It uses yolov8s_pose model.
 
 #### To run the example use:
@@ -90,6 +92,7 @@ The keypoints dictionary can be obtained from the ```get_keypoints``` function.
 
 # Instance Segmentation Example
 ![Banner](images/instance_segmentation.gif)
+
 This example demonstrates instance segmentation. It uses yolov5n_seg model.
 #### To run the example use:
 ```bash
