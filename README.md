@@ -14,6 +14,8 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
   - [Available Examples and Resources](#available-examples-and-resources)
     - [Hailo Examples](#hailo-examples)
     - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
+      - [rpicam-apps](#rpicam-apps)
+      - [picamera2 - Comming Soon](#picamera2---comming-soon)
   - [Contributing](#contributing)
   - [License](#license)
   - [Disclaimer](#disclaimer)
@@ -38,9 +40,13 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
   ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
 
 ### Raspberry Pi Official Examples
-
-- Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post process examples.
+#### rpicam-apps
+  Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post process examples.
   This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework.
+#### picamera2 - Comming Soon
+  Raspberry Pi [picamera2](https://github.com/raspberrypi/picamera2) is the libcamera-based replacement for Picamera which was a Python interface to the Raspberry Pi's legacy camera stack. Picamera2 also presents an easy to use Python API.
+
+
 
 ## Contributing
 
