@@ -6,6 +6,9 @@ It is built to allow you to use these applications as a basis for your own proje
 ### Clone the Repository
 ```bash
 git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
+```
+Enter the repository directory:
+```bash
 cd hailo-rpi5-examples
 ```
 
@@ -30,21 +33,16 @@ pip install -r requirements.txt
 
 ## Application Structure
 
-#### User defined data class (user_app_callback_class):
-This is a user defined class to be used in the callback function. It inherits from ```hailo_rpi_common::app_callback_class``` and can be extended with user-defined variables and functions.
-It is an example of how to extend the base callback class with additional variables and methods specific to the application.
+#### User-defined Data Class (user_app_callback_class)
+This user-defined class is passed as an input to the callback function, which runs on the pipeline output. It is used for communication between the main application and the callback function. It extends `hailo_rpi_common::app_callback_class` and can be customized with additional variables and methods specific to the application.
+
+#### Application Callback Function (app_callback)
+**This is where you should add your code.** A user-defined function that processes each frame in the pipeline. It is called from the "identity_callback" element in the pipeline, placed after the network inference and post-processing. The GStreamer buffer passed as an input to this function includes the network output as Hailo Metadata and the frame itself. Each example demonstrates how to parse the specific metadata for its task. For more information on Hailo Metadata objects, refer to the [Hailo Objects API](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/docs/write_your_own_application/hailo-objects-api.rst#L4) in the TAPPAS documentation.
+
+#### GStreamer Application Class (GStreamerApp)
+**No changes needed for using the basic pipelines.** This class sets up the GStreamer pipeline and handles events and callbacks, extending `hailo_rpi_common::GStreamerApp`. Applications can modify network parameters and the pipeline by overloading the `get_pipeline_string` function. For more details on TAPPAS pipelines and elements, see the [TAPPAS Documentation](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/docs/TAPPAS_architecture.rst).
 
 
-#### Application Callback function (app_callback): 
-**This is where you should add your code.** A user-defined callback function that processes each frame passing through the pipeline. Each example includes code for parsing the metadata inferred by the network.
-This callback is called from the "identity_callback" element in the pipeline. It is placed after the network inference and the post process. So the buffer you get includes the network output, as Hailo Metadata, and the actual frame passed in the pipeline. You can use the user_app_callback_class to pass data between the main application and the callback. See for example how user frames are sent to display in the examples. For details about getting the frame buffer itself see [Using the frame buffer section](#using-the-frame-buffer).
-For more information about Hailo Metadata objects see [Hailo Objects API](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/docs/write_your_own_application/hailo-objects-api.rst#L4) in the Tappas documentation.
-
-#### Gstreamer Application Class (GStreamerApp):
-**For using the basic pipelines you don't need to change this class.**
-This is the class which set up the GStreamer pipeline and handles events and callbacks. It inherits from ```hailo_rpi_common::GStreamerApp```.
-Each application can change the network parameters and the pipeline used. The pipeline is defined by overloading the ```get_pipeline_string``` function.
-For more information about TAPPAS pipelines and elements see [TAPPAS Documentation](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/docs/TAPPAS_architecture.rst).
 
 # Detection Example
 ![Banner](images/detection.gif)
