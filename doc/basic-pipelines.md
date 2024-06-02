@@ -3,6 +3,12 @@ This repository contains examples of basic pipelines for Hailo's RPi5 platform. 
 It is built to allow you to use these applications as a basis for your own projects.
 
 ## Installation
+### Clone the Repository
+```bash
+git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
+cd hailo-rpi5-examples
+```
+
 ### Environment Configuration
 To run the examples, you should ensure your environment is set up correctly. We use the hailo-tappas-core pkgconfig file to get Hailo dependencies.
 
@@ -122,7 +128,8 @@ Hailo App Help
 options:
   -h, --help            show this help message and exit
   --input INPUT, -i INPUT
-                        Input source. Can be a file, USB or RPi camera (CSI camera module). For RPi camera use '-i rpi'. Defaults to /dev/video0
+                        Input source. Can be a file, USB or RPi camera (CSI camera module). For RPi camera use '-i rpi' (Still in Beta). Defaults to
+                        /dev/video0
   --use-frame, -u       Use frame from the callback function
   --show-fps, -f        Print FPS on sink
   --disable-sync        Disables display sink sync, will run as fast possible. Relevant when using file source.
@@ -131,7 +138,9 @@ options:
 See more information on how to use these options below.
 
 ### Running with Different Input Sources
-These examples run with a USB camera by default (/dev/video0). You can change the input source using the --input flag. To run with a Raspberry Pi camera, use `--input rpi`. Here are a few examples:
+These examples run with a USB camera by default (/dev/video0). You can change the input source using the --input flag. 
+To run with a Raspberry Pi camera, use `--input rpi`. (Still in Beta) 
+Here are a few examples:
 ```bash
 python basic_pipelines/detection.py --input /dev/video2
 python basic_pipelines/detection.py --input rpi
@@ -172,3 +181,28 @@ dot -Tpng basic_pipelines/pipeline.dot -o pipeline.png
 Here is an example output of the detection pipeline graph:
 ![detection_pipeline](images/detection_pipeline.png)
 Tip: Right click on the image and select "Open image in new tab" to see the full image.
+
+# Troubleshoting and Known Issues
+If you encounter any issues, please open a ticket in the [Hailo Community Forum](https://community.hailo.ai/).
+It is full with useful information and might already include the solution to your problem.
+
+- RPi camera input is still in Beta. It might not be stable and can cause the application to crash.
+- The frame buffer is not optimized and can slow down the application. It is shown as a simple example.
+- **DEVICE_IN_USE() error.** 
+The `DEVICE_IN_USE()` error typically indicates that the Hailo device (usually `/dev/hailo0`) is currently being accessed or locked by another process. This can happen during concurrent access attempts or if a previous process did not terminate cleanly, leaving the device in a locked state. See community forum [topic](https://community.hailo.ai/t/resolving-device-in-use-error-for-hailo-devices/18?u=giladn) for more information.
+
+  **Steps to Resolve:**
+
+  1. **Identify the Device:**
+  Typically, the Hailo device is located at `/dev/hailo0`. Ensure that this is the correct device file for your setup.
+
+  2. **Find Processes Using the Device:**
+  Run the following command to list any processes currently using the Hailo device:
+  ```bash
+  sudo lsof /dev/hailo0
+  ```
+  3. **Terminate Processes:**
+  Use the PID (Process ID) from the output of the previous command to terminate the process. Replace `<PID>` with the actual PID.
+  ```bash
+  sudo kill -9 <PID>
+  ```

@@ -42,11 +42,11 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
 ### Raspberry Pi Official Examples
 #### rpicam-apps
   Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post process examples.
-  This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework.
+  This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework. 
+  The documentation on how to use the rpicam-apps can be found [here](https://www.raspberrypi.com/documentation/accessories/ai-kit.html).
+
 #### picamera2 - Comming Soon
   Raspberry Pi [picamera2](https://github.com/raspberrypi/picamera2) is the libcamera-based replacement for Picamera which was a Python interface to the Raspberry Pi's legacy camera stack. Picamera2 also presents an easy to use Python API.
-
-
 
 ## Contributing
 
