@@ -55,7 +55,9 @@ sudo apt full-upgrade
 This will update your system to the latest Raspberry Pi kernel, which includes Hailo driver support.
 
 ### Set PCIe to Gen3
-Setting Gen3 PCIe is required to get higher performance from the Hailo device. Open the Raspberry Pi configuration tool:
+To achieve optimal performance from the Hailo device, it is necessary to set PCIe to Gen3. While using Gen2 is an option, it will result in lower performance.
+
+Open the Raspberry Pi configuration tool:
 ```bash
 sudo raspi-config
 ```
@@ -72,8 +74,9 @@ sudo apt install hailo-all
 ```
 This will install the following software components:
 - Hailo firmware
-- HailoRT runtime software. See [HailoRT GitHub](https://github.com/hailo-ai/hailort) for more information.
-- Hailo TAPPAS Core package. Our application framework. See [Hailo TAPPAS Core GitHub](https://github.com/hailo-ai/tappas) for more information.
+- HailoRT runtime software. See [HailoRT GitHub Repo](https://github.com/hailo-ai/hailort) for more information.
+- Hailo TAPPAS Core package: A derivative of the TAPPAS repository, this core package includes GStreamer elements, post-processing functions, and additional tools used by this repository. It is essential for developing applications on the Pi but does not include standalone applications. See [Hailo TAPPAS GitHub](https://github.com/hailo-ai/tappas) for more information and documentation
+- .
 - The `rpicam-apps` Hailo post-processing software demo stages. See [Raspberry Pi Official Examples](../README.md#raspberry-pi-official-examples) for more information.
 
 ##### Reboot your Raspberry Pi.
@@ -103,10 +106,12 @@ If you don't see this output, check the [PCIe troubleshooting](#pcie-troubleshoo
 
 #### Test TAPPAS Core installation by running the following commands:
 
-Hailotools:
+Hailotools: (TAPPAS Gstreamer elements)
 ```bash
 gst-inspect-1.0 hailotools
-# expected result:
+```
+expected result:
+```
 Plugin Details:
   Name                     hailotools
   Description              hailo tools plugin
@@ -131,10 +136,12 @@ Plugin Details:
   hailonvalve: HailoNValve element
 ```
 
-Hailonet:
+Hailonet: (HailoRT inference Gstreamer element)
 ```bash
 gst-inspect-1.0 hailo
-# expected result:
+```
+expected result:
+```
 Plugin Details:
   Name                     hailo
   Description              hailo gstreamer plugin
