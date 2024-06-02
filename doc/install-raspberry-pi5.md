@@ -68,7 +68,7 @@ sudo reboot
 ### Install Hailo Software
 Install all the necessary software to get the Raspberry Pi AI Kit working. To do this, run the following command from a terminal window:
 ```bash
-sudo apt install hailo-all rpicam-apps-hailo
+sudo apt install hailo-all
 ```
 This will install the following software components:
 - Hailo firmware
