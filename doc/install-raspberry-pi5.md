@@ -18,8 +18,7 @@ In this guide, you will learn how to set up the Raspberry Pi 5 with a Hailo-8L A
 - Optional: USB camera
 
 ## Hardware
-For this guide, the Raspberry Pi 5 (8 GB RAM) model with the official Active Cooler and 27W USB-C Power Supply was used. The official USB-C power supply is recommended to ensure the board can supply power to the M.2 HAT.
-
+For this guide, we used the Raspberry Pi 5 model along with the official Active Cooler and a 27W USB-C Power Supply. We recommend using the official USB-C power supply to ensure the board can adequately power the M.2 HAT.
 
 ![Raspberry Pi 5](./images/Raspberry_Pi_5.png)
 

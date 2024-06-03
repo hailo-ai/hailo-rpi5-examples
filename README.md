@@ -13,6 +13,11 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
   - [Hailo Packages Installation](#hailo-packages-installation)
   - [Available Examples and Resources](#available-examples-and-resources)
     - [Hailo Examples](#hailo-examples)
+      - [Basic Pipelines (Python)](#basic-pipelines-python)
+        - [Detection Example](#detection-example)
+        - [Pose Estimation Example](#pose-estimation-example)
+        - [Instance Segmentation Example](#instance-segmentation-example)
+      - [CLIP Application - Comming Soon](#clip-application---comming-soon)
     - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
       - [rpicam-apps](#rpicam-apps)
       - [picamera2 - Comming Soon](#picamera2---comming-soon)
@@ -30,15 +35,16 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
 
 ### Hailo Examples
 
-- [Basic Pipelines (Python)](doc/basic-pipelines.md#hailo-rpi5-basic-pipelines)
+#### [Basic Pipelines (Python)](doc/basic-pipelines.md#hailo-rpi5-basic-pipelines)
   These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
-  - [Detection Example](doc/basic-pipelines.md#detection-example)
+  ##### [Detection Example](doc/basic-pipelines.md#detection-example)
   ![Detection Example](doc/images/detection.gif)
-  - [Pose Estimation Example](doc/basic-pipelines.md#pose-estimation-example)
+  ##### [Pose Estimation Example](doc/basic-pipelines.md#pose-estimation-example)
   ![Pose Estimation Example](doc/images/pose_estimation.gif)
-  - [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
+  ##### [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
   ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
-
+#### CLIP Application - Comming Soon
+CLIP (Contrastive Language-Image Pretraining), Predict the most relevant text prompt on real-time video frames using the Hailo-8L AI processor.
 ### Raspberry Pi Official Examples
 #### rpicam-apps
   Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post process examples.
