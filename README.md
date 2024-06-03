@@ -53,7 +53,7 @@ CLIP (Contrastive Language-Image Pretraining), Predict the most relevant text pr
   To run an example from the rpicam-apps, follow the instructions below:
   Clone the rpicam-apps repository to get the JSON configuration files
   ```bash
-  git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git .
+  git clone --depth 1 https://github.com/raspberrypi/rpicam-apps.git
   ```
   Change directory to the assets folder and run the example
   ```bash
