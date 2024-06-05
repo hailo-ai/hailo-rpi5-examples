@@ -17,10 +17,10 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
         - [Detection Example](#detection-example)
         - [Pose Estimation Example](#pose-estimation-example)
         - [Instance Segmentation Example](#instance-segmentation-example)
-      - [CLIP Application - Comming Soon](#clip-application---comming-soon)
+      - [CLIP Application - Coming Soon](#clip-application---coming-soon)
     - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
       - [rpicam-apps](#rpicam-apps)
-      - [picamera2 - Comming Soon](#picamera2---comming-soon)
+      - [picamera2 - Coming Soon](#picamera2---coming-soon)
   - [Contributing](#contributing)
   - [License](#license)
   - [Disclaimer](#disclaimer)
@@ -43,7 +43,7 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
   ![Pose Estimation Example](doc/images/pose_estimation.gif)
   ##### [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
   ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
-#### CLIP Application - Comming Soon
+#### CLIP Application - Coming Soon
 CLIP (Contrastive Language-Image Pretraining), Predict the most relevant text prompt on real-time video frames using the Hailo-8L AI processor.
 ### Raspberry Pi Official Examples
 #### rpicam-apps
@@ -61,7 +61,7 @@ CLIP (Contrastive Language-Image Pretraining), Predict the most relevant text pr
   # Run the example
   rpicam-hello -t 0 --post-process-file hailo_yolov6_inference.json --lores-width 640 --lores-height 640
   ```
-#### picamera2 - Comming Soon
+#### picamera2 - Coming Soon
   Raspberry Pi [picamera2](https://github.com/raspberrypi/picamera2) is the libcamera-based replacement for Picamera which was a Python interface to the Raspberry Pi's legacy camera stack. Picamera2 also presents an easy to use Python API.
 
 ## Contributing
