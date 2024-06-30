@@ -37,6 +37,7 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
 
 #### [Basic Pipelines (Python)](doc/basic-pipelines.md#hailo-rpi5-basic-pipelines)
   These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
+  For installation instructions, see [Basic Pipelines Installation Guide](doc/basic-pipelines.md#installation).
   ##### [Detection Example](doc/basic-pipelines.md#detection-example)
   ![Detection Example](doc/images/detection.gif)
   ##### [Pose Estimation Example](doc/basic-pipelines.md#pose-estimation-example)
