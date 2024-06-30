@@ -169,7 +169,7 @@ class GStreamerDetectionApp(GStreamerApp):
 if __name__ == "__main__":
     parser = get_default_parser()
     # Add additional arguments here
-    parser.add_argument("--network", default="yolov6n", choices=['yolov6n', 'yolov8s', 'yolox_s_leaky'], help="Which Network to use, defult is yolov6n")
+    parser.add_argument("--network", default="yolov6n", choices=['yolov6n', 'yolov8s', 'yolox_s_leaky'], help="Which Network to use, default is yolov6n")
     args = parser.parse_args()
     app = GStreamerDetectionApp(args, user_data)
     app.run()
