@@ -8,28 +8,26 @@ import numpy as np
 import setproctitle
 import cv2
 import time
-
 import hailo
-from hailo_common_funcs import get_numpy_from_buffer, disable_qos
-from hailo_rpi_common import get_default_parser, QUEUE, get_caps_from_pad, GStreamerApp, app_callback_class
+from hailo_rpi_common import (
+    get_default_parser,
+    QUEUE,
+    get_caps_from_pad,
+    get_numpy_from_buffer,
+    GStreamerApp,
+    app_callback_class,
+)
 
 # -----------------------------------------------------------------------------------------------
-# User defined class to be used in the callback function
+# User-defined class to be used in the callback function
 # -----------------------------------------------------------------------------------------------
-# iheritance from the app_callback_class
+# Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
-        # self.new_variable = 42 # new variable example
-    
-    # def new_function(self): # new function example
-    #     return "New function example text"
-
-# Create an instance of the class
-user_data = user_app_callback_class()
 
 # -----------------------------------------------------------------------------------------------
-# User defined callback function
+# User-defined callback function
 # -----------------------------------------------------------------------------------------------
 
 # This is the callback function that will be called when data is available from the pipeline
@@ -40,7 +38,7 @@ def app_callback(pad, info, user_data):
     if buffer is None:
         return Gst.PadProbeReturn.OK
         
-    # using the user_data to count the number of frames
+    # Using the user_data to count the number of frames
     user_data.increment()
     string_to_print = f"Frame count: {user_data.get_count()}\n"
     
@@ -50,14 +48,14 @@ def app_callback(pad, info, user_data):
     # If the user_data.use_frame is set to True, we can get the video frame from the buffer
     frame = None
     if user_data.use_frame and format is not None and width is not None and height is not None:
-        # get video frame
+        # Get video frame
         frame = get_numpy_from_buffer(buffer, format, width, height)
-    
-    # get the detections from the buffer
+
+    # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
     
-    # parse the detections
+    # Parse the detections
     for detection in detections:
         label = detection.get_label()
         bbox = detection.get_bbox()
@@ -97,13 +95,13 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
         # Call the parent class constructor
         super().__init__(args, user_data)
         # Additional initialization code can be added here
-        # Set Hailo parameters these parameters shuold be set based on the model used
+        # Set Hailo parameters these parameters should be set based on the model used
         self.batch_size = 2
         self.network_width = 640
         self.network_height = 640
         self.network_format = "RGB"
         self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
-        self.default_network_name = "yolov5seg"
+        self.post_function_name = "yolov5seg"
         self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg_h8l_mz.hef')
         self.app_callback = app_callback
         
@@ -129,9 +127,9 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             source_element += f" qtdemux ! h264parse ! avdec_h264 max-threads=2 ! "
             source_element += f" video/x-raw,format=I420 ! "
         source_element += QUEUE("queue_scale")
-        source_element += f" videoscale n-threads=2 ! "
+        source_element += f"videoscale n-threads=2 ! "
         source_element += QUEUE("queue_src_convert")
-        source_element += f" videoconvert n-threads=3 name=src_convert qos=false ! "
+        source_element += f"videoconvert n-threads=3 name=src_convert qos=false ! "
         source_element += f"video/x-raw, format={self.network_format}, width={self.network_width}, height={self.network_height}, pixel-aspect-ratio=1/1 ! "
         
         
@@ -143,7 +141,7 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
         pipeline_string += "videoconvert n-threads=3 ! "
         pipeline_string += f"hailonet hef-path={self.hef_path} batch-size={self.batch_size} force-writable=true ! "
         pipeline_string += QUEUE("queue_hailofilter")
-        pipeline_string += f"hailofilter function-name={self.default_network_name} so-path={self.default_postprocess_so} qos=false ! "
+        pipeline_string += f"hailofilter function-name={self.post_function_name} so-path={self.default_postprocess_so} qos=false ! "
         pipeline_string += QUEUE("queue_hmuc") + " hmux.sink_1 "
         pipeline_string += "hmux. ! " + QUEUE("queue_hailo_python")
         pipeline_string += QUEUE("queue_user_callback")
@@ -158,6 +156,8 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
         return pipeline_string
     
 if __name__ == "__main__":
+    # Create an instance of the user app callback class
+    user_data = user_app_callback_class()
     parser = get_default_parser()
     args = parser.parse_args()
     app = GStreamerInstanceSegmentationApp(args, user_data)
