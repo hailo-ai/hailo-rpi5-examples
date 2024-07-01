@@ -16,7 +16,7 @@ mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
 # Configure the project with Meson
-meson .. --buildtype=$BUILD_MODE
+meson setup .. --buildtype=$BUILD_MODE
 
 # Compile the project
 ninja
