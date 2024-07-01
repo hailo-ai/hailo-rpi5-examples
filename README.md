@@ -14,6 +14,7 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
   - [Available Examples and Resources](#available-examples-and-resources)
     - [Hailo Examples](#hailo-examples)
       - [Basic Pipelines (Python)](#basic-pipelines-python)
+      - [NEW: Retrained networks support](#new-retrained-networks-support)
         - [Detection Example](#detection-example)
         - [Pose Estimation Example](#pose-estimation-example)
         - [Instance Segmentation Example](#instance-segmentation-example)
@@ -38,6 +39,9 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
 #### [Basic Pipelines (Python)](doc/basic-pipelines.md#hailo-rpi5-basic-pipelines)
   These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
   For installation instructions, see [Basic Pipelines Installation Guide](doc/basic-pipelines.md#installation).
+  #### NEW: Retrained networks support
+  This application includes support for using retrained detection models. For more information, see [Retraining Detection Models](doc/basic-pipelines.md#retraining-detection-models).
+
   ##### [Detection Example](doc/basic-pipelines.md#detection-example)
   ![Detection Example](doc/images/detection.gif)
   ##### [Pose Estimation Example](doc/basic-pipelines.md#pose-estimation-example)
