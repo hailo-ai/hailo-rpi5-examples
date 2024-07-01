@@ -4,6 +4,7 @@
     "max_boxes":200,
     "labels": [
       "unlabeled",
-      "barcode"
+      "barcode",
+      "QR code"
     ]
 }

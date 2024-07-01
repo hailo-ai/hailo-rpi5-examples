@@ -40,7 +40,7 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
   These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
   For installation instructions, see [Basic Pipelines Installation Guide](doc/basic-pipelines.md#installation).
   #### NEW: Retrained networks support
-  This application includes support for using retrained detection models. For more information, see [Retraining Detection Models](doc/basic-pipelines.md#retraining-detection-models).
+  This application includes support for using retrained detection models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
 
   ##### [Detection Example](doc/basic-pipelines.md#detection-example)
   ![Detection Example](doc/images/detection.gif)
