@@ -30,6 +30,12 @@ pip install -r requirements.txt
 ```bash
 ./download_resources.sh
 ```
+### Post Proccess Compilation
+To support using retrained models, you need to compile the post process locally. This post proccess will be merged to Hailo TAPPAS in the next release.
+To compile the post proccess run the following script:
+```bash
+./compile_postprocess.sh
+```
 
 ## Application Structure
 
