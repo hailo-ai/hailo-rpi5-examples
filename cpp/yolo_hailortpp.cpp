@@ -9,7 +9,6 @@
 #include "rapidjson/schema.h"
 #include "json_config.hpp"
 #include "common/labels/coco_eighty.hpp"
-#include "common/labels/yolo_personface.hpp"
 #include "hailo_nms_decode.hpp"
 #include "yolo_hailortpp.hpp"
 
@@ -106,6 +105,10 @@ void free_resources(void *params_void_ptr)
 static std::map<uint8_t, std::string> yolo_vehicles_labels = {
     {0, "unlabeled"},
     {1, "car"}};
+static std::map<uint8_t, std::string> yolo_personface = {
+        {0, "unlabeled"},
+        {1, "person"},
+        {2, "face"}};
 
 void yolov5(HailoROIPtr roi)
 {
@@ -182,7 +185,7 @@ void yolov5s_personface(HailoROIPtr roi)
     {
         return;
     }
-    auto post = HailoNMSDecode(roi->get_tensor("yolov5s_personface_nv12/yolov5_nms_postprocess"), common::yolo_personface);
+    auto post = HailoNMSDecode(roi->get_tensor("yolov5s_personface_nv12/yolov5_nms_postprocess"), yolo_personface);
     auto detections = post.decode<float32_t, common::hailo_bbox_float32_t>();
     hailo_common::add_detections(roi, detections);
 }
