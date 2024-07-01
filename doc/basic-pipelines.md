@@ -75,7 +75,7 @@ In this example we show and example how to add more options to the command line.
 
 #### Using Retrained Models:
 
-This application includes support for using retrained detection models. The model should be compiled with HailoRT NMS Post Process (HailortPP). To use a custom model, you can load its HEF using the `--hef-path` flag. The default labels used by our models are COCO labels (80 classes). If you are using a custom model with different labels, you can use the `--labels-path` flag to load your labels file. For an example config file, see `hailo-rpi5-examples/resources/barcode-labels.json`.
+This application includes support for using retrained detection models. The model should be compiled with HailoRT NMS Post Process (HailortPP). To use a custom model, you can load its HEF using the `--hef-path` flag. The default labels used by our models are COCO labels ([80 classes](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/core/hailo/libs/postprocesses/common/labels/coco_eighty.hpp)). If you are using a custom model with different labels, you can use the `--labels-path` flag to load your labels file. For an example config file, see `hailo-rpi5-examples/resources/barcode-labels.json`.
 
 For example (using the RPi camera input):
 
