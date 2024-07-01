@@ -90,6 +90,7 @@ For example (using the RPi camera input):
 python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef resources/yolov8s-hailo8l-barcode.hef -i rpi
 ```
 Example output:
+
 ![Barcode Detection Example](images/barcode-example.png)
 
 # Pose Estimation Example
