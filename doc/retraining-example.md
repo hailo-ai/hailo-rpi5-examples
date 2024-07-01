@@ -17,7 +17,8 @@ In this example, we’re going to retrain the model to detect barcodes, using th
 
 1. Install the Hailo AI SW-Suite from the [Developer Zone](https://hailo.ai/developer-zone/software-downloads/). Alternatively, you can download and install the DFC and the model-zoo into the same virtual environment.
 2. Follow the instructions on the YOLOv8 retraining page: [YOLOv8 Retraining](https://github.com/hailo-ai/hailo_model_zoo/tree/833ae6175c06dbd6c3fc8faeb23659c9efaa2dbe/training/yolov8)
-3. Download the [barcode-detector](https://www.kaggle.com/datasets/kushagrapandya/barcode-detection) dataset from Kaggle. Make sure that it’s either mapped into the retraining Docker, or copied inside.
+3. Note in this example we added volume mount with the name `data` to the Docker container.
+4. Download the [barcode-detector](https://www.kaggle.com/datasets/kushagrapandya/barcode-detection) dataset from Kaggle. Make sure that it’s either mapped into the retraining Docker, or copied inside.
 
 ### Launch the retraining 
 
