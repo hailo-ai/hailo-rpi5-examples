@@ -63,3 +63,4 @@ You should get a message like this: 
 ![successful-compilation](images/successful-compilation.png)
 
 ### Now, we have the yolov8s.hef. This file can be used on the Raspberry Pi 5 AI Kit.
+For deployment instructions, see [Using Retrained Models](basic-pipelines.md#using-retrained-models).
