@@ -2,7 +2,7 @@
 
 # Define the name of the virtual environment
 VENV_NAME="venv_hailo_rpi5_examples"
-REQUIRED_TAAPAS_VERSION="3.28.2"
+REQUIRED_TAPPAS_VERSION="3.28.2"
 
 # Function to check if the script is being sourced
 is_sourced() {
@@ -17,8 +17,8 @@ if is_sourced; then
     # Get the TAPPAS_VERSION
     TAPPAS_VERSION=$(echo $TAPPAS_VERSION)
 
-    # Check if TAPPAS_VERSION is REQUIRED_TAAPAS_VERSION
-    if [ "$TAPPAS_VERSION" == $REQUIRED_TAAPAS_VERSION ]; then
+    # Check if TAPPAS_VERSION is REQUIRED_TAPPAS_VERSION
+    if [ "$TAPPAS_VERSION" == $REQUIRED_TAPPAS_VERSION ]; then
         echo "TAPPAS_VERSION is ${TAPPAS_VERSION}. Proceeding..."
     else
         echo "TAPPAS_VERSION is not the required version ${REQUIRED_TAPPAS_VERSION}."
@@ -46,7 +46,7 @@ if is_sourced; then
             
     TAPPAS_POST_PROC_DIR=$(pkg-config --variable=tappas_postproc_lib_dir hailo-tappas-core)
     export TAPPAS_POST_PROC_DIR
-    echo "TAAPAS_POST_PROC_DIR set to $TAPPAS_POST_PROC_DIR"
+    echo "TAPPAS_POST_PROC_DIR set to $TAPPAS_POST_PROC_DIR"
 
 else
     echo "This script needs to be sourced to correctly set up the environment. Please run '. $(basename "$0")' instead of executing it."
