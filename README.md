@@ -12,6 +12,7 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
   - [Table of Contents](#table-of-contents)
   - [Hailo Packages Installation](#hailo-packages-installation)
   - [Available Examples and Resources](#available-examples-and-resources)
+    - [Hailo Dataflow Compiler (DFC) is now available](#hailo-dataflow-compiler-dfc-is-now-available)
     - [Hailo Examples](#hailo-examples)
       - [Basic Pipelines (Python)](#basic-pipelines-python)
       - [NEW: Retrained networks support](#new-retrained-networks-support)
@@ -33,6 +34,14 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
 For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo-8l).
 
 ## Available Examples and Resources
+
+### Hailo Dataflow Compiler (DFC) is now available
+The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to compile their neural networks to run on the Hailo-8/8L AI processors. The DFC is available for download from the [Hailo Developer Zone](https://hailo.ai/developer-zone/software-downloads/). (Registarion required)
+For examples tutorials and retrain instructions, see [Hailo Model Zoo Repo](https://github.com/hailo-ai/hailo_model_zoo).
+Additional documentation can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
+For a full end to end training and deployment example, see [Retraining Example](doc/Retraining-example.md).
+The Detection basic pipeline example includes support for retrained models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
+
 
 ### Hailo Examples
 
@@ -68,6 +77,7 @@ CLIP (Contrastive Language-Image Pretraining), Predict the most relevant text pr
   ```
 #### picamera2 - Coming Soon
   Raspberry Pi [picamera2](https://github.com/raspberrypi/picamera2) is the libcamera-based replacement for Picamera which was a Python interface to the Raspberry Pi's legacy camera stack. Picamera2 also presents an easy to use Python API.
+
 
 ## Contributing
 
