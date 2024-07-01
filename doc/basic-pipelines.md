@@ -73,7 +73,13 @@ If the ```--use-frame``` flag is used, the frame is extracted from the buffer an
 #### Additional features:
 In this example we show and example how to add more options to the command line. The options are parsed using the argparse library. The added flag in this example is used to change the model used.
 
+#### Using retrained models:
+This application includes support for using retrained detection models. The model should be compiled with HailoRT NMS Post Process (HailortPP). To use custom model you can load its HEF using the `--hef-path` flag. The default lables used by our models are COCO labels (80 classes). If you are using a custom model with different labels you can use the `--labels-path` flag to load your labels file. For an example config file see `hailo-rpi5-examples/resources/barcode-labels.json`
 
+For example:
+```bash
+python basic_pipelines/detection.py -i resources/detection0.mp4 --labels-json resources/barcode-labels.json --hef resources/yolov8s-hailo8l-barcode.hef
+```
 # Pose Estimation Example
 ![Banner](images/pose_estimation.gif)
 
