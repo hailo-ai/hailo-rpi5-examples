@@ -30,6 +30,12 @@ pip install -r requirements.txt
 ```bash
 ./download_resources.sh
 ```
+### Post Proccess Compilation
+To support using retrained models, you need to compile the post process locally. This post proccess will be merged to Hailo TAPPAS in the next release.
+To compile the post proccess run the following script:
+```bash
+./compile_postprocess.sh
+```
 
 ## Application Structure
 
@@ -73,6 +79,18 @@ If the ```--use-frame``` flag is used, the frame is extracted from the buffer an
 #### Additional features:
 In this example we show and example how to add more options to the command line. The options are parsed using the argparse library. The added flag in this example is used to change the model used.
 
+#### Using Retrained Models:
+
+This application includes support for using retrained detection models. The model should be compiled with HailoRT NMS Post Process (HailortPP). To use a custom model, you can load its HEF using the `--hef-path` flag. The default labels used by our models are COCO labels ([80 classes](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/core/hailo/libs/postprocesses/common/labels/coco_eighty.hpp)). If you are using a custom model with different labels, you can use the `--labels-path` flag to load your labels file. For an example config file, see `hailo-rpi5-examples/resources/barcode-labels.json`.
+The network we trained while writing the [Retraining Example](retraining-example.md#using-yolov8-retraining-docker) is downloaded by the `download_resources.sh` script. So you can use it as an example.
+
+For example (using the RPi camera input):
+
+```bash
+python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef resources/yolov8s-hailo8l-barcode.hef -i rpi
+```
+Example output:
+![Barcode Detection Example](images/barcode-example.png)
 
 # Pose Estimation Example
 ![Banner](images/pose_estimation.gif)
