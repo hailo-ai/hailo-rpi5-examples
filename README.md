@@ -39,7 +39,7 @@ For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc
 The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to compile their neural networks to run on the Hailo-8/8L AI processors. 
 The DFC is available for download from the [Hailo Developer Zone](https://hailo.ai/developer-zone/software-downloads/) (Registration required).
 For examples, tutorials, and retrain instructions, see [Hailo Model Zoo Repo](https://github.com/hailo-ai/hailo_model_zoo).
-Additional documentation can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
+Additional documentation and [tutorials](https://hailo.ai/developer-zone/documentation/dataflow-compiler/latest/?sp_referrer=tutorials/tutorials.html) can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
 For a full end-to-end training and deployment example, see the [Retraining Example](doc/retraining-example.md).
 The Detection basic pipeline example includes support for retrained models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
 
