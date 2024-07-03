@@ -5,10 +5,10 @@ project('clip_app', 'c', 'cpp',
                             'c_std=c11', 'cpp_std=c++17']
        )
 
-postprocess_dep = dependency('hailo-tappas-core', version : '3.28.2', required : false)
+postprocess_dep = dependency('hailo-tappas-core', version : '>=3.28.2', required : false)
 
 if not postprocess_dep.found()
-    postprocess_dep = dependency('hailo_tappas', version : '>=3.28.0, <=3.28.2')
+    postprocess_dep = dependency('hailo_tappas', version : '>=3.28.0')
 endif
 
 # Use the rapidjson_includedir from the pkg-config file
