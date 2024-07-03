@@ -97,7 +97,7 @@ public:
         0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
         taking the dogs as example - 2 123 124 140 150 92 112 125 138 147 91
-        can be splitted to two different boxes
+        can be split to two different boxes
         common::hailo_bbox_t st_1 = 123 124 140 150 92
         common::hailo_bbox_t st_2 = 112 125 138 147 91
         now after dequntization of st_1 - we get common::hailo_bbox_float32_t:
