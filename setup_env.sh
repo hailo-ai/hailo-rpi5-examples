@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TAPPAS CORE Definitions
-CORE_VENV_NAME="venv_hailo_clip"
+CORE_VENV_NAME="venv_hailo_rpi5_examples"
 CORE_REQUIRED_VERSION=("3.28.2")
 
 # TAPPAS Definitions
