@@ -52,7 +52,7 @@ private:
             _objects.push_back(HailoDetection(HailoBBox(dequant_bbox.x_min, dequant_bbox.y_min, w, h), class_index, labels_dict[class_index], confidence));
         }
     }
-
+    
     std::pair<float, float> get_shape(auto *bbox_struct)
     {
         float32_t w = bbox_struct->x_max - bbox_struct->x_min;
