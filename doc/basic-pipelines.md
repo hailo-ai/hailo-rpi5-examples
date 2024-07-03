@@ -30,9 +30,9 @@ pip install -r requirements.txt
 ```bash
 ./download_resources.sh
 ```
-### Post Proccess Compilation
-To support using retrained models, you need to compile the post process locally. This post proccess will be merged to Hailo TAPPAS in the next release.
-To compile the post proccess run the following script:
+### Post Process Compilation
+To support using retrained models, you need to compile the post process locally. This post process will be merged to Hailo TAPPAS in the next release.
+To compile the post process run the following script:
 ```bash
 ./compile_postprocess.sh
 ```
@@ -130,7 +130,7 @@ See also [Running with Different Input Sources](#running-with-different-input-so
 
 ## What is in this example:
 #### Instance Segmentation Callback Class:
-The Callback function showcases how to get the instance segmentation metadata from the network output. Each instance is represented as a ```HAILO_DETECTION``` with a mask (```HAILO_CONF_CLASS_MASK``` object). If ```--use-frame``` flag is set the code will parse the masks, resize and reshape them according to the frame cooordinates. It will print their shape to the terminal. Drawing the mask on the user buffer is possible but not implemented in this example due to performance reasons.
+The Callback function showcases how to get the instance segmentation metadata from the network output. Each instance is represented as a ```HAILO_DETECTION``` with a mask (```HAILO_CONF_CLASS_MASK``` object). If ```--use-frame``` flag is set the code will parse the masks, resize and reshape them according to the frame coordinates. It will print their shape to the terminal. Drawing the mask on the user buffer is possible but not implemented in this example due to performance reasons.
 
 ## Additional features:
 Run any example with the `--help` flag to see all available options.
