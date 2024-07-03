@@ -73,7 +73,7 @@ def app_callback(pad, info, user_data):
                     mask_width = mask.get_width()
                     data = np.array(mask.get_data())
                     data = data.reshape((mask_height, mask_width))
-                    # data shuold be enlarged x4
+                    # data should be enlarged x4
                     mask_width = mask_width * 4
                     mask_height = mask_height * 4
                     data = cv2.resize(data, (mask_width, mask_height), interpolation=cv2.INTER_NEAREST)
