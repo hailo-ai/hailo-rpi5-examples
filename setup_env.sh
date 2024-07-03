@@ -90,9 +90,14 @@ if is_sourced; then
     echo "TAPPAS_POST_PROC_DIR set to $TAPPAS_POST_PROC_DIR"
 
     # Get the Device Architecture
-    output=$(hailortcli fw-control identify)
+    output=$(hailortcli fw-control identify | tr -d '\0')
     # Extract the Device Architecture from the output
     device_arch=$(echo "$output" | grep "Device Architecture" | awk -F": " '{print $2}')
+    # if the device architecture is not found, output the error message and return
+    if [ -z "$device_arch" ]; then
+        echo "Error: Device Architecture not found. Please check the connection to the device."
+        return 1
+    fi
     # Export the Device Architecture to an environment variable
     export DEVICE_ARCHITECTURE="$device_arch"
     # Print the environment variable to verify
