@@ -53,7 +53,8 @@ private:
         }
     }
 
-    std::pair<float, float> get_shape(auto *bbox_struct)
+    template <typename BBoxType>
+    std::pair<float, float> get_shape(BBoxType *bbox_struct)
     {
         float32_t w = bbox_struct->x_max - bbox_struct->x_min;
         float32_t h = bbox_struct->y_max - bbox_struct->y_min;
