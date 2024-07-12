@@ -147,7 +147,7 @@ class GStreamerDetectionApp(GStreamerApp):
     def get_pipeline_string(self):
         if self.source_type == "rpi":
             source_element = (
-                "libcamerasrc name=src_0 auto-focus-mode=2 ! "
+                "libcamerasrc name=src_0 ! "
                 f"video/x-raw, format={self.network_format}, width=1536, height=864 ! "
                 + QUEUE("queue_src_scale")
                 + "videoscale ! "
