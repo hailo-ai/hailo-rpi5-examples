@@ -21,5 +21,5 @@ meson setup .. --buildtype=$BUILD_MODE
 # Compile the project
 ninja
 
-# Install the project (optional)
-ninja install
+# Installation step (requires sudo)
+echo "To install, run: sudo ninja install"

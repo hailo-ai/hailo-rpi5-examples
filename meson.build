@@ -1,21 +1,65 @@
-project('clip_app', 'c', 'cpp',
+project('clip_app', 'cpp',
         version : '1.1.1',
-        default_options : [ 'warning_level=1',
-                            'buildtype=release',
-                            'c_std=c11', 'cpp_std=c++17',
-                            'c_args=-Wno-psabi', 'cpp_args=-Wno-psabi']
-       )
+        default_options : ['cpp_std=c++20'])
 
-postprocess_dep = dependency('hailo-tappas-core', version : '>=3.28.2', required : false)
+cpp = meson.get_compiler('cpp')
 
-if not postprocess_dep.found()
-    postprocess_dep = dependency('hailo_tappas', version : '>=3.28.0')
+# Get TAPPAS directories from environment
+tappas_workspace = run_command('sh', '-c', 'echo $TAPPAS_WORKSPACE', check: false).stdout().strip()
+tappas_post_proc_dir = run_command('sh', '-c', 'echo $TAPPAS_POST_PROC_DIR', check: false).stdout().strip()
+
+# Dependencies
+opencv_dep = dependency('opencv4')
+gstreamer_dep = dependency('gstreamer-1.0')
+
+rapidjson_dep = dependency('RapidJSON', required: false)
+if not rapidjson_dep.found()
+  rapidjson_inc = include_directories('/usr/include/rapidjson')
+  if not cpp.has_header('rapidjson/document.h', include_directories: rapidjson_inc)
+    error('RapidJSON headers not found. Please install rapidjson-dev package.')
+  endif
 endif
 
-# Use the rapidjson_includedir from the pkg-config file
-rapidjson_inc_dir = postprocess_dep.get_variable(pkgconfig: 'rapidjson_includedir')
+hailo_inc = [
+  include_directories('/usr/include/hailo'),
+  include_directories('/usr/include/hailo/tappas'),
+  include_directories('/usr/lib/aarch64-linux-gnu/hailo/tappas/post-process'),
+]
+if tappas_workspace != '' and tappas_workspace != '.'
+  hailo_inc += include_directories(tappas_workspace)
+endif
+if tappas_post_proc_dir != '' and tappas_post_proc_dir != '.'
+  hailo_inc += include_directories(tappas_post_proc_dir)
+endif
 
-# rapidjson Include Directories
-rapidjson_inc = include_directories(rapidjson_inc_dir, is_system: true)
+# Hailo libraries
+hailo_lib_dirs = [
+  '/usr/lib',
+  '/usr/lib/aarch64-linux-gnu',
+  '/usr/lib/aarch64-linux-gnu/hailo/tappas/post-process',
+]
+if tappas_workspace != '' and tappas_workspace != '.'
+  hailo_lib_dirs += [tappas_workspace]
+endif
+if tappas_post_proc_dir != '' and tappas_post_proc_dir != '.'
+  hailo_lib_dirs += [tappas_post_proc_dir]
+endif
 
-subdir('cpp')
+hailo_lib_names = ['hailort', 'yolo_hailortpp_post']
+hailo_libs = []
+foreach lib : hailo_lib_names
+    hailo_lib = cpp.find_library(lib, dirs: hailo_lib_dirs, required: false)
+    if hailo_lib.found()
+        hailo_libs += hailo_lib
+    else
+        warning('Library ' + lib + ' not found. Skipping...')
+    endif
+endforeach
+
+# Targets
+shared_library('yolo_hailortpp_post',
+               'cpp/yolo_hailortpp.cpp',
+               dependencies: [opencv_dep, gstreamer_dep] + hailo_libs + (rapidjson_dep.found() ? [rapidjson_dep] : []),
+               include_directories: hailo_inc + (rapidjson_dep.found() ? [] : [rapidjson_inc]),
+               install: true,
+               install_dir: 'lib')
