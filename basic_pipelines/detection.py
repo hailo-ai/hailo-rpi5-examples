@@ -92,6 +92,7 @@ class GStreamerDetectionApp(GStreamerApp):
     def __init__(self, args, user_data):
         # Call the parent class constructor
         super().__init__(args, user_data)
+        self.video_sink = args.video_sink if hasattr(args, 'video_sink') else 'autovideosink'
         # Additional initialization code can be added here
         # Set Hailo parameters these parameters should be set based on the model used
         self.batch_size = 2
@@ -158,6 +159,16 @@ class GStreamerDetectionApp(GStreamerApp):
                 f"v4l2src device={self.video_source} name=src_0 ! "
                 "video/x-raw, width=640, height=480, framerate=30/1 ! "
             )
+        elif self.video_source.startswith("rtsp://"):
+            source_element = (
+                f"rtspsrc location={self.video_source} name=src_0 "
+                "protocols=tcp latency=2000 buffer-mode=auto "
+                "tcp-timeout=5000000 udp-buffer-size=2097152 ! "
+                "queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 ! "
+                "rtph265depay ! h265parse ! avdec_h265 ! "
+                "videoconvert ! videoscale ! "
+                f"video/x-raw, format=RGB, width={self.network_width}, height={self.network_height} ! "
+            )            
         else:
             source_element = (
                 f"filesrc location={self.video_source} name=src_0 ! "
@@ -220,6 +231,8 @@ if __name__ == "__main__":
         default=None,
         help="Path to costume labels JSON file",
     )
+    parser.add_argument('--video-sink', default='autovideosink',
+                        help='GStreamer video sink to use (e.g., autovideosink, ximagesink, fakesink)')
     args = parser.parse_args()
     app = GStreamerDetectionApp(args, user_data)
     app.run()
