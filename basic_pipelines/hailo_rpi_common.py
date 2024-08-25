@@ -90,8 +90,8 @@ def get_default_parser():
     parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file pipeline.dot")
     return parser
 
-def QUEUE(name, max_size_buffers=3, max_size_bytes=0, max_size_time=0):
-    return f"queue name={name} max-size-buffers={max_size_buffers} max-size-bytes={max_size_bytes} max-size-time={max_size_time} ! "
+def QUEUE(name, max_size_buffers=3, max_size_bytes=0, max_size_time=0, leaky='no'):
+    return f"queue name={name} leaky={leaky} max-size-buffers={max_size_buffers} max-size-bytes={max_size_bytes} max-size-time={max_size_time} ! "
 
 def get_source_type(input_source):
     # This function will return the source type based on the input source
