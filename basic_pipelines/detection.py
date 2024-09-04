@@ -156,7 +156,7 @@ class GStreamerDetectionApp(GStreamerApp):
             )
         else:
             source_element = (
-                f"filesrc location={self.video_source} name=src_0 ! "
+                f"filesrc location=\"{self.video_source}\" name=src_0 ! "
                 + QUEUE("queue_dec264")
                 + " qtdemux ! h264parse ! avdec_h264 max-threads=2 ! "
                 " video/x-raw, format=I420 ! "

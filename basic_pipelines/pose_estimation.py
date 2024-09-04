@@ -152,7 +152,7 @@ class GStreamerPoseEstimationApp(GStreamerApp):
             source_element = f"v4l2src device={self.video_source} name=src_0 ! "
             source_element += f"video/x-raw, width=640, height=480, framerate=30/1 ! "
         else:  
-            source_element = f"filesrc location={self.video_source} name=src_0 ! "
+            source_element = f"filesrc location=\"{self.video_source}\" name=src_0 ! "
             source_element += QUEUE("queue_dec264")
             source_element += f" qtdemux ! h264parse ! avdec_h264 max-threads=2 ! "
             source_element += f" video/x-raw,format=I420 ! "
