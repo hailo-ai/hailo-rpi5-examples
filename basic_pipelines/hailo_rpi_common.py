@@ -176,7 +176,7 @@ class GStreamerApp:
         t = message.type
         if t == Gst.MessageType.EOS:
             print("End-of-stream")
-            self.on_eos()
+            self.shutdown()
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             print(f"Error: {err}, {debug}")
@@ -188,8 +188,9 @@ class GStreamerApp:
             print(f"QoS message received from {qos_element}")
         return True
     
-    def on_eos(self):
-        print("EOS received, shutting down the pipeline.")
+    def shutdown(self, signum=None, frame=None):
+        print("Shutting down... Hit Ctrl-C again to force quit.")
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.pipeline.set_state(Gst.State.PAUSED)
         GLib.usleep(100000)  # 0.1 second delay
 
@@ -199,9 +200,6 @@ class GStreamerApp:
         self.pipeline.set_state(Gst.State.NULL)
         GLib.idle_add(self.loop.quit)
 
-    def shutdown(self, signum=None, frame=None):
-        print("Sending EOS event to the pipeline...")
-        self.pipeline.send_event(Gst.Event.new_eos())
 
     def get_pipeline_string(self):
         # This is a placeholder function that should be overridden by the child class
@@ -252,10 +250,7 @@ class GStreamerApp:
             GLib.timeout_add_seconds(3, self.dump_dot_file)
         
         # Run the GLib event loop
-        try:
-            self.loop.run()
-        except KeyboardInterrupt:
-            self.shutdown()
+        self.loop.run()
 
         # Clean up
         self.user_data.running = False
