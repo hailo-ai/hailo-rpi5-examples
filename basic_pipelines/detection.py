@@ -124,10 +124,6 @@ class GStreamerDetectionApp(GStreamerApp):
         # User-defined label JSON file
         if args.labels_json is not None:
             self.labels_config = f' config-path={args.labels_json} '
-            # Temporary code
-            if not os.path.exists(new_postprocess_path):
-                print("New postprocess so file is missing. It is required to support custom labels. Check documentation for more information.")
-                exit(1)
         else:
             self.labels_config = ''
 
@@ -147,7 +143,7 @@ class GStreamerDetectionApp(GStreamerApp):
     def get_pipeline_string(self):
         if self.source_type == "rpi":
             source_element = (
-                "libcamerasrc name=src_0 auto-focus-mode=2 ! "
+                "libcamerasrc name=src_0 ! "
                 f"video/x-raw, format={self.network_format}, width=1536, height=864 ! "
                 + QUEUE("queue_src_scale")
                 + "videoscale ! "

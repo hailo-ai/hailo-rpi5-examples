@@ -26,13 +26,19 @@ Make sure you are in the virtual environment and run the following command:
 pip install -r requirements.txt
 ```
 
+The rapidjson-dev package should be installed as default in Pi OS.
+If for some reasone you don't have it you can install it using:
+```bash
+sudo apt install -y rapidjson-dev
+```
+
 ### Resources Download
 ```bash
 ./download_resources.sh
 ```
 ### Post Process Compilation
-To support using retrained models, you need to compile the post process locally. This post process will be merged to Hailo TAPPAS in the next release.
-To compile the post process run the following script:
+The post process required is already merged to TAPPAS core from version 3.29.0. It will be removed from this repository in the future. 
+If you are using an older version you can compile the post process using the following script:
 ```bash
 ./compile_postprocess.sh
 ```
