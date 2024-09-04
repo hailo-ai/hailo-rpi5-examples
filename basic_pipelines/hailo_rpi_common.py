@@ -8,6 +8,7 @@ import numpy as np
 import setproctitle
 import cv2
 import time
+import signal
 
 # Try to import hailo python module
 try:
@@ -115,6 +116,9 @@ class GStreamerApp:
         # Create an empty options menu
         self.options_menu = args
         
+        # Set up signal handler for SIGINT (Ctrl-C)
+        signal.signal(signal.SIGINT, self.shutdown)
+
         # Initialize variables
         tappas_postprocess_dir = os.environ.get('TAPPAS_POST_PROC_DIR', '')
         if tappas_postprocess_dir == '':
@@ -172,11 +176,11 @@ class GStreamerApp:
         t = message.type
         if t == Gst.MessageType.EOS:
             print("End-of-stream")
-            loop.quit()
+            self.on_eos()
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             print(f"Error: {err}, {debug}")
-            loop.quit()
+            self.shutdown()
         # QOS
         elif t == Gst.MessageType.QOS:
             # Handle QoS message here
@@ -184,6 +188,21 @@ class GStreamerApp:
             print(f"QoS message received from {qos_element}")
         return True
     
+    def on_eos(self):
+        print("EOS received, shutting down the pipeline.")
+        self.pipeline.set_state(Gst.State.PAUSED)
+        GLib.usleep(100000)  # 0.1 second delay
+
+        self.pipeline.set_state(Gst.State.READY)
+        GLib.usleep(100000)  # 0.1 second delay
+
+        self.pipeline.set_state(Gst.State.NULL)
+        GLib.idle_add(self.loop.quit)
+
+    def shutdown(self, signum=None, frame=None):
+        print("Sending EOS event to the pipeline...")
+        self.pipeline.send_event(Gst.Event.new_eos())
+
     def get_pipeline_string(self):
         # This is a placeholder function that should be overridden by the child class
         return ""
@@ -235,8 +254,8 @@ class GStreamerApp:
         # Run the GLib event loop
         try:
             self.loop.run()
-        except:
-            pass
+        except KeyboardInterrupt:
+            self.shutdown()
 
         # Clean up
         self.user_data.running = False
