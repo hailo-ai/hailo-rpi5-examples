@@ -64,8 +64,8 @@ The Detection basic pipeline example includes support for retrained models. For 
 #### CLIP Application
 CLIP (Contrastive Language-Image Pretraining), Predict the most relevant text prompt on real-time video frames using the Hailo-8L AI processor.
 See the [hailo-CLIP Repository](https://github.com/hailo-ai/hailo-CLIP) for more information.
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/xJXMGu7EK60" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+Click the image below to watch the demo on YouTube.
+[![Watch the demo on YouTube](https://img.youtube.com/vi/xJXMGu7EK60/0.jpg)](https://youtu.be/xJXMGu7EK60)
 
 ### Raspberry Pi Official Examples
 #### rpicam-apps
