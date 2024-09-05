@@ -37,11 +37,11 @@ def app_callback(pad, info, user_data):
     # Check if the buffer is valid
     if buffer is None:
         return Gst.PadProbeReturn.OK
-        
+
     # Using the user_data to count the number of frames
     user_data.increment()
     string_to_print = f"Frame count: {user_data.get_count()}\n"
-    
+
     # Get the caps from the pad
     format, width, height = get_caps_from_pad(pad)
 
@@ -54,7 +54,7 @@ def app_callback(pad, info, user_data):
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
-    
+
     # Parse the detections
     for detection in detections:
         label = detection.get_label()
@@ -74,12 +74,12 @@ def app_callback(pad, info, user_data):
                 right_eye_x = int((right_eye.x() * bbox.width() + bbox.xmin()) * width)
                 right_eye_y = int((right_eye.y() * bbox.height() + bbox.ymin()) * height)
                 string_to_print += (f" Left eye: x: {left_eye_x:.2f} y: {left_eye_y:.2f} Right eye: x: {right_eye_x:.2f} y: {right_eye_y:.2f}\n")
-                if user_data.use_frame:    
+                if user_data.use_frame:
                     # Add markers to the frame to show eye landmarks
                     cv2.circle(frame, (left_eye_x, left_eye_y), 5, (0, 255, 0), -1)
                     cv2.circle(frame, (right_eye_x, right_eye_y), 5, (0, 255, 0), -1)
-                    # Note: using imshow will not work here, as the callback function is not running in the main thread   
-    
+                    # Note: using imshow will not work here, as the callback function is not running in the main thread
+
     if user_data.use_frame:
         # Convert the frame to BGR
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -87,7 +87,7 @@ def app_callback(pad, info, user_data):
 
     print(string_to_print)
     return Gst.PadProbeReturn.OK
-    
+
 
 
 # This function can be used to get the COCO keypoints coorespondence map
@@ -134,24 +134,23 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         self.post_function_name = "filter"
         self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l_pi.hef')
         self.app_callback = app_callback
-        
+
         # Set the process title
         setproctitle.setproctitle("Hailo Pose Estimation App")
 
         self.create_pipeline()
 
     def get_pipeline_string(self):
-        if (self.source_type == "rpi"):
+        if self.source_type == "rpi":
             source_element = f"libcamerasrc name=src_0 ! "
             source_element += f"video/x-raw, format={self.network_format}, width=1536, height=864 ! "
             source_element += QUEUE("queue_src_scale")
             source_element += f"videoscale ! "
             source_element += f"video/x-raw, format={self.network_format}, width={self.network_width}, height={self.network_height}, framerate=30/1 ! "
-        
-        elif (self.source_type == "usb"):
+        elif self.source_type == "usb":
             source_element = f"v4l2src device={self.video_source} name=src_0 ! "
             source_element += f"video/x-raw, width=640, height=480, framerate=30/1 ! "
-        else:  
+        else:
             source_element = f"filesrc location=\"{self.video_source}\" name=src_0 ! "
             source_element += QUEUE("queue_dec264")
             source_element += f" qtdemux ! h264parse ! avdec_h264 max-threads=2 ! "
@@ -161,8 +160,7 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         source_element += QUEUE("queue_src_convert")
         source_element += f"videoconvert n-threads=3 name=src_convert qos=false ! "
         source_element += f"video/x-raw, format={self.network_format}, width={self.network_width}, height={self.network_height}, pixel-aspect-ratio=1/1 ! "
-        
-        
+
         pipeline_string = "hailomuxer name=hmux "
         pipeline_string += source_element
         pipeline_string += "tee name=t ! "
@@ -184,7 +182,7 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         pipeline_string += f"fpsdisplaysink video-sink={self.video_sink} name=hailo_display sync={self.sync} text-overlay={self.options_menu.show_fps} signal-fps-measurements=true "
         print(pipeline_string)
         return pipeline_string
-    
+
 if __name__ == "__main__":
     # Create an instance of the user app callback class
     user_data = user_app_callback_class()
