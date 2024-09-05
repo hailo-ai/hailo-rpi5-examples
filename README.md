@@ -11,6 +11,7 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
 - [Hailo Raspberry Pi 5 Examples](#hailo-raspberry-pi-5-examples)
   - [Table of Contents](#table-of-contents)
   - [Hailo Packages Installation](#hailo-packages-installation)
+    - [Hailo Version Upgrade Instructions](#hailo-version-upgrade-instructions)
   - [Available Examples and Resources](#available-examples-and-resources)
     - [Hailo Dataflow Compiler (DFC) is now available](#hailo-dataflow-compiler-dfc-is-now-available)
     - [Hailo Examples](#hailo-examples)
@@ -19,7 +20,7 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
         - [Detection Example](#detection-example)
         - [Pose Estimation Example](#pose-estimation-example)
         - [Instance Segmentation Example](#instance-segmentation-example)
-      - [CLIP Application - Coming Soon](#clip-application---coming-soon)
+      - [CLIP Application](#clip-application)
     - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
       - [rpicam-apps](#rpicam-apps)
       - [picamera2 - Coming Soon](#picamera2---coming-soon)
@@ -33,10 +34,12 @@ Check out [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
 
 For installation instructions, see [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo-8l).
 
+### Hailo Version Upgrade Instructions
+See the [Upgrade or Downgrade Hailo Software](doc/install-raspberry-pi5.md#hailo-version-upgrade-instructions) section for instructions on how to upgrade the Hailo software.
 ## Available Examples and Resources
 
 ### Hailo Dataflow Compiler (DFC) is now available
-The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to compile their neural networks to run on the Hailo-8/8L AI processors. 
+The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to compile their neural networks to run on the Hailo-8/8L AI processors.
 The DFC is available for download from the [Hailo Developer Zone](https://hailo.ai/developer-zone/software-downloads/) (Registration required).
 For examples, tutorials, and retrain instructions, see [Hailo Model Zoo Repo](https://github.com/hailo-ai/hailo_model_zoo).
 Additional documentation and [tutorials](https://hailo.ai/developer-zone/documentation/dataflow-compiler/latest/?sp_referrer=tutorials/tutorials.html) can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
@@ -58,12 +61,16 @@ The Detection basic pipeline example includes support for retrained models. For 
   ![Pose Estimation Example](doc/images/pose_estimation.gif)
   ##### [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
   ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
-#### CLIP Application - Coming Soon
+#### CLIP Application
 CLIP (Contrastive Language-Image Pretraining), Predict the most relevant text prompt on real-time video frames using the Hailo-8L AI processor.
+See the [hailo-CLIP Repository](https://github.com/hailo-ai/hailo-CLIP) for more information.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/xJXMGu7EK60" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ### Raspberry Pi Official Examples
 #### rpicam-apps
   Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post process examples.
-  This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework. 
+  This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework.
   The documentation on how to use the rpicam-apps can be found [here](https://www.raspberrypi.com/documentation/accessories/ai-kit.html).
   To run an example from the rpicam-apps, follow the instructions below:
   Clone the rpicam-apps repository to get the JSON configuration files

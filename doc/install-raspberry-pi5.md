@@ -163,6 +163,20 @@ rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
 ```
 ##### If everything is OK you can continue installing the [hailo_rpi5_examples.](../README.md#configure-environment)
 
+## Upgrade or Downgrade Hailo Software
+To upgrade to the latest version of the Hailo software package, run the following commands:
+```bash
+sudo apt update
+sudo apt full-upgrade
+sudo apt install hailo-all
+reboot
+```
+To downgrade to a previous version (TAPPAS 3.28.2), run the following commands:
+```bash
+sudo apt install hailort=4.17.0 hailo-tappas-core-3.28.2 hailofw=4.17.0-2 hailo-dkms=4.17.0-1
+reboot
+```
+
 ## Troubleshooting
 Got a question? Join the discussion on [Hailo Community Forum](https://community.hailo.ai/).
 ### PCIe Troubleshooting
