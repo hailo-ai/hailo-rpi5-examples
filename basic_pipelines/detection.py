@@ -26,7 +26,7 @@ class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
         self.new_variable = 42  # New variable example
-    
+
     def new_function(self):  # New function example
         return "The meaning of life is: "
 
@@ -41,11 +41,11 @@ def app_callback(pad, info, user_data):
     # Check if the buffer is valid
     if buffer is None:
         return Gst.PadProbeReturn.OK
-        
+
     # Using the user_data to count the number of frames
     user_data.increment()
     string_to_print = f"Frame count: {user_data.get_count()}\n"
-    
+
     # Get the caps from the pad
     format, width, height = get_caps_from_pad(pad)
 
@@ -58,7 +58,7 @@ def app_callback(pad, info, user_data):
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
-    
+
     # Parse the detections
     detection_count = 0
     for detection in detections:
@@ -81,7 +81,7 @@ def app_callback(pad, info, user_data):
 
     print(string_to_print)
     return Gst.PadProbeReturn.OK
-    
+
 
 # -----------------------------------------------------------------------------------------------
 # User Gstreamer Application
@@ -98,9 +98,9 @@ class GStreamerDetectionApp(GStreamerApp):
         self.network_width = 640
         self.network_height = 640
         self.network_format = "RGB"
-        nms_score_threshold = 0.3 
+        nms_score_threshold = 0.3
         nms_iou_threshold = 0.45
-        
+
         # Temporary code: new postprocess will be merged to TAPPAS.
         # Check if new postprocess so file exists
         new_postprocess_path = os.path.join(self.current_path, '../resources/libyolo_hailortpp_post.so')
@@ -124,15 +124,11 @@ class GStreamerDetectionApp(GStreamerApp):
         # User-defined label JSON file
         if args.labels_json is not None:
             self.labels_config = f' config-path={args.labels_json} '
-            # Temporary code
-            if not os.path.exists(new_postprocess_path):
-                print("New postprocess so file is missing. It is required to support custom labels. Check documentation for more information.")
-                exit(1)
         else:
             self.labels_config = ''
 
         self.app_callback = app_callback
-    
+
         self.thresholds_str = (
             f"nms-score-threshold={nms_score_threshold} "
             f"nms-iou-threshold={nms_iou_threshold} "
@@ -147,7 +143,7 @@ class GStreamerDetectionApp(GStreamerApp):
     def get_pipeline_string(self):
         if self.source_type == "rpi":
             source_element = (
-                "libcamerasrc name=src_0 auto-focus-mode=2 ! "
+                "libcamerasrc name=src_0 ! "
                 f"video/x-raw, format={self.network_format}, width=1536, height=864 ! "
                 + QUEUE("queue_src_scale")
                 + "videoscale ! "
@@ -160,7 +156,7 @@ class GStreamerDetectionApp(GStreamerApp):
             )
         else:
             source_element = (
-                f"filesrc location={self.video_source} name=src_0 ! "
+                f"filesrc location=\"{self.video_source}\" name=src_0 ! "
                 + QUEUE("queue_dec264")
                 + " qtdemux ! h264parse ! avdec_h264 max-threads=2 ! "
                 " video/x-raw, format=I420 ! "
