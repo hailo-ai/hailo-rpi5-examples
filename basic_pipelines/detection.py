@@ -26,7 +26,7 @@ class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
         self.new_variable = 42  # New variable example
-    
+
     def new_function(self):  # New function example
         return "The meaning of life is: "
 
@@ -41,11 +41,11 @@ def app_callback(pad, info, user_data):
     # Check if the buffer is valid
     if buffer is None:
         return Gst.PadProbeReturn.OK
-        
+
     # Using the user_data to count the number of frames
     user_data.increment()
     string_to_print = f"Frame count: {user_data.get_count()}\n"
-    
+
     # Get the caps from the pad
     format, width, height = get_caps_from_pad(pad)
 
@@ -58,7 +58,7 @@ def app_callback(pad, info, user_data):
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
-    
+
     # Parse the detections
     detection_count = 0
     for detection in detections:
@@ -81,7 +81,7 @@ def app_callback(pad, info, user_data):
 
     print(string_to_print)
     return Gst.PadProbeReturn.OK
-    
+
 
 # -----------------------------------------------------------------------------------------------
 # User Gstreamer Application
@@ -98,9 +98,9 @@ class GStreamerDetectionApp(GStreamerApp):
         self.network_width = 640
         self.network_height = 640
         self.network_format = "RGB"
-        nms_score_threshold = 0.3 
+        nms_score_threshold = 0.3
         nms_iou_threshold = 0.45
-        
+
         # Temporary code: new postprocess will be merged to TAPPAS.
         # Check if new postprocess so file exists
         new_postprocess_path = os.path.join(self.current_path, '../resources/libyolo_hailortpp_post.so')
@@ -128,7 +128,7 @@ class GStreamerDetectionApp(GStreamerApp):
             self.labels_config = ''
 
         self.app_callback = app_callback
-    
+
         self.thresholds_str = (
             f"nms-score-threshold={nms_score_threshold} "
             f"nms-iou-threshold={nms_iou_threshold} "

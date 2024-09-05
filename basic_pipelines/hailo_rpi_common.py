@@ -1,3 +1,4 @@
+import sys
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib, GObject
@@ -14,7 +15,7 @@ import signal
 try:
     import hailo
 except ImportError:
-    exit("Failed to import hailo python module. Make sure you are in hailo virtual environment.")
+    sys.exit("Failed to import hailo python module. Make sure you are in hailo virtual environment.")
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
@@ -36,12 +37,12 @@ class app_callback_class:
         self.frame_count += 1
 
     def get_count(self):
-        return self.frame_count 
+        return self.frame_count
 
     def set_frame(self, frame):
         if not self.frame_queue.full():
             self.frame_queue.put(frame)
-        
+
     def get_frame(self):
         if not self.frame_queue.empty():
             return self.frame_queue.get()
@@ -73,7 +74,7 @@ def display_user_data_frame(user_data: app_callback_class):
             cv2.imshow("User Frame", frame)
         cv2.waitKey(1)
     cv2.destroyAllWindows()
-    
+
 def get_default_parser():
     parser = argparse.ArgumentParser(description="Hailo App Help")
     parser.add_argument(
@@ -112,10 +113,10 @@ class GStreamerApp:
     def __init__(self, args, user_data: app_callback_class):
         # Set the process title
         setproctitle.setproctitle("Hailo Python App")
-        
+
         # Create an empty options menu
         self.options_menu = args
-        
+
         # Set up signal handler for SIGINT (Ctrl-C)
         signal.signal(signal.SIGINT, self.shutdown)
 
@@ -130,7 +131,9 @@ class GStreamerApp:
         self.source_type = get_source_type(self.video_source)
         self.user_data = user_data
         self.video_sink = "xvimagesink"
-        
+        self.pipeline = None
+        self.loop = None
+
         # Set Hailo parameters; these parameters should be set based on the model used
         self.batch_size = 1
         self.network_width = 640
@@ -144,10 +147,10 @@ class GStreamerApp:
         user_data.use_frame = self.options_menu.use_frame
 
         self.sync = "false" if (self.options_menu.disable_sync or self.source_type != "file") else "true"
-        
+
         if self.options_menu.dump_dot:
             os.environ["GST_DEBUG_DUMP_DOT_DIR"] = self.current_path
-    
+
     def on_fps_measurement(self, sink, fps, droprate, avgfps):
         print(f"FPS: {fps:.2f}, Droprate: {droprate:.2f}, Avg FPS: {avgfps:.2f}")
         return True
@@ -155,15 +158,15 @@ class GStreamerApp:
     def create_pipeline(self):
         # Initialize GStreamer
         Gst.init(None)
-        
+
         pipeline_string = self.get_pipeline_string()
         try:
             self.pipeline = Gst.parse_launch(pipeline_string)
         except Exception as e:
             print(e)
             print(pipeline_string)
-            exit(1)
-        
+            sys.exit(1)
+
         # Connect to hailo_display fps-measurements
         if self.options_menu.show_fps:
             print("Showing FPS")
@@ -171,12 +174,12 @@ class GStreamerApp:
 
         # Create a GLib Main Loop
         self.loop = GLib.MainLoop()
-        
+
     def bus_call(self, bus, message, loop):
         t = message.type
         if t == Gst.MessageType.EOS:
             print("End-of-stream")
-            self.shutdown()
+            self.on_eos()
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             print(f"Error: {err}, {debug}")
@@ -187,7 +190,20 @@ class GStreamerApp:
             qos_element = message.src.get_name()
             print(f"QoS message received from {qos_element}")
         return True
-    
+
+
+    def on_eos(self):
+        if self.source_type == "file":
+             # Seek to the start (position 0) in nanoseconds
+            success = self.pipeline.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0)
+            if success:
+                print("Video rewound successfully. Restarting playback...")
+            else:
+                print("Error rewinding the video.")
+        else:
+            self.shutdown()
+
+
     def shutdown(self, signum=None, frame=None):
         print("Shutting down... Hit Ctrl-C again to force quit.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -204,12 +220,12 @@ class GStreamerApp:
     def get_pipeline_string(self):
         # This is a placeholder function that should be overridden by the child class
         return ""
-    
+
     def dump_dot_file(self):
         print("Dumping dot file...")
         Gst.debug_bin_to_dot_file(self.pipeline, Gst.DebugGraphDetails.ALL, "pipeline")
         return False
-    
+
     def run(self):
         # Add a watch for messages on the pipeline's bus
         bus = self.pipeline.get_bus()
@@ -233,10 +249,10 @@ class GStreamerApp:
             xvimagesink = hailo_display.get_by_name("xvimagesink0")
             if xvimagesink is not None:
                 xvimagesink.set_property("qos", False)
-        
+
         # Disable QoS to prevent frame drops
         disable_qos(self.pipeline)
-        
+
         # Start a subprocess to run the display_user_data_frame function
         if self.options_menu.use_frame:
             display_process = multiprocessing.Process(target=display_user_data_frame, args=(self.user_data,))
@@ -244,11 +260,11 @@ class GStreamerApp:
 
         # Set pipeline to PLAYING state
         self.pipeline.set_state(Gst.State.PLAYING)
-        
+
         # Dump dot file
         if self.options_menu.dump_dot:
             GLib.timeout_add_seconds(3, self.dump_dot_file)
-        
+
         # Run the GLib event loop
         self.loop.run()
 
@@ -286,13 +302,13 @@ FORMAT_HANDLERS = {
 def get_numpy_from_buffer(buffer, format, width, height):
     """
     Converts a GstBuffer to a numpy array based on provided format, width, and height.
-    
+
     Args:
         buffer (GstBuffer): The GStreamer Buffer to convert.
         format (str): The video format ('RGB', 'NV12', 'YUYV', etc.).
         width (int): The width of the video frame.
         height (int): The height of the video frame.
-        
+
     Returns:
         np.ndarray: A numpy array representing the buffer's data, or a tuple of arrays for certain formats.
     """
@@ -300,7 +316,7 @@ def get_numpy_from_buffer(buffer, format, width, height):
     success, map_info = buffer.map(Gst.MapFlags.READ)
     if not success:
         raise ValueError("Buffer mapping failed")
-    
+
     try:
         # Handle different formats based on the provided format parameter
         handler = FORMAT_HANDLERS.get(format)
@@ -313,7 +329,7 @@ def get_numpy_from_buffer(buffer, format, width, height):
 # ---------------------------------------------------------
 # Useful functions for working with GStreamer
 # ---------------------------------------------------------
-        
+
 def disable_qos(pipeline):
     """
     Iterate through all elements in the given GStreamer pipeline and set the qos property to False
