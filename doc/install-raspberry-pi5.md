@@ -10,8 +10,8 @@ In this guide, you will learn how to set up the Raspberry Pi 5 with a Hailo-8L A
 
 ## What You'll Need
 - Raspberry Pi 5
-- Raspberry M.2 M-Key HAT
-- Hailo8L M.2 module (Hailo-8 is also supported)
+- Raspberry Pi M.2 M-Key HAT
+- Hailo-8L M.2 module (Hailo-8 is also supported)
 - Thermal pad (Included with the kit)
 - Optional: Heat sink
 - Optional: An official Raspberry Pi camera (e.g., Camera Module 3 or High-Quality Camera)
@@ -169,12 +169,12 @@ To upgrade to the latest version of the Hailo software package, run the followin
 sudo apt update
 sudo apt full-upgrade
 sudo apt install hailo-all
-reboot
+sudo reboot
 ```
 To downgrade to a previous version (TAPPAS 3.28.2), run the following commands:
 ```bash
 sudo apt install hailort=4.17.0 hailo-tappas-core-3.28.2 hailofw=4.17.0-2 hailo-dkms=4.17.0-1
-reboot
+sudo reboot
 ```
 
 ## Troubleshooting
