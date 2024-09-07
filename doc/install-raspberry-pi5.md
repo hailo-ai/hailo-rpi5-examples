@@ -171,6 +171,12 @@ sudo apt full-upgrade
 sudo apt install hailo-all
 sudo reboot
 ```
+Don't forget to update our GitHub repository to the latest version to get the latest examples and resources.
+```bash
+cd [your-path]/hailo-rpi5-examples
+git pull
+```
+
 To downgrade to a previous version (TAPPAS 3.28.2), run the following commands:
 ```bash
 sudo apt install hailort=4.17.0 hailo-tappas-core-3.28.2 hailofw=4.17.0-2 hailo-dkms=4.17.0-1
