@@ -74,7 +74,8 @@ CLIP (Contrastive Language-Image Pretraining) predicts the most relevant text pr
 See the [hailo-CLIP Repository](https://github.com/hailo-ai/hailo-CLIP) for more information.
 Click the image below to watch the demo on YouTube.
 
-[![Watch the demo on YouTube](https://img.youtube.com/vi/xJXMGu7EK60/0.jpg)](https://youtu.be/xJXMGu7EK60)
+[![Watch the demo on YouTube](https://img.youtube.com/vi/XXizBHtCLew/0.jpg)](https://youtu.be/XXizBHtCLew)
+
 
 #### Frigate Integration - Coming Soon
 
