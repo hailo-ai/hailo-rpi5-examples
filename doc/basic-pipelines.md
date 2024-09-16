@@ -26,16 +26,23 @@ Make sure you are in the virtual environment and run the following command:
 pip install -r requirements.txt
 ```
 
+The rapidjson-dev package should be installed as default in Pi OS.
+If for some reasone you don't have it you can install it using:
+```bash
+sudo apt install -y rapidjson-dev
+```
+
 ### Resources Download
 ```bash
 ./download_resources.sh
 ```
 ### Post Process Compilation
-To support using retrained models, you need to compile the post process locally. This post process will be merged to Hailo TAPPAS in the next release.
-To compile the post process run the following script:
+The post process required is already merged to TAPPAS core from version 3.29.0. It will be removed from this repository in the future.
+If you are using an older version you can compile the post process using the following script:
 ```bash
 ./compile_postprocess.sh
 ```
+Note: If you are an using older version the app might still work but the labels will be wrong. In that case you should compile the post process.
 
 ## Application Structure
 
@@ -110,7 +117,7 @@ python basic_pipelines/pose_estimation.py --help
 See also [Running with Different Input Sources](#running-with-different-input-sources).
 ## What is in this example:
 #### Pose Estimation Callback Class:
-The Callback function showcases how to get the pose estimation metadata from the network output. Each pesron is represented as a ```HAILO_DETECTION``` with 17 keypoints (```HAILO_LANDMARKS``` objects). The code parses the landmarks and extracts the left and right eye coordinates and prints them to the terminal. If ```--use-frame``` flag is set the eyes will be drawn on the user frame. 
+The Callback function showcases how to get the pose estimation metadata from the network output. Each pesron is represented as a ```HAILO_DETECTION``` with 17 keypoints (```HAILO_LANDMARKS``` objects). The code parses the landmarks and extracts the left and right eye coordinates and prints them to the terminal. If ```--use-frame``` flag is set the eyes will be drawn on the user frame.
 The keypoints dictionary can be obtained from the ```get_keypoints``` function.
 
 # Instance Segmentation Example
@@ -155,8 +162,8 @@ options:
 See more information on how to use these options below.
 
 ### Running with Different Input Sources
-These examples run with a USB camera by default (/dev/video0). You can change the input source using the --input flag. 
-To run with a Raspberry Pi camera, use `--input rpi`. (Still in Beta) 
+These examples run with a USB camera by default (/dev/video0). You can change the input source using the --input flag.
+To run with a Raspberry Pi camera, use `--input rpi`. (Still in Beta)
 Here are a few examples:
 ```bash
 python basic_pipelines/detection.py --input /dev/video2
@@ -178,7 +185,7 @@ If you get an error try another device, e.g. /dev/video2. (It will probably be a
 For an example of using the frame buffer add the `--use-frame` flag. Note that extracting the video frame and displaying it can slow down the application. The way it is implemented is not optimized and is shown as a simple example. There is a possibility to write on the buffer and replace the old buffer in the pipeline however this is not efficient.
 
 #### Printing the frame rate:
-To print the frame rate add the `--print-fps` flag. This will print the frame rate to the terminal and to the video output window.
+To print the frame rate add the `--show-fps` flag. This will print the frame rate to the terminal and to the video output window.
 
 #### Dumping the pipeline graph:
 This is useful for debugging and understanding the pipeline.
@@ -205,7 +212,7 @@ It is full with useful information and might already include the solution to you
 
 - RPi camera input is still in Beta. It might not be stable and can cause the application to crash.
 - The frame buffer is not optimized and can slow down the application. It is shown as a simple example.
-- **DEVICE_IN_USE() error.** 
+- **DEVICE_IN_USE() error.**
 The `DEVICE_IN_USE()` error typically indicates that the Hailo device (usually `/dev/hailo0`) is currently being accessed or locked by another process. This can happen during concurrent access attempts or if a previous process did not terminate cleanly, leaving the device in a locked state. See community forum [topic](https://community.hailo.ai/t/resolving-device-in-use-error-for-hailo-devices/18?u=giladn) for more information.
 
   **Steps to Resolve:**
