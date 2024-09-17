@@ -157,14 +157,12 @@ class GStreamerDetectionApp(GStreamerApp):
             )
         elif self.video_source.startswith("rtsp://"):
             source_element = (
-                f"rtspsrc location={self.video_source} name=src_0 "
-                "protocols=tcp latency=2000 buffer-mode=auto "
-                "tcp-timeout=5000000 udp-buffer-size=2097152 ! "
-                "queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 ! "
-                "rtph265depay ! h265parse ! avdec_h265 ! "
+                f"rtspsrc location={self.video_source} name=src_0 ! "
+                "application/x-rtp,media=video ! "
+                "decodebin ! "
                 "videoconvert ! videoscale ! "
-                f"video/x-raw, format=RGB, width={self.network_width}, height={self.network_height} ! "
-            )            
+                f"video/x-raw, format={self.network_format}, width={self.network_width}, height={self.network_height} ! "
+            )
         else:
             source_element = (
                 f"filesrc location=\"{self.video_source}\" name=src_0 ! "
