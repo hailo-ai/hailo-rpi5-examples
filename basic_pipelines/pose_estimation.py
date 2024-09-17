@@ -150,6 +150,14 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         elif self.source_type == "usb":
             source_element = f"v4l2src device={self.video_source} name=src_0 ! "
             source_element += f"video/x-raw, width=640, height=480, framerate=30/1 ! "
+        elif self.video_source.startswith("rtsp://"):
+            source_element = (
+                f"rtspsrc location={self.video_source} name=src_0 ! "
+                "application/x-rtp,media=video ! "
+                "decodebin ! "
+                "videoconvert ! videoscale ! "
+                f"video/x-raw, format={self.network_format}, width={self.network_width}, height={self.network_height} ! "
+            )
         else:
             source_element = f"filesrc location=\"{self.video_source}\" name=src_0 ! "
             source_element += QUEUE("queue_dec264")
