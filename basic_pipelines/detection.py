@@ -12,6 +12,11 @@ import hailo
 from hailo_rpi_common import (
     get_default_parser,
     QUEUE,
+    SOURCE_PIPELINE,
+    DETECTION_PIPELINE,
+    INFERENCE_PIPELINE_WRAPPER,
+    USER_CALLBACK_PIPELINE,
+    DISPLAY_PIPELINE,
     get_caps_from_pad,
     get_numpy_from_buffer,
     GStreamerApp,
@@ -101,14 +106,6 @@ class GStreamerDetectionApp(GStreamerApp):
         nms_score_threshold = 0.3
         nms_iou_threshold = 0.45
 
-        # Temporary code: new postprocess will be merged to TAPPAS.
-        # Check if new postprocess so file exists
-        new_postprocess_path = os.path.join(self.current_path, '../resources/libyolo_hailortpp_post.so')
-        if os.path.exists(new_postprocess_path):
-            self.default_postprocess_so = new_postprocess_path
-        else:
-            self.default_postprocess_so = os.path.join(self.postprocess_dir, 'libyolo_hailortpp_post.so')
-
         if args.hef_path is not None:
             self.hef_path = args.hef_path
         # Set the HEF file path based on the network
@@ -116,16 +113,11 @@ class GStreamerDetectionApp(GStreamerApp):
             self.hef_path = os.path.join(self.current_path, '../resources/yolov6n.hef')
         elif args.network == "yolov8s":
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_h8l.hef')
-        elif args.network == "yolox_s_leaky":
-            self.hef_path = os.path.join(self.current_path, '../resources/yolox_s_leaky_h8l_mz.hef')
         else:
             assert False, "Invalid network type"
 
         # User-defined label JSON file
-        if args.labels_json is not None:
-            self.labels_config = f' config-path={args.labels_json} '
-        else:
-            self.labels_config = ''
+        self.labels_json = args.labels_json
 
         self.app_callback = app_callback
 
@@ -141,56 +133,16 @@ class GStreamerDetectionApp(GStreamerApp):
         self.create_pipeline()
 
     def get_pipeline_string(self):
-        if self.source_type == "rpi":
-            source_element = (
-                "libcamerasrc name=src_0 ! "
-                f"video/x-raw, format={self.network_format}, width=1536, height=864 ! "
-                + QUEUE("queue_src_scale")
-                + "videoscale ! "
-                f"video/x-raw, format={self.network_format}, width={self.network_width}, height={self.network_height}, framerate=30/1 ! "
-            )
-        elif self.source_type == "usb":
-            source_element = (
-                f"v4l2src device={self.video_source} name=src_0 ! "
-                "video/x-raw, width=640, height=480, framerate=30/1 ! "
-            )
-        else:
-            source_element = (
-                f"filesrc location=\"{self.video_source}\" name=src_0 ! "
-                + QUEUE("queue_dec264")
-                + " qtdemux ! h264parse ! avdec_h264 max-threads=2 ! "
-                " video/x-raw, format=I420 ! "
-            )
-        source_element += QUEUE("queue_scale")
-        source_element += "videoscale n-threads=2 ! "
-        source_element += QUEUE("queue_src_convert")
-        source_element += "videoconvert n-threads=3 name=src_convert qos=false ! "
-        source_element += f"video/x-raw, format={self.network_format}, width={self.network_width}, height={self.network_height}, pixel-aspect-ratio=1/1 ! "
-
+        source_pipeline = SOURCE_PIPELINE(self.video_source)
+        detection_pipeline = DETECTION_PIPELINE(hef_path=self.hef_path, batch_size=self.batch_size, labels_json=self.labels_json, additional_params=self.thresholds_str)
+        detection_pipeline_wrapper = INFERENCE_PIPELINE_WRAPPER(inner_pipeline=detection_pipeline)
+        user_callback_pipeline = USER_CALLBACK_PIPELINE()
+        display_pipeline = DISPLAY_PIPELINE(video_sink=self.video_sink, sync=self.sync, show_fps=self.show_fps)
         pipeline_string = (
-            "hailomuxer name=hmux "
-            + source_element
-            + "tee name=t ! "
-            + QUEUE("bypass_queue", max_size_buffers=20)
-            + "hmux.sink_0 "
-            + "t. ! "
-            + QUEUE("queue_hailonet")
-            + "videoconvert n-threads=3 ! "
-            f"hailonet hef-path={self.hef_path} batch-size={self.batch_size} {self.thresholds_str} force-writable=true ! "
-            + QUEUE("queue_hailofilter")
-            + f"hailofilter so-path={self.default_postprocess_so} {self.labels_config} qos=false ! "
-            + QUEUE("queue_hmuc")
-            + "hmux.sink_1 "
-            + "hmux. ! "
-            + QUEUE("queue_hailo_python")
-            + QUEUE("queue_user_callback")
-            + "identity name=identity_callback ! "
-            + QUEUE("queue_hailooverlay")
-            + "hailooverlay ! "
-            + QUEUE("queue_videoconvert")
-            + "videoconvert n-threads=3 qos=false ! "
-            + QUEUE("queue_hailo_display")
-            + f"fpsdisplaysink video-sink={self.video_sink} name=hailo_display sync={self.sync} text-overlay={self.options_menu.show_fps} signal-fps-measurements=true "
+            f'{source_pipeline} '
+            f'{detection_pipeline_wrapper} ! '
+            f'{user_callback_pipeline} ! '
+            f'{display_pipeline}'
         )
         print(pipeline_string)
         return pipeline_string
@@ -203,7 +155,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--network",
         default="yolov6n",
-        choices=['yolov6n', 'yolov8s', 'yolox_s_leaky'],
+        choices=['yolov6n', 'yolov8s'],
         help="Which Network to use, default is yolov6n",
     )
     parser.add_argument(
