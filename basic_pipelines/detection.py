@@ -141,6 +141,7 @@ class GStreamerDetectionApp(GStreamerApp):
         self.create_pipeline()
 
     def get_pipeline_string(self):
+        print("wank")
         if self.source_type == "rpi":
             source_element = (
                 "libcamerasrc name=src_0 ! "
@@ -154,6 +155,15 @@ class GStreamerDetectionApp(GStreamerApp):
                 f"v4l2src device={self.video_source} name=src_0 ! "
                 "video/x-raw, width=640, height=480, framerate=30/1 ! "
             )
+        elif self.source_type == "rtsp":
+            source_element = (
+                f"rtspsrc location=\"{self.video_source}\" name=src_0 latency=300 ! "
+                + QUEUE("queue_dec264")
+                + "rtph264depay ! h264parse ! avdec_h264 max-threads=2 ! "
+                "video/x-raw,format=I420 ! "
+            )
+            #"queue name=queue_dec264 max-size-buffers=3 max-size-bytes=0 max-size-time=0 ! "
+
         else:
             source_element = (
                 f"filesrc location=\"{self.video_source}\" name=src_0 ! "

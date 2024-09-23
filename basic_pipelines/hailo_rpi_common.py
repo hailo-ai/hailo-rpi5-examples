@@ -79,7 +79,7 @@ def get_default_parser():
     parser = argparse.ArgumentParser(description="Hailo App Help")
     parser.add_argument(
         "--input", "-i", type=str, default="/dev/video0",
-        help="Input source. Can be a file, USB or RPi camera (CSI camera module). \
+        help="Input source. Can be a file, USB, RPi camera (CSI camera module), or RTSP/H264 URL. \
         For RPi camera use '-i rpi' (Still in Beta). \
         Defaults to /dev/video0"
     )
@@ -97,12 +97,14 @@ def QUEUE(name, max_size_buffers=3, max_size_bytes=0, max_size_time=0, leaky='no
 
 def get_source_type(input_source):
     # This function will return the source type based on the input source
-    # return values can be "file", "mipi" or "usb"
+    # return values can be "file", "rpi", "usb", or "rtsp"
     if input_source.startswith("/dev/video"):
         return 'usb'
     else:
         if input_source.startswith("rpi"):
             return 'rpi'
+        elif input_source.startswith("rtsp://"):
+            return 'rtsp'
         else:
             return 'file'
 
