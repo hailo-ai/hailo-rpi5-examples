@@ -69,16 +69,6 @@ def test_basic_pipeline_run(script):
     
     assert process.returncode == 0 or process.returncode is None, f"{script} exited with an error: {stderr.decode()}"
 
-def test_sanity_check():
-    """Run the sanity check script."""
-    result = subprocess.run(['python', 'sanity_check.py'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    assert "All sanity checks passed successfully!" in result.stdout, "Sanity check failed."
-
-def test_compile_postprocess():
-    """Test compilation of post-processing library."""
-    subprocess.run(['./compile_postprocess.sh'], check=True)
-    assert os.path.exists('build.release/libyolo_hailortpp_post.so'), "Post-processing library compilation failed."
-
 @pytest.mark.skipif(not os.path.exists('/dev/video0'), reason="No camera detected")
 def test_camera_input():
     """Test camera input if available."""

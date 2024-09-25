@@ -24,7 +24,10 @@ sudo apt install -y rapidjson-dev
 
 
 # Activate the virtual environment to Run the examples 
-#. venv_hailo_rpi5_examples/bin/activate
+. venv_hailo_rpi5_examples/bin/activate
+
+# Re run the source setup_env.sh
+source setup_env.sh
 
 # Run the Classification pipeline example
 #python3 examples/classification.py
