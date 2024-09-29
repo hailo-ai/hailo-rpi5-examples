@@ -1,15 +1,30 @@
 #!/bin/bash
 
-# Step 1: Set up the environment
-echo "Setting up the environment..."
-source setup_env.sh || { echo "Failed to set up the environment"; exit 1; }
+# Path to your virtual environment
+VENV_PATH="venv_hailo_rpi5_examples"
 
-# Step 2: Install dependencies
-echo "Installing dependencies..."
-pip install -r requirements.txt || { echo "Dependency installation failed"; exit 1; }
+# Path to your setup_env.sh file
+SETUP_ENV_PATH="setup_env.sh"
 
-# Step 3: Run pytest tests
+# Path to your tests directory
+TESTS_DIR="tests"
+
+# Activate the virtual environment
+echo "Activating virtual environment..."
+source "$VENV_PATH/bin/activate"
+
+# Source the setup_env.sh file
+echo "Sourcing setup_env.sh..."
+source "$SETUP_ENV_PATH"
+
+# Run pytest for all test files
 echo "Running tests..."
-pytest tests/ --maxfail=1 --disable-warnings || { echo "Tests failed"; exit 1; }
+pytest "$TESTS_DIR/test_sanity_check.py" \
+       "$TESTS_DIR/test_hailo_rpi5_examples.py" \
+       "$TESTS_DIR/test_edge_cases.py" \
+       "$TESTS_DIR/test_advanced.py"
 
-echo "All tests passed successfully!"
+# Deactivate the virtual environment
+deactivate
+
+echo "All tests completed."
