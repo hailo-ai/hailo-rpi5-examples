@@ -2,25 +2,15 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
 import os
-import argparse
-import multiprocessing
 import numpy as np
-import setproctitle
 import cv2
-import time
 import hailo
 from hailo_rpi_common import (
-    get_default_parser,
-    QUEUE,
-    SOURCE_PIPELINE,
-    INFERENCE_PIPELINE,
-    USER_CALLBACK_PIPELINE,
-    DISPLAY_PIPELINE,
     get_caps_from_pad,
     get_numpy_from_buffer,
-    GStreamerApp,
     app_callback_class,
 )
+from instance_segmentation_pipeline import GStreamerInstanceSegmentationApp
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
@@ -67,7 +57,6 @@ def app_callback(pad, info, user_data):
         if label == "person":
             string_to_print += (f"Detection: {label} {confidence:.2f}\n")
             if user_data.use_frame:
-
                 # Instance segmentation mask from detection (if available)
                 masks = detection.get_objects_typed(hailo.HAILO_CONF_CLASS_MASK)
                 if len(masks) != 0:
@@ -84,58 +73,25 @@ def app_callback(pad, info, user_data):
                     string_to_print += f"Mask shape: {data.shape}, "
                     string_to_print += f"Base coordinates ({int(bbox.xmin() * width)},{int(bbox.ymin() * height)})\n"
 
+                    # This code is on remark due to performance issues
+                    # # Add mask overlay to the frame
+                    # mask_overlay = np.zeros_like(frame)
+                    # x_min, y_min = int(bbox.xmin() * width), int(bbox.ymin() * height)
+                    # x_max, y_max = x_min + mask_width, y_min + mask_height
+                    # mask_overlay[y_min:y_max, x_min:x_max, 2] = (data > 0.5) * 255  # Red channel
+                    # frame = cv2.addWeighted(frame, 1, mask_overlay, 0.5, 0)
+
     print(string_to_print)
+
+    if user_data.use_frame:
+        # Convert the frame to BGR
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        user_data.set_frame(frame)
+
     return Gst.PadProbeReturn.OK
-
-
-#-----------------------------------------------------------------------------------------------
-# User Gstreamer Application
-# -----------------------------------------------------------------------------------------------
-
-# This class inherits from the hailo_rpi_common.GStreamerApp class
-
-class GStreamerInstanceSegmentationApp(GStreamerApp):
-    def __init__(self, args, user_data):
-        # Call the parent class constructor
-        super().__init__(args, user_data)
-        # Additional initialization code can be added here
-        # Set Hailo parameters these parameters should be set based on the model used
-        self.batch_size = 2
-        self.network_width = 640
-        self.network_height = 640
-        self.network_format = "RGB"
-        self.default_post_process_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
-        self.post_function_name = "yolov5seg"
-        self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg_h8l_mz.hef')
-        self.app_callback = app_callback
-
-        # Set the process title
-        setproctitle.setproctitle("Hailo Instance Segmentation App")
-
-        self.create_pipeline()
-
-    def get_pipeline_string(self):
-        source_pipeline = SOURCE_PIPELINE(video_source=self.video_source)
-        infer_pipeline = INFERENCE_PIPELINE(
-            hef_path=self.hef_path,
-            post_process_so=self.default_post_process_so,
-            post_function_name=self.post_function_name
-        )
-        user_callback_pipeline = USER_CALLBACK_PIPELINE()
-        display_pipeline = DISPLAY_PIPELINE(video_sink=self.video_sink, sync=self.sync, show_fps=self.show_fps)
-        pipeline_string = (
-            f'{source_pipeline} '
-            f'{infer_pipeline} ! '
-            f'{user_callback_pipeline} ! '
-            f'{display_pipeline}'
-        )
-        print(pipeline_string)
-        return pipeline_string
 
 if __name__ == "__main__":
     # Create an instance of the user app callback class
     user_data = user_app_callback_class()
-    parser = get_default_parser()
-    args = parser.parse_args()
-    app = GStreamerInstanceSegmentationApp(args, user_data)
+    app = GStreamerInstanceSegmentationApp(app_callback, user_data)
     app.run()
