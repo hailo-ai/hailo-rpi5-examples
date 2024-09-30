@@ -49,6 +49,20 @@ class app_callback_class:
         else:
             return None
 
+def dummy_callback(pad, info, user_data):
+    """
+    A minimal dummy callback function that returns immediately.
+
+    Args:
+        pad: The GStreamer pad
+        info: The probe info
+        user_data: User-defined data passed to the callback
+
+    Returns:
+        Gst.PadProbeReturn.OK
+    """
+    return Gst.PadProbeReturn.OK
+
 # -----------------------------------------------------------------------------------------------
 # Common functions
 # -----------------------------------------------------------------------------------------------
