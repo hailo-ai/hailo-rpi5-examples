@@ -11,7 +11,7 @@ import cv2
 import socket
 import time
 import hailo
-import logging  # Import the logging module
+import logging
 from datetime import datetime
 
 from hailo_rpi_common import (
@@ -22,6 +22,8 @@ from hailo_rpi_common import (
     GStreamerApp,
     app_callback_class,
 )
+
+from unix_domain_socket_server import UnixDomainSocketServer
 
 import threading
 
@@ -51,71 +53,6 @@ class user_app_callback_class(app_callback_class):
 
     def new_function(self):  # New function example
         return "The meaning of life is: "
-
-# -----------------------------------------------------------------------------------------------
-# Unix Domain Socket Server
-# -----------------------------------------------------------------------------------------------
-class UnixDomainSocketServer(threading.Thread):
-    def __init__(self, socket_path):
-        super().__init__()
-        self.socket_path = socket_path
-        self.clients = []
-        self.lock = threading.Lock()
-        self.running = True
-
-        # Ensure the socket does not already exist
-        try:
-            os.unlink(self.socket_path)
-        except FileNotFoundError:
-            pass
-
-        self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.server.bind(self.socket_path)
-        self.server.listen(5)
-        self.server.settimeout(1.0)  # To allow periodic checking for shutdown
-        logger.info(f"Unix Domain Socket Server initialized at {socket_path}")
-
-    def run(self):
-        logger.info("Unix Domain Socket Server started")
-        while self.running:
-            try:
-                client, _ = self.server.accept()
-                with self.lock:
-                    self.clients.append(client)
-                logger.info("New client connected.")
-            except socket.timeout:
-                continue
-            except Exception as e:
-                logger.error(f"Socket accept error: {e}")
-                break
-
-        self.server.close()
-        logger.info("Unix Domain Socket Server shut down.")
-
-    def send_event(self, data):
-        message = json.dumps(data) + "\n"
-        with self.lock:
-            for client in self.clients[:]:
-                try:
-                    client.sendall(message.encode('utf-8'))
-                except BrokenPipeError:
-                    logger.warning("Client disconnected.")
-                    self.clients.remove(client)
-                except Exception as e:
-                    logger.error(f"Error sending data to client: {e}")
-                    self.clients.remove(client)
-
-    def shutdown(self):
-        logger.info("Shutting down Unix Domain Socket Server")
-        self.running = False
-        with self.lock:
-            for client in self.clients:
-                try:
-                    client.close()
-                except:
-                    pass
-            self.clients.clear()
-
 
 # -----------------------------------------------------------------------------------------------
 # User-defined callback function
@@ -168,8 +105,8 @@ def app_callback(pad, info, user_data):
 
     labels = [detection.get_label() for detection in detections]
 
+    # Call events server to fire event of a new detection
     user_data.socket_server.send_event(labels)
-
 
     print(string_to_print)
     return Gst.PadProbeReturn.OK
@@ -291,6 +228,7 @@ if __name__ == "__main__":
     # Create an instance of the user app callback class
     user_data = user_app_callback_class()
 
+    # Set up events server
     socket_server = UnixDomainSocketServer(SOCKET_PATH)
     socket_server.start()
     user_data.socket_server = socket_server
