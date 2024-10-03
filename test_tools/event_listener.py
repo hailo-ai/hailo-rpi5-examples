@@ -1,5 +1,6 @@
 import socket
 import os
+import time
 
 # Path to the Unix Domain Socket (ensure it matches the server's socket path)
 SOCKET_PATH = "/tmp/gst_detection.sock"
@@ -13,16 +14,27 @@ def main():
         client_socket.connect(SOCKET_PATH)
         print(f"Connected to Unix Domain Socket at {SOCKET_PATH}")
 
+        # Set the socket to non-blocking mode
+        client_socket.setblocking(False)
+
         # Listen for messages from the server
         while True:
-            data = client_socket.recv(1024)
-            if not data:
-                print("Server disconnected")
-                break
+            try:
+                # Try to receive data without blocking
+                data = client_socket.recv(1024)
+                if data:
+                    print(f"Received data: {data.decode('utf-8')}")
+                else:
+                    print("Server disconnected")
+                    break
+            
+            except BlockingIOError:
+                # No data available, continue loop
+                pass
+            
+            # You can add a small sleep to prevent busy looping
+            time.sleep(0.01)
 
-            # Print received data
-            print(f"Received data: {data.decode('utf-8')}")
-    
     except FileNotFoundError:
         print(f"Socket path '{SOCKET_PATH}' does not exist. Please ensure the server is running.")
     
