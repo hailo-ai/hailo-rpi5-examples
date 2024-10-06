@@ -206,6 +206,16 @@ Here is an example output of the detection pipeline graph:
 ![detection_pipeline](images/detection_pipeline.png)
 Tip: Right click on the image and select "Open image in new tab" to see the full image.
 
+##### [Detection Example](doc/basic-pipelines.md#detection-example)
+![Detection Example](doc/images/detection.gif)
+
+# Detection-service Example
+![Banner](images/detection_Servier.gif)
+
+This mode allows integration with minimal changes to your app.  
+You can test out the integration, as well as see a demo how to integrate it in your app by looking at **test_tools**.  
+The test tool allows for integrating with either holding for next input, or continuing.
+
 # Troubleshoting and Known Issues
 If you encounter any issues, please open a ticket in the [Hailo Community Forum](https://community.hailo.ai/).
 It is full with useful information and might already include the solution to your problem.
