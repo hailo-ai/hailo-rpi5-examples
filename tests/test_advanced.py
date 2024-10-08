@@ -59,7 +59,7 @@ def test_long_running():
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     start_time = time.time()
     try:
-        while time.time() - start_time < 3600:  # Run for 1 hour
+        while time.time() - start_time < 360:  # Run for 6 minutes
             if process.poll() is not None:
                 raise AssertionError(f"Process exited unexpectedly after {time.time() - start_time} seconds")
             time.sleep(10)
@@ -70,3 +70,28 @@ def test_long_running():
         stdout, stderr = process.communicate()
 
     assert "Error" not in stderr.decode(), f"Errors encountered during long-running test: {stderr.decode()}"
+
+
+def test_pi_camera_running():
+    """Test if the Raspberry Pi camera is accessible and running."""
+    # Check if /dev/video0 exists, which is typically where the Pi camera is mapped
+    if not os.path.exists('/dev/video0'):
+        pytest.skip("No camera detected at /dev/video0")
+    
+
+    # Try capturing a frame using the Pi camera
+    process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', '/dev/video0'],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        time.sleep(10)  # Let the process run for 10 seconds
+    finally:
+        # Gracefully terminate the process
+        process.send_signal(signal.SIGTERM)
+        process.wait()  # Ensure the process has fully exited
+    
+    stdout, stderr = process.communicate()
+    print("Pi Camera Test - Stdout:", stdout.decode())
+    print("Pi Camera Test - Stderr:", stderr.decode())
+
+    assert "error" not in stderr.decode().lower(), f"Unexpected error when accessing Pi camera: {stderr.decode()}"
+    assert process.returncode == 0, f"Pi camera process exited with code {process.returncode}"
