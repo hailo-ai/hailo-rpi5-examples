@@ -4,9 +4,17 @@
 
 
 # H8 HEFs
-# wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.10.0/hailo8/yolov5n_seg.hef -P ./resources
-# wget -nc https://hailo-tappas.s3.eu-west-2.amazonaws.com/v3.26/general/hefs/yolov5m_wo_spp_60p.hef -P ./resources
-# wget -nc https://hailo-tappas.s3.eu-west-2.amazonaws.com/v3.26/general/hefs/centerpose_regnetx_1.6gf_fpn.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov6n.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5m_wo_spp.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8s.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8s_pose.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8m_pose.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5n_seg.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5m_seg.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8m_seg.hef -P ./resources
+wget -nc https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/ssd_mobilenet_v2.hef -P ./resources
+
+
 
 # H8L HEFs
 wget -nc https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hefs/h8l_rpi/yolov5n_seg_h8l_mz.hef -P ./resources

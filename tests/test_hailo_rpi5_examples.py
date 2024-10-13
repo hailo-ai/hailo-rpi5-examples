@@ -6,6 +6,10 @@ import sys
 import importlib
 import time
 import signal
+import glob
+from picamera2 import Picamera2
+#from picamera2.previews import Preview
+
 
 def test_environment():
     """Test the Python environment and required packages."""
@@ -71,118 +75,175 @@ def test_setup_env():
     assert 'DEVICE_ARCHITECTURE' in stdout_str, "DEVICE_ARCHITECTURE is not set by setup_env.sh"
 
 
-@pytest.mark.parametrize("script", ["detection.py", "pose_estimation.py", "instance_segmentation.py"])
-def test_basic_pipeline_help(script):
-    """Test if basic pipeline scripts run with --help flag."""
-    result = subprocess.run(['python', f'basic_pipelines/{script}', '--help'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    assert "usage:" in result.stdout, f"{script} help message not displayed correctly."
-
-
-@pytest.mark.parametrize("script", ["detection.py", "pose_estimation.py", "instance_segmentation.py"])
-def test_basic_pipeline_run(script):
-    """Test if basic pipeline scripts run without errors for 30 seconds and process at least one frame and one detection."""
-    
-    # Log file path (create a logs directory if it doesn't exist)
+def test_combined_pipeline():
+    """
+    Combined test function for basic pipeline scripts and camera pipelines.
+    Tests help messages, basic pipeline runs, and camera pipeline runs.
+    """
+    # Create logs directory
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
-    log_file_path = os.path.join(log_dir, f"{script}_test.log")
-    
-    with open(log_file_path, "w") as log_file:
-        process = subprocess.Popen(['python', f'basic_pipelines/{script}', '--input', 'resources/detection0.mp4'],
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        try:
-            # Let the process run for 30 seconds
-            time.sleep(30)
-            
-            # After 30 seconds, terminate the process
-            process.send_signal(signal.SIGTERM)
-            process.wait(timeout=5)  # Wait for up to 5 seconds for process to terminate
-        except subprocess.TimeoutExpired:
-            process.kill()
-            pytest.fail(f"{script} could not be terminated within 5 seconds after running for 30 seconds")
 
-        stdout, stderr = process.communicate()
-        stderr_str = stderr.decode()
-        stdout_str = stdout.decode()
+    # Test help messages
+    scripts = ["detection.py", "pose_estimation.py", "instance_segmentation.py"]
+    for script in scripts:
+        result = subprocess.run(['python', f'basic_pipelines/{script}', '--help'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        assert "usage:" in result.stdout, f"{script} help message not displayed correctly."
 
-        # Write output to log file
-        log_file.write(f"{script} stdout full output (first 30 seconds):\n{stdout_str}\n")
-        log_file.write(f"{script} stderr full output (first 30 seconds):\n{stderr_str}\n")
+    # Test basic pipeline runs
+    for script in scripts:
+        log_file_path = os.path.join(log_dir, f"{script}_test.log")
+        with open(log_file_path, "w") as log_file:
+            process = subprocess.Popen(['python', f'basic_pipelines/{script}', '--input', 'resources/detection0.mp4'],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                time.sleep(30)
+                process.send_signal(signal.SIGTERM)
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                pytest.fail(f"{script} could not be terminated within 5 seconds after running for 30 seconds")
 
-        # Check for warnings but allow them
-        if "HEF was compiled for Hailo8L device" in stderr_str:
-            log_file.write(f"Warning: {script} - HEF compiled for Hailo8L device, may result in lower performance.\n")
-        if "Config file doesn't exist" in stderr_str:
-            log_file.write(f"Warning: {script} - Config file not found, using default parameters.\n")
+            stdout, stderr = process.communicate()
+            stderr_str = stderr.decode()
+            stdout_str = stdout.decode()
 
-        # Ensure there were no exceptions or critical errors
-        assert "Traceback" not in stderr_str, f"{script} encountered an exception: {stderr_str}"
-        assert "Error" not in stderr_str, f"{script} encountered an error: {stderr_str}"
+            log_file.write(f"{script} stdout full output (first 30 seconds):\n{stdout_str}\n")
+            log_file.write(f"{script} stderr full output (first 30 seconds):\n{stderr_str}\n")
 
-        # Check if at least one frame and one detection were processed
-        assert "frame" in stdout_str.lower(), f"{script} did not process any frames within the first 30 seconds"
-        assert "detection" in stdout_str.lower(), f"{script} did not make any detections within the first 30 seconds"
+            if "HEF was compiled for Hailo8L device" in stderr_str:
+                log_file.write(f"Warning: {script} - HEF compiled for Hailo8L device, may result in lower performance.\n")
+            if "Config file doesn't exist" in stderr_str:
+                log_file.write(f"Warning: {script} - Config file not found, using default parameters.\n")
 
-        log_file.write(f"{script} test passed: at least one frame and one detection processed.\n")
-        
+            assert "Traceback" not in stderr_str, f"{script} encountered an exception: {stderr_str}"
+            assert "Error" not in stderr_str, f"{script} encountered an error: {stderr_str}"
+            assert "frame" in stdout_str.lower(), f"{script} did not process any frames within the first 30 seconds"
+            assert "detection" in stdout_str.lower(), f"{script} did not make any detections within the first 30 seconds"
 
+            log_file.write(f"{script} test passed: at least one frame and one detection processed.\n")
+
+    # Test camera pipeline runs
+    camera_types = ["usb", "rpi"]
+    for camera_type in camera_types:
+        log_file_path = os.path.join(log_dir, f"{camera_type}_camera_test.log")
+        input_source = "/dev/video0" if camera_type == "usb" else "rpi_camera"
+
+        with open(log_file_path, "w") as log_file:
+            process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', input_source],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                time.sleep(20)
+                process.send_signal(signal.SIGTERM)
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                pytest.fail(f"{camera_type} camera pipeline could not be terminated within 5 seconds after running for 20 seconds")
+
+            stdout, stderr = process.communicate()
+            stderr_str = stderr.decode()
+            stdout_str = stdout.decode()
+
+            log_file.write(f"{camera_type} camera stdout full output (first 20 seconds):\n{stdout_str}\n")
+            log_file.write(f"{camera_type} camera stderr full output (first 20 seconds):\n{stderr_str}\n")
+
+            if "HEF was compiled for Hailo8L device" in stderr_str:
+                log_file.write(f"Warning: {camera_type} camera - HEF compiled for Hailo8L device, may result in lower performance.\n")
+            if "Config file doesn't exist" in stderr_str:
+                log_file.write(f"Warning: {camera_type} camera - Config file not found, using default parameters.\n")
+
+            assert "Traceback" not in stderr_str, f"{camera_type} camera encountered an exception: {stderr_str}"
+            assert "Error" not in stderr_str, f"{camera_type} camera encountered an error: {stderr_str}"
+
+            log_file.write(f"{camera_type} camera test passed: no critical errors encountered.\n")
+
+# Register custom mark
+pytest.mark.camera = pytest.mark.camera
+
+def get_camera_indices():
+    """Get a list of available video devices."""
+    result = subprocess.run(['ls', '/dev/video*'], capture_output=True, text=True)
+    devices = result.stdout.strip().split('\n')
+    return devices
 
 def identify_camera(device):
     """Identify the type of camera by querying its capabilities using v4l2-ctl."""
     try:
         result = subprocess.run(['v4l2-ctl', '--device', device, '--all'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout = result.stdout
-        if "bcm2835" in stdout:  # Common identifier for the Pi Camera
+        if "bcm2835" in stdout:
             return "Pi Camera"
-        elif "USB" in stdout:  # Common identifier for USB Cameras
+        elif "USB" in stdout:
             return "USB Camera"
         else:
             return "Unknown Camera"
     except Exception as e:
         return f"Error identifying camera: {e}"
 
+def test_camera_10_seconds(device):
+    """Run the camera for 10 seconds and display output on the Raspberry Pi display."""
+    try:
+        picam2 = Picamera2(device)
+        # preview = Preview(picam2)  # Comment this out if Preview is not available
+        picam2.configure(picam2.create_preview_configuration())
+        # picam2.start_preview(preview)  # Comment this out if Preview is not available
+        picam2.start()
+        
+        print(f"Displaying camera feed from {device} for 10 seconds...")
+        time.sleep(10)
+        
+        # picam2.stop_preview()  # Comment this out if Preview is not available
+        picam2.stop()
+        print(f"Successfully displayed camera feed from {device}")
+        return True
+    except Exception as e:
+        print(f"Error testing camera at {device}: {e}")
+        return False
 
-def _test_camera(device, camera_type):
-    """Helper function to test camera input for the given device (e.g., /dev/video0 or /dev/video1)."""
+def test_camera_pipeline(device, camera_type):
+    """Test camera using the provided pipeline script."""
     print(f"Testing {camera_type} at {device}")
-    
-    # Run the pipeline on the camera device
-    process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', device],
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', device], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         time.sleep(20)  # Run for 20 seconds
     finally:
         process.terminate()  # Gracefully terminate after 20 seconds
-        try:
-            process.wait(timeout=5)  # Wait up to 5 seconds for process termination
-        except subprocess.TimeoutExpired:
-            process.kill()  # Forcefully kill the process if it doesn't stop
-
+    try:
+        process.wait(timeout=5)  # Wait up to 5 seconds for process termination
+    except subprocess.TimeoutExpired:
+        process.kill()  # Forcefully kill the process if it doesn't stop
+    
     stdout, stderr = process.communicate()
     stdout_str = stdout.decode()
     stderr_str = stderr.decode()
-
-    # Print the captured stdout and stderr
+    
     print(f"{camera_type} Test - Stdout:\n{stdout_str}")
     print(f"{camera_type} Test - Stderr:\n{stderr_str}")
-
-    # Check for any unexpected errors in stderr
-    assert "error" not in stderr_str.lower(), f"Unexpected error with {camera_type}: {stderr_str}"
-
-    # Allow the process to exit with code 0 or -15 (SIGTERM due to intentional termination)
-    assert process.returncode in [0, -15], f"{camera_type} process exited with unexpected code {process.returncode}"
-
-
-def test_both_cameras():
-    """Test both the Pi Camera and USB Camera."""
-    devices = ['/dev/video0', '/dev/video1']  # Device paths for the cameras
     
-    for device in devices:
-        if os.path.exists(device):  # Check if the camera device exists
-            camera_type = identify_camera(device)  # Identify the type of camera
-            _test_camera(device, camera_type)  # Run the camera test
-        else:
-            pytest.skip(f"{device} not found, skipping.")  # Skip if the device is not found
+    if "error" in stderr_str.lower():
+        print(f"Unexpected error with {camera_type}: {stderr_str}")
+        return False
+    
+    if process.returncode not in [0, -15]:
+        print(f"{camera_type} process exited with unexpected code {process.returncode}")
+        return False
+    
+    return True
+
+@pytest.fixture
+def camera_devices():
+    return get_camera_indices()
+
+@pytest.mark.camera
+def test_camera_10_seconds_all(camera_devices):
+    for device in camera_devices:
+        assert test_camera_10_seconds(device)
+
+@pytest.mark.camera
+def test_camera_pipeline_all(camera_devices):
+    for device in camera_devices:
+        camera_type = identify_camera(device)
+        assert test_camera_pipeline(device, camera_type)
 
 
 
