@@ -54,6 +54,7 @@ Visit our [HailoRT Python API documentation](https://hailo.ai/developer-zone/doc
 
 These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
 For installation instructions, see the [Basic Pipelines Installation Guide](doc/basic-pipelines.md#installation).
+See our [Developement Guide](doc/basic-pipelines.md#development-guide) for more information on how to use the pipelines to create your own custom pipelines.
 
 
 ##### [Detection Example](doc/basic-pipelines.md#detection-example)
