@@ -73,7 +73,7 @@ Shows how to add more command-line options using the `argparse` library. For ins
 ### Using Retrained Models
 Supports using retrained detection models compiled with HailoRT NMS Post Process (`HailortPP`). Load a custom model’s HEF using the `--hef-path` flag. Default labels are COCO labels ([80 classes](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/core/hailo/libs/postprocesses/common/labels/coco_eighty.hpp)). For custom models with different labels, use the `--labels-path` flag to load your labels file (e.g., `resources/barcode-labels.json`).
 
-The `download_resources.sh` script downloads the network trained in the [Retraining Example](doc/retraining-example.md#using-yolov8-retraining-docker), which can be used as a reference.
+The `download_resources.sh` script downloads the network trained in the [Retraining Example](retraining-example.md#using-yolov8-retraining-docker), which can be used as a reference.
 
 **Example (using the RPi camera input):**
 ```bash
