@@ -74,7 +74,6 @@ def test_setup_env():
     assert 'TAPPAS_POST_PROC_DIR' in stdout_str, "TAPPAS_POST_PROC_DIR is not set by setup_env.sh"
     assert 'DEVICE_ARCHITECTURE' in stdout_str, "DEVICE_ARCHITECTURE is not set by setup_env.sh"
 
-
 def test_combined_pipeline():
     """
     Combined test function for basic pipeline scripts and camera pipelines.
@@ -90,7 +89,7 @@ def test_combined_pipeline():
         result = subprocess.run(['python', f'basic_pipelines/{script}', '--help'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         assert "usage:" in result.stdout, f"{script} help message not displayed correctly."
 
-    # Test basic pipeline runs
+    # Test basic pipeline runs with video input
     for script in scripts:
         log_file_path = os.path.join(log_dir, f"{script}_test.log")
         with open(log_file_path, "w") as log_file:
@@ -123,39 +122,40 @@ def test_combined_pipeline():
 
             log_file.write(f"{script} test passed: at least one frame and one detection processed.\n")
 
-    # Test camera pipeline runs
+    # Test camera pipeline runs with cross between scripts and camera types
     camera_types = ["usb", "rpi"]
-    for camera_type in camera_types:
-        log_file_path = os.path.join(log_dir, f"{camera_type}_camera_test.log")
-        input_source = "/dev/video0" if camera_type == "usb" else "rpi_camera"
+    for script in scripts:
+        for camera_type in camera_types:
+            log_file_path = os.path.join(log_dir, f"{script}_{camera_type}_camera_test.log")
+            input_source = "/dev/video0" if camera_type == "usb" else "rpi_camera"
 
-        with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', input_source],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            try:
-                time.sleep(20)
-                process.send_signal(signal.SIGTERM)
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                pytest.fail(f"{camera_type} camera pipeline could not be terminated within 5 seconds after running for 20 seconds")
+            with open(log_file_path, "w") as log_file:
+                process = subprocess.Popen(['python', f'basic_pipelines/{script}', '--input', input_source],
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                try:
+                    time.sleep(20)
+                    process.send_signal(signal.SIGTERM)
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    pytest.fail(f"{script} with {camera_type} camera pipeline could not be terminated within 5 seconds after running for 20 seconds")
 
-            stdout, stderr = process.communicate()
-            stderr_str = stderr.decode()
-            stdout_str = stdout.decode()
+                stdout, stderr = process.communicate()
+                stderr_str = stderr.decode()
+                stdout_str = stdout.decode()
 
-            log_file.write(f"{camera_type} camera stdout full output (first 20 seconds):\n{stdout_str}\n")
-            log_file.write(f"{camera_type} camera stderr full output (first 20 seconds):\n{stderr_str}\n")
+                log_file.write(f"{script} with {camera_type} camera stdout full output (first 20 seconds):\n{stdout_str}\n")
+                log_file.write(f"{script} with {camera_type} camera stderr full output (first 20 seconds):\n{stderr_str}\n")
 
-            if "HEF was compiled for Hailo8L device" in stderr_str:
-                log_file.write(f"Warning: {camera_type} camera - HEF compiled for Hailo8L device, may result in lower performance.\n")
-            if "Config file doesn't exist" in stderr_str:
-                log_file.write(f"Warning: {camera_type} camera - Config file not found, using default parameters.\n")
+                if "HEF was compiled for Hailo8L device" in stderr_str:
+                    log_file.write(f"Warning: {script} with {camera_type} camera - HEF compiled for Hailo8L device, may result in lower performance.\n")
+                if "Config file doesn't exist" in stderr_str:
+                    log_file.write(f"Warning: {script} with {camera_type} camera - Config file not found, using default parameters.\n")
 
-            assert "Traceback" not in stderr_str, f"{camera_type} camera encountered an exception: {stderr_str}"
-            assert "Error" not in stderr_str, f"{camera_type} camera encountered an error: {stderr_str}"
+                assert "Traceback" not in stderr_str, f"{script} with {camera_type} camera encountered an exception: {stderr_str}"
+                assert "Error" not in stderr_str, f"{script} with {camera_type} camera encountered an error: {stderr_str}"
 
-            log_file.write(f"{camera_type} camera test passed: no critical errors encountered.\n")
+                log_file.write(f"{script} with {camera_type} camera test passed: no critical errors encountered.\n")
 
 # Register custom mark
 pytest.mark.camera = pytest.mark.camera

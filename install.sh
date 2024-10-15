@@ -16,7 +16,7 @@ pip install -r requirements.txt
 pip install -r tests/test_resources/requirements.txt
 
 # Install additional system dependencies (if needed)
-sudo apt install -y rapidjson-dev
+sudo apt install -y rapidjson-dev v4l-utils
 
 # Download resources needed for the pipelines
 ./download_resources.sh
