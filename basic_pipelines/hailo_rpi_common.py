@@ -10,6 +10,7 @@ import setproctitle
 import cv2
 import time
 import signal
+import subprocess
 
 # Try to import hailo python module
 try:
@@ -66,6 +67,30 @@ def dummy_callback(pad, info, user_data):
 # -----------------------------------------------------------------------------------------------
 # Common functions
 # -----------------------------------------------------------------------------------------------
+def detect_hailo_arch():
+    try:
+        # Run the hailortcli command to get device information
+        result = subprocess.run(['hailortcli', 'fw-control', 'identify'], capture_output=True, text=True)
+        
+        # Check if the command was successful
+        if result.returncode != 0:
+            print(f"Error running hailortcli: {result.stderr}")
+            return None
+        
+        # Search for the "Device Architecture" line in the output
+        for line in result.stdout.split('\n'):
+            if "Device Architecture" in line:
+                if "HAILO8L" in line:
+                    return "hailo8l"
+                elif "HAILO8" in line:
+                    return "hailo8"
+        
+        print("Could not determine Hailo architecture from device information.")
+        return None
+    except Exception as e:
+        print(f"An error occurred while detecting Hailo architecture: {e}")
+        return None
+
 def get_caps_from_pad(pad: Gst.Pad):
     caps = pad.get_current_caps()
     if caps:

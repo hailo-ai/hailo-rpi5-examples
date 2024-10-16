@@ -12,6 +12,14 @@ Navigate to the repository directory:
 cd hailo-rpi5-examples
 ```
 
+### Automatic Installation
+Run the following script to automate the installation process:
+```bash
+./install
+```
+### Manual Installation
+Alternatively, you can manually perform the setup using the steps below.
+
 ### Environment Configuration
 Ensure your environment is set up correctly by sourcing the provided script. This script sets the required environment variables and activates the Hailo virtual environment. If the virtual environment does not exist, it will be created automatically.
 ```bash
@@ -26,7 +34,7 @@ pip install -r requirements.txt
 
 **Note:** The `rapidjson-dev` package is typically installed by default on Raspberry Pi OS. If it's missing, install it using:
 ```bash
-sudo apt install -y rapidjson-dev
+sudo apt install -y rapidjson-dev 
 ```
 
 ### Resources Download
@@ -45,7 +53,7 @@ The post-process functionality is integrated into the TAPPAS core starting from 
 # Detection Example
 ![Banner](images/detection.gif)
 
-This example showcases object detection using the YOLOv6n model by default. It also supports `yolov8s` and `yolox_s_leaky` models. Hailo's Non-Maximum Suppression (NMS) layer is integrated into the HEF file, allowing any detection network compiled with NMS to function with the same codebase.
+This example showcases object detection using the YOLOv8s model by default. It also supports `yolov6n` and `yolox_s_leaky` models. Hailo's Non-Maximum Suppression (NMS) layer is integrated into the HEF file, allowing any detection network compiled with NMS to function with the same codebase.
 
 ### To Run the Example:
 ```bash
@@ -74,6 +82,8 @@ Shows how to add more command-line options using the `argparse` library. For ins
 Supports using retrained detection models compiled with HailoRT NMS Post Process (`HailortPP`). Load a custom model’s HEF using the `--hef-path` flag. Default labels are COCO labels ([80 classes](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/core/hailo/libs/postprocesses/common/labels/coco_eighty.hpp)). For custom models with different labels, use the `--labels-path` flag to load your labels file (e.g., `resources/barcode-labels.json`).
 
 The `download_resources.sh` script downloads the network trained in the [Retraining Example](doc/retraining-example.md#using-yolov8-retraining-docker), which can be used as a reference.
+
+To download all models , You should use the `--all` with the ./download_resources.sh
 
 **Example (using the RPi camera input):**
 ```bash

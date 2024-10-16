@@ -22,7 +22,10 @@ from hailo_rpi_common import (
     GStreamerApp,
     app_callback_class,
     dummy_callback,
+    detect_hailo_arch,
 )
+
+
 
 # -----------------------------------------------------------------------------------------------
 # User Gstreamer Application
@@ -32,12 +35,11 @@ from hailo_rpi_common import (
 class GStreamerDetectionApp(GStreamerApp):
     def __init__(self, app_callback, user_data):
         parser = get_default_parser()
-        # Add additional arguments here
         parser.add_argument(
-            "--network",
-            default="yolov6n",
-            choices=['yolov6n', 'yolov8s'],
-            help="Which Network to use, default is yolov6n",
+            "--arch",
+            default=None,
+            choices=['hailo8', 'hailo8l'],
+            help="Specify the Hailo architecture (hailo8 or hailo8l). Default is None , app will run check.",
         )
         parser.add_argument(
             "--hef-path",
@@ -61,16 +63,26 @@ class GStreamerDetectionApp(GStreamerApp):
         nms_score_threshold = 0.3
         nms_iou_threshold = 0.45
 
+        
+        # Determine the architecture if not specified
+        if args.arch is None:
+            detected_arch = detect_hailo_arch()
+            if detected_arch is None:
+                raise ValueError("Could not auto-detect Hailo architecture. Please specify --arch manually.")
+            self.arch = detected_arch
+            print(f"Auto-detected Hailo architecture: {self.arch}")
+        else:
+            self.arch = args.arch
+
+
         if args.hef_path is not None:
             self.hef_path = args.hef_path
-        # Set the HEF file path based on the network
-        elif args.network == "yolov6n":
-            self.hef_path = os.path.join(self.current_path, '../resources/yolov6n.hef')
-        elif args.network == "yolov8s":
+        # Set the HEF file path based on the arch
+        elif args.arch == "hailo8":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov5m_wo_spp.hef')
+        else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_h8l.hef')
-        else:
-            assert False, "Invalid network type"
-
+            
         # User-defined label JSON file
         self.labels_json = args.labels_json
 

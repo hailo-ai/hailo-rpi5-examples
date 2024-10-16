@@ -7,16 +7,14 @@ download_model() {
 
 # Define all URLs in an array
 H8_HEFS=(
-  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5m.hef"
-  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov6n.hef"
   "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5m_wo_spp.hef"
+  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8m_pose.hef"
+  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5m_seg.hef"
+  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov6n.hef"
   "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8s.hef"
   "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8s_pose.hef"
-  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8m_pose.hef"
   "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5n_seg.hef"
-  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov5m_seg.hef"
   "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/yolov8m_seg.hef"
-  "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.13.0/hailo8/ssd_mobilenet_v2.hef"
 )
 
 H8L_HEFS=(
@@ -37,12 +35,14 @@ if [ "$1" == "--all" ]; then
   done
   download_model "$VIDEO_URL"
 else
-  # Download only the first model in each category
-  echo "Downloading only the first model from each category..."
-  download_model "${H8_HEFS[0]}" # Download first H8 HEF
-  download_model "${H8L_HEFS[0]}" # Download first H8L HEF
+  # Download only the default models from each category
+  echo "Downloading the first three models from each category..."
+  
+  # Download first three H8 HEF models
+  for i in {0..2}; do
+    download_model "${H8_HEFS[i]}"
+    download_model "${H8L_HEFS[i]}"
+  done
+
   download_model "$VIDEO_URL"     # Download video
 fi
-
-
-# I just need to get which one of the models is the default then put it first in its catagory ! 

@@ -21,6 +21,7 @@ from hailo_rpi_common import (
     GStreamerApp,
     app_callback_class,
     dummy_callback,
+    detect_hailo_arch,
 )
 
 #-----------------------------------------------------------------------------------------------
@@ -32,6 +33,22 @@ from hailo_rpi_common import (
 class GStreamerInstanceSegmentationApp(GStreamerApp):
     def __init__(self, app_callback, user_data):
         parser = get_default_parser()
+        parser.add_argument(
+            "--arch",
+            default=None,
+            choices=['hailo8', 'hailo8l'],
+            help="Specify the Hailo architecture (hailo8 or hailo8l). Default is None , app will run check.",
+        )
+        parser.add_argument(
+            "--hef-path",
+            default=None,
+            help="Path to HEF file",
+        )
+        parser.add_argument(
+            "--labels-json",
+            default=None,
+            help="Path to custom labels JSON file",
+        )
         args = parser.parse_args()
         # Call the parent class constructor
         super().__init__(args, user_data)
@@ -41,9 +58,28 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
         self.network_width = 640
         self.network_height = 640
         self.network_format = "RGB"
+
+        # Determine the architecture if not specified
+        if args.arch is None:
+            detected_arch = detect_hailo_arch()
+            if detected_arch is None:
+                raise ValueError("Could not auto-detect Hailo architecture. Please specify --arch manually.")
+            self.arch = detected_arch
+            print(f"Auto-detected Hailo architecture: {self.arch}")
+        else:
+            self.arch = args.arch
+
+        # Set the HEF file path based on the architecture
+        if args.hef_path:
+            self.hef_path = args.hef_path
+        elif self.arch == "hailo8":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg.hef')
+        else:  # hailo8l
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg_h8l_mz.hef')
+        
         self.default_post_process_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
         self.post_function_name = "yolov5seg"
-        self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg_h8l_mz.hef')
+        self.labels_json = args.labels_json
         self.app_callback = app_callback
 
         # Set the process title
