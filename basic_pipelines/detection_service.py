@@ -14,6 +14,9 @@ from detection_pipeline import GStreamerDetectionApp
 
 from unix_domain_socket_server import UnixDomainSocketServer
 
+# Path for the Unix Domain Socket
+SOCKET_PATH = "/tmp/gst_detection.sock"
+
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
 # -----------------------------------------------------------------------------------------------
