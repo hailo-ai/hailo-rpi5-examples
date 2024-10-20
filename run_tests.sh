@@ -10,6 +10,9 @@ TESTS_DIR="tests"
 echo "Sourcing setup_env.sh..."
 source "$SETUP_ENV_PATH"
 
+# Install pytest requirements if not already installed
+pip install -r tests/test_resources/requirements.txt
+
 # Run pytest for all test files
 echo "Running tests..."
 pytest "$TESTS_DIR/test_sanity_check.py" \

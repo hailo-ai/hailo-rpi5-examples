@@ -76,7 +76,7 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg.hef')
         else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg_h8l_mz.hef')
-        
+
         self.default_post_process_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
         self.post_function_name = "yolov5seg"
         self.labels_json = args.labels_json
@@ -92,7 +92,8 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
         infer_pipeline = INFERENCE_PIPELINE(
             hef_path=self.hef_path,
             post_process_so=self.default_post_process_so,
-            post_function_name=self.post_function_name
+            post_function_name=self.post_function_name,
+            batch_size=self.batch_size,
         )
         user_callback_pipeline = USER_CALLBACK_PIPELINE()
         display_pipeline = DISPLAY_PIPELINE(video_sink=self.video_sink, sync=self.sync, show_fps=self.show_fps)
