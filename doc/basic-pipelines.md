@@ -60,7 +60,18 @@ This example demonstrates object detection using the YOLOv8s model for Hailo-8 L
 ```bash
 python basic_pipelines/detection.py
 ```
-##### To close the application, press `Ctrl+C`.
+- To close the application, press `Ctrl+C`.
+#### Example Using USB camera:
+   Detect the available camera using this script:
+   
+  ```bash
+  python basic_pipelines/get_usb_camera.py
+  ```
+  Run example using USB camera - Use the device found by this script here:
+
+  ```bash
+  python basic_pipelines/detection.py --input /dev/video<X>
+  ```
 
 For additional options, execute:
 ```bash
@@ -86,24 +97,12 @@ The `download_resources.sh` script downloads the network trained in the [Retrain
 
 To download all models , You should use the `--all` with the ./download_resources.sh
 
-### Using USB camera
-To determine which USB camera to use, please run the following script:
-```bash
-python basic_pipelines/get_usb_camera.py
-```
-This will help you identify an available camera.
-
-**Examples:**
+**Example:**
 ```bash
 python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef resources/yolov8s-hailo8l-barcode.hef --input resources/barcode.mp4
 ```
 
-```bash
-python basic_pipelines/get_usb_camera.py
-
-python basic_pipelines/detection.py --input /dev/videoX
-```
-**First Example Output:**
+**Example Output:**
 ![Barcode Detection Example](images/barcode-example.png)
 
 # Pose Estimation Example
@@ -114,6 +113,10 @@ This example demonstrates human pose estimation using the `yolov8s_pose` model f
 ### To Run the Example:
 ```bash
 python basic_pipelines/pose_estimation.py 
+```
+Run example using Pi camera:
+```bash
+python basic_pipelines/instance_segmentation.py --input rpi
 ```
 ##### To close the application, press `Ctrl+C`.
 
@@ -136,11 +139,6 @@ This example demonstrates instance segmentation using the `yolov5n_seg` model fo
 ### To Run the Examples:
 ```bash
 python basic_pipelines/instance_segmentation.py
-```
-```bash
-python basic_pipelines/get_usb_camera.py
-
-python basic_pipelines/instance_segmentation.py --input /dev/videoX
 ```
 ##### To close the application, press `Ctrl+C`.
 
@@ -324,7 +322,7 @@ options:
 Refer to the following sections for more information on using these options.
 
 ### Running with Different Input Sources
-By default, these examples use a USB camera (`/dev/video0`). You can change the input source using the `--input` flag.
+By default, these examples use an example video source. You can change the input source using the `--input` flag.
 
 **To use a Raspberry Pi camera:**
 ```bash
@@ -348,9 +346,8 @@ This will help you identify an available camera.
 
 **Test the camera functionality:**
 ```bash
-ffplay -f v4l2 /dev/video0
+ffplay -f v4l2 /dev/video<X>
 ```
-If an error occurs, try a different device (e.g., `/dev/video2`), typically an even-numbered device.
 
 #### Using the Frame Buffer
 To utilize the frame buffer, add the `--use-frame` flag. Be aware that extracting and displaying video frames can slow down the application due to non-optimized implementation. Writing to the buffer and replacing the old buffer in the pipeline is possible but inefficient.
