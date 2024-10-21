@@ -28,3 +28,33 @@ shared_library('remove_labels',
     install: true,
     install_dir: join_paths(meson.project_source_root(), 'resources'),
 )
+
+################################################
+# yolov8pose_postprocess SOURCES
+################################################
+
+yolov8pose_postprocess_sources = [
+    'yolov8pose_postprocess.cpp',
+]
+shared_library('yolov8pose_postprocess',
+    yolov8pose_postprocess_sources,
+    dependencies : postprocess_dep,
+    gnu_symbol_visibility : 'default',
+    install: true,
+    install_dir: join_paths(meson.project_source_root(), 'resources'),
+)
+
+################################################
+# YOLOV5SEG SOURCES
+################################################
+yolov5seg_post_sources = [
+    'yolov5seg.cpp',
+]
+
+shared_library('yolov5seg_post',
+    yolov5seg_post_sources,
+    dependencies : postprocess_dep,
+    gnu_symbol_visibility : 'default',
+    install: true,
+    install_dir: join_paths(meson.project_source_root(), 'resources'),
+)

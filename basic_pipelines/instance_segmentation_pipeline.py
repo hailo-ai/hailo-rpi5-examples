@@ -73,11 +73,18 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
         if args.hef_path:
             self.hef_path = args.hef_path
         elif self.arch == "hailo8":
-            self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg.hef')
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov5m_seg.hef')
         else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov5n_seg_h8l_mz.hef')
 
-        self.default_post_process_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
+        # self.default_post_process_so = os.path.join(self.postprocess_dir, 'libyolov5seg_post.so')
+        if 'yolov5m_seg' in self.hef_path:
+            self.config_file = os.path.join(self.current_path, '../resources/yolov5m_seg.json')
+        elif 'yolov5n_seg' in self.hef_path:
+            self.config_file = os.path.join(self.current_path, '../resources/yolov5n_seg.json')
+        else:
+            raise ValueError("HEF version not supported, you will need to provide a config file")
+        self.default_post_process_so = os.path.join(self.current_path, '../resources/libyolov5seg_post.so')
         self.post_function_name = "yolov5seg"
         self.labels_json = args.labels_json
         self.app_callback = app_callback
@@ -94,6 +101,7 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             post_process_so=self.default_post_process_so,
             post_function_name=self.post_function_name,
             batch_size=self.batch_size,
+            config_json=self.config_file,
         )
         user_callback_pipeline = USER_CALLBACK_PIPELINE()
         display_pipeline = DISPLAY_PIPELINE(video_sink=self.video_sink, sync=self.sync, show_fps=self.show_fps)
