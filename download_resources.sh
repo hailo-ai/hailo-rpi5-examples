@@ -28,16 +28,15 @@ H8L_HEFS=(
 RETRAIN_HEFS=(
   "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hefs/h8l_rpi/yolov8s-hailo8l-barcode.hef"
 )
-VIDEO_URL="https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/detection0.mp4"
 
+VIDEOS=(
+  "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/detection0.mp4"
+  "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/barcode.mp4"
+)
 # If --all flag is provided, download everything
 if [ "$1" == "--all" ]; then
   echo "Downloading all models and video..."
   for url in "${H8_HEFS[@]}" "${H8L_HEFS[@]}"; do
-    download_model "$url"
-  done
-  download_model "$VIDEO_URL"
-  for url in "${RETRAIN_HEFS[@]}"; do
     download_model "$url"
   done
 else
@@ -53,8 +52,7 @@ else
       download_model "$url"
     done
   fi
-  download_model "$VIDEO_URL"     # Download video
-  for url in "${RETRAIN_HEFS[@]}"; do
-    download_model "$url"
-  done
 fi
+for url in "${RETRAIN_HEFS[@]}" "${VIDEOS[@]}"; do
+  download_model "$url"
+done

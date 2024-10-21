@@ -116,11 +116,13 @@ def display_user_data_frame(user_data: app_callback_class):
 
 def get_default_parser():
     parser = argparse.ArgumentParser(description="Hailo App Help")
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    default_video_source = os.path.join(current_path, '../resources/detection0.mp4')
     parser.add_argument(
-        "--input", "-i", type=str, default="/dev/video0",
+        "--input", "-i", type=str, default=default_video_source,
         help="Input source. Can be a file, USB or RPi camera (CSI camera module). \
         For RPi camera use '-i rpi' (Still in Beta). \
-        Defaults to /dev/video0"
+        Defaults to example video resources/detection0.mp4"
     )
     parser.add_argument("--use-frame", "-u", action="store_true", help="Use frame from the callback function")
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
