@@ -33,22 +33,6 @@ from hailo_rpi_common import (
 class GStreamerPoseEstimationApp(GStreamerApp):
     def __init__(self, app_callback, user_data):
         parser = get_default_parser()
-        parser.add_argument(
-            "--arch",
-            default=None,
-            choices=['hailo8', 'hailo8l'],
-            help="Specify the Hailo architecture (hailo8 or hailo8l). Default is None , app will run check.",
-        )
-        parser.add_argument(
-            "--hef-path",
-            default=None,
-            help="Path to HEF file",
-        )
-        parser.add_argument(
-            "--labels-json",
-            default=None,
-            help="Path to costume labels JSON file",
-        )
         args = parser.parse_args()
         # Call the parent class constructor
         super().__init__(args, user_data)
@@ -80,7 +64,6 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l_pi.hef')
 
-        self.labels_json = args.labels_json
         self.app_callback = app_callback
 
         # Set the post-processing shared object file

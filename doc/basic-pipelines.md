@@ -15,7 +15,7 @@ cd hailo-rpi5-examples
 ### Automatic Installation
 Run the following script to automate the installation process:
 ```bash
-./install
+./install.sh
 ```
 ### Manual Installation
 Alternatively, you can manually perform the setup using the steps below.
@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 **Note:** The `rapidjson-dev` package is typically installed by default on Raspberry Pi OS. If it's missing, install it using:
 ```bash
-sudo apt install -y rapidjson-dev 
+sudo apt install -y rapidjson-dev
 ```
 
 ### Resources Download

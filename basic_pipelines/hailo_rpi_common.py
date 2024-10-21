@@ -71,12 +71,12 @@ def detect_hailo_arch():
     try:
         # Run the hailortcli command to get device information
         result = subprocess.run(['hailortcli', 'fw-control', 'identify'], capture_output=True, text=True)
-        
+
         # Check if the command was successful
         if result.returncode != 0:
             print(f"Error running hailortcli: {result.stderr}")
             return None
-        
+
         # Search for the "Device Architecture" line in the output
         for line in result.stdout.split('\n'):
             if "Device Architecture" in line:
@@ -84,7 +84,7 @@ def detect_hailo_arch():
                     return "hailo8l"
                 elif "HAILO8" in line:
                     return "hailo8"
-        
+
         print("Could not determine Hailo architecture from device information.")
         return None
     except Exception as e:
@@ -124,6 +124,17 @@ def get_default_parser():
     )
     parser.add_argument("--use-frame", "-u", action="store_true", help="Use frame from the callback function")
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
+    parser.add_argument(
+            "--arch",
+            default=None,
+            choices=['hailo8', 'hailo8l'],
+            help="Specify the Hailo architecture (hailo8 or hailo8l). Default is None , app will run check.",
+        )
+    parser.add_argument(
+            "--hef-path",
+            default=None,
+            help="Path to HEF file",
+        )
     parser.add_argument(
         "--disable-sync", action="store_true",
         help="Disables display sink sync, will run as fast as possible. Relevant when using file source."

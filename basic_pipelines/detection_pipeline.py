@@ -36,17 +36,6 @@ class GStreamerDetectionApp(GStreamerApp):
     def __init__(self, app_callback, user_data):
         parser = get_default_parser()
         parser.add_argument(
-            "--arch",
-            default=None,
-            choices=['hailo8', 'hailo8l'],
-            help="Specify the Hailo architecture (hailo8 or hailo8l). Default is None , app will run check.",
-        )
-        parser.add_argument(
-            "--hef-path",
-            default=None,
-            help="Path to HEF file",
-        )
-        parser.add_argument(
             "--labels-json",
             default=None,
             help="Path to costume labels JSON file",
@@ -63,7 +52,7 @@ class GStreamerDetectionApp(GStreamerApp):
         nms_score_threshold = 0.3
         nms_iou_threshold = 0.45
 
-        
+
         # Determine the architecture if not specified
         if args.arch is None:
             detected_arch = detect_hailo_arch()
@@ -82,7 +71,7 @@ class GStreamerDetectionApp(GStreamerApp):
             self.hef_path = os.path.join(self.current_path, '../resources/yolov5m_wo_spp.hef')
         else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_h8l.hef')
-            
+
         # User-defined label JSON file
         self.labels_json = args.labels_json
 

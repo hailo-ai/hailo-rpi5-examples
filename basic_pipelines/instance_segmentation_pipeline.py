@@ -33,22 +33,6 @@ from hailo_rpi_common import (
 class GStreamerInstanceSegmentationApp(GStreamerApp):
     def __init__(self, app_callback, user_data):
         parser = get_default_parser()
-        parser.add_argument(
-            "--arch",
-            default=None,
-            choices=['hailo8', 'hailo8l'],
-            help="Specify the Hailo architecture (hailo8 or hailo8l). Default is None , app will run check.",
-        )
-        parser.add_argument(
-            "--hef-path",
-            default=None,
-            help="Path to HEF file",
-        )
-        parser.add_argument(
-            "--labels-json",
-            default=None,
-            help="Path to custom labels JSON file",
-        )
         args = parser.parse_args()
         # Call the parent class constructor
         super().__init__(args, user_data)
@@ -86,7 +70,6 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             raise ValueError("HEF version not supported, you will need to provide a config file")
         self.default_post_process_so = os.path.join(self.current_path, '../resources/libyolov5seg_post.so')
         self.post_function_name = "yolov5seg"
-        self.labels_json = args.labels_json
         self.app_callback = app_callback
 
         # Set the process title
