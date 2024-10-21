@@ -78,8 +78,8 @@ class GStreamerDetectionApp(GStreamerApp):
         if args.hef_path is not None:
             self.hef_path = args.hef_path
         # Set the HEF file path based on the arch
-        elif args.arch == "hailo8":
-            self.hef_path = os.path.join(self.current_path, '../resources/yolov5m_wo_spp.hef')
+        elif self.arch == "hailo8":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov8m.hef')
         else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_h8l.hef')
             
