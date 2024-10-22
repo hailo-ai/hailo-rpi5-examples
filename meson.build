@@ -4,7 +4,7 @@ project('hailo_rpi5_examples', 'c', 'cpp',
                             'buildtype=release',
                             'c_std=c11', 'cpp_std=c++17',
                             'c_args=-Wno-psabi',
-                            'cpp_args=-Wno-psabi -Wno-class-memaccess']
+                            'cpp_args=-Wno-psabi -Wno-class-memaccess -Wno-deprecated-declarations']
        )
 
 postprocess_dep = dependency('hailo-tappas-core', version : '>=3.29.0', required : false)

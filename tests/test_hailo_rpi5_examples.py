@@ -25,7 +25,7 @@ def get_device_architecture():
         result = subprocess.run(['hailortcli', 'fw-control', 'identify'], capture_output=True, text=True)
         for line in result.stdout.split('\n'):
             if "Device Architecture" in line:
-                return line.split(':')[1].strip()
+                return line.split(':')[1].strip().lower()
     except Exception:
         return "unknown"
 
@@ -48,7 +48,7 @@ def get_detection_compatible_hefs(architecture):
         "yolox_s_leaky_h8l_mz.hef"
     ]
     hef_list = H8L_HEFS
-    if architecture == 'HAILO8':
+    if architecture == 'hailo8':
         # check both HAILO8 and HAILO8L
         hef_list = hef_list + H8_HEFS
 
@@ -56,7 +56,50 @@ def get_detection_compatible_hefs(architecture):
 
 def test_all_pipelines():
     """
-    Combined test function for basic pipeline scripts with different HEFs and input sources.
+    Combined test function for basic pipeline defaults.
+    If architecture is hailo8, it will also test with hailo8l compatible HEFs.
+    """
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    pipeline_list = get_pipelines_list()
+    arch = get_device_architecture()
+    arch_parameter_list = [""] # Test with default architecture
+    logging.info(f"Detected Hailo architecture: {arch}")
+    if arch == "hailo8":
+        logging.info("Testing also with hailo8l compatible HEFs")
+        arch_parameter_list.append("hailo8l") # Test with hailo8l architecture
+    for arch_parameter in arch_parameter_list:
+        if arch_parameter != "":
+            arch_flag = f"--arch {arch_parameter}"
+        for pipeline in pipeline_list:
+            # Test with video input
+            log_file_path = os.path.join(log_dir, f"test_{pipeline}{arch_parameter}_video_test.log")
+            with open(log_file_path, "w") as log_file:
+                cmd = ['python', f'basic_pipelines/{pipeline}']
+
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                logging.info(f"Running {pipeline} {arch_parameter} with video input")
+                try:
+                    time.sleep(TEST_RUN_TIME)
+                    process.send_signal(signal.SIGTERM)
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    pytest.fail(f"{pipeline} (video input) could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
+
+                stdout, stderr = process.communicate()
+                log_file.write(f"{pipeline} (video input) stdout:\n{stdout.decode()}\n")
+                log_file.write(f"{pipeline} (video input) stderr:\n{stderr.decode()}\n")
+
+                assert "Traceback" not in stderr.decode(), f"{pipeline} (video input) encountered an exception: {stderr.decode()}"
+                assert "Error" not in stderr.decode(), f"{pipeline} (video input) encountered an error: {stderr.decode()}"
+                assert "frame" in stdout.decode().lower(), f"{pipeline} (video input) did not process any frames"
+                assert "detection" in stdout.decode().lower(), f"{pipeline} (video input) did not make any detections"
+
+
+def test_all_pipelines_cameras():
+    """
+    Combined test function for basic pipeline scripts with different input sources.
     """
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
@@ -64,33 +107,7 @@ def test_all_pipelines():
     pipeline_list = get_pipelines_list()
     if rpi_camera_available:
         available_cameras.append("rpi")
-
     for pipeline in pipeline_list:
-        # Test with video input
-        log_file_path = os.path.join(log_dir, f"test_{pipeline}_video_test.log")
-
-        with open(log_file_path, "w") as log_file:
-            cmd = ['python', f'basic_pipelines/{pipeline}']
-
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logging.info(f"Running {pipeline} with video input")
-            try:
-                time.sleep(TEST_RUN_TIME)
-                process.send_signal(signal.SIGTERM)
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                pytest.fail(f"{pipeline} (video input) could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
-
-            stdout, stderr = process.communicate()
-            log_file.write(f"{pipeline} (video input) stdout:\n{stdout.decode()}\n")
-            log_file.write(f"{pipeline} (video input) stderr:\n{stderr.decode()}\n")
-
-            assert "Traceback" not in stderr.decode(), f"{pipeline} (video input) encountered an exception: {stderr.decode()}"
-            assert "Error" not in stderr.decode(), f"{pipeline} (video input) encountered an error: {stderr.decode()}"
-            assert "frame" in stdout.decode().lower(), f"{pipeline} (video input) did not process any frames"
-            assert "detection" in stdout.decode().lower(), f"{pipeline} (video input) did not make any detections"
-
         # Test with available cameras
         for device in available_cameras:
             # if device is /dev/video* device name should be video*
