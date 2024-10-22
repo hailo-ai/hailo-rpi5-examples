@@ -5,38 +5,20 @@ import subprocess
 import time
 import os
 import signal
+from tests.test_hailo_rpi5_examples import get_device_architecture, get_detection_compatible_hefs
 
 # Register custom marks
-pytest.mark.performance = pytest.mark.performance
-pytest.mark.stress = pytest.mark.stress
-pytest.mark.camera = pytest.mark.camera
-pytest.mark.detection = pytest.mark.detection
-
-def detect_hailo_arch():
-    try:
-        result = subprocess.run(['hailortcli', 'fw-control', 'identify'], capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"Error running hailortcli: {result.stderr}")
-            return None
-        
-        for line in result.stdout.split('\n'):
-            if "Device Architecture" in line:
-                if "HAILO8L" in line:
-                    return "hailo8l"
-                elif "HAILO8" in line:
-                    return "hailo8"
-        
-        print("Could not determine Hailo architecture from device information.")
-        return None
-    except Exception as e:
-        print(f"An error occurred while detecting Hailo architecture: {e}")
-        return None
+def pytest_configure(config):
+    config.addinivalue_line("markers", "performance: mark a test as a performance test.")
+    config.addinivalue_line("markers", "stress: mark a test as a stress test.")
+    config.addinivalue_line("markers", "camera: mark a test as requiring a camera.")
+    config.addinivalue_line("markers", "detection: mark a test as a detection test.")
 
 def run_pipeline(script, input_source, duration=30, additional_args=None):
     cmd = ['python', f'basic_pipelines/{script}', '--input', input_source]
     if additional_args:
         cmd.extend(additional_args)
-    
+
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         time.sleep(duration)
@@ -44,12 +26,12 @@ def run_pipeline(script, input_source, duration=30, additional_args=None):
         process.send_signal(signal.SIGTERM)
         process.wait(timeout=5)
     stdout, stderr = process.communicate()
-    
+
     print(f"--- Pipeline Output for {script} ---")
     print(stdout.decode())
     print(stderr.decode())
     print("----------------------------------")
-    
+
     return stdout.decode(), stderr.decode()
 
 def run_download_resources():
@@ -63,25 +45,13 @@ def run_download_resources():
         print("Script output:", e.output)
         return False
 
-def get_detection_hefs(arch):
-    all_hefs = glob.glob("resources/*.hef")
-    print(f"All HEFs found: {all_hefs}")
-    
-    detection_hefs = [hef for hef in all_hefs if arch.lower() in hef.lower()]
-    print(f"HEFs matching architecture '{arch}': {detection_hefs}")
-    
-    filtered_hefs = [hef for hef in detection_hefs if not any(word in hef.lower() for word in ["pose", "seg", "barcode"])]
-    print(f"Filtered detection HEFs: {filtered_hefs}")
-    
-    return filtered_hefs
-
 @pytest.mark.performance
 def test_inference_speed():
     models = ['detection.py', 'pose_estimation.py', 'instance_segmentation.py']
     for model in models:
         stdout, _ = run_pipeline(model, 'resources/detection0.mp4', duration=60)
         fps_lines = [line for line in stdout.split('\n') if 'FPS' in line or 'fps' in line]
-        
+
         if not fps_lines:
             raise AssertionError(f"FPS data not found for {model}")
 
@@ -104,7 +74,7 @@ def test_long_running():
 def test_pi_camera_running():
     if not os.path.exists('/dev/video0'):
         pytest.skip("No camera detected at /dev/video0")
-    
+
     stdout, stderr = run_pipeline('detection.py', '/dev/video0', duration=10)
     assert "error" not in stderr.lower(), f"Unexpected error when accessing Pi camera: {stderr}"
     # We're not checking the return code here as it might be -15 due to SIGTERM
@@ -113,11 +83,11 @@ def test_pi_camera_running():
 def test_detection_pipeline_all_hefs():
     assert run_download_resources(), "Failed to download resources"
 
-    arch = detect_hailo_arch()
+    arch = get_device_architecture()
     assert arch is not None, "Failed to detect Hailo architecture"
     print(f"Detected Hailo architecture: {arch}")
 
-    detection_hefs = get_detection_hefs(arch)
+    detection_hefs = get_detection_compatible_hefs(arch)
     if not detection_hefs:
         print("No detection HEFs found. Listing all files in resources directory:")
         print(os.listdir("resources"))
