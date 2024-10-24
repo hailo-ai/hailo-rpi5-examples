@@ -265,25 +265,6 @@ def INFERENCE_PIPELINE(hef_path, post_process_so, batch_size=1, config_json=None
 
     return inference_pipeline
 
-def DETECTION_PIPELINE(hef_path, batch_size=1, labels_json=None, additional_params='', name='detection'):
-    """
-    Creates a GStreamer pipeline string for detection inference, using HailoRT post-processing.
-    This pipeline is compatible with detection models which is compiled with HailoRT post-processing.
-
-    Args:
-        hef_path (str): The path to the HEF file.
-        batch_size (int, optional): The batch size for the hailonet element. Defaults to 1.
-        labels_json (str, optional): The path to the labels JSON file. If None, no labels are added. Defaults to None.
-        additional_params (str, optional): Additional parameters for the hailonet element. Defaults to ''.
-        name (str, optional): The prefix name for the pipeline elements. Defaults to 'detection'.
-
-    Returns:
-        str: A string representing the GStreamer pipeline for detection.
-    """
-    post_process_so = os.path.join(os.environ.get('TAPPAS_POST_PROC_DIR', ''), 'libyolo_hailortpp_post.so')
-    detection_pipeline = INFERENCE_PIPELINE(hef_path=hef_path, post_process_so=post_process_so, batch_size=batch_size, config_json=labels_json, additional_params=additional_params, name=name)
-    return detection_pipeline
-
 def INFERENCE_PIPELINE_WRAPPER(inner_pipeline, bypass_max_size_buffers=20, name='inference_wrapper'):
     """
     Creates a GStreamer pipeline string that wraps an inner pipeline with a hailocropper and hailoaggregator.

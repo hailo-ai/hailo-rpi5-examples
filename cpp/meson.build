@@ -6,7 +6,7 @@
 yolo_hailortpp_sources = [
     'yolo_hailortpp.cpp'
 ]
-shared_library('yolo_hailortpp_post',
+shared_library('yolo_hailortpp_postprocess',
     yolo_hailortpp_sources,
     include_directories : rapidjson_inc,
     dependencies : postprocess_dep,
@@ -51,7 +51,7 @@ yolov5seg_post_sources = [
     'yolov5seg.cpp',
 ]
 
-shared_library('yolov5seg_post',
+shared_library('yolov5seg_postprocess',
     yolov5seg_post_sources,
     dependencies : postprocess_dep,
     gnu_symbol_visibility : 'default',

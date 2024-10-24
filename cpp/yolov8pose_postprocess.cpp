@@ -1,7 +1,7 @@
 /**
-* Copyright (c) 2021-2022 Hailo Technologies Ltd. All rights reserved.
-* Distributed under the LGPL license (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)
-**/
+ * Copyright (c) 2021-2022 Hailo Technologies Ltd. All rights reserved.
+ * Distributed under the LGPL license (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)
+ **/
 // General includes
 #include <iostream>
 #include <vector>
@@ -37,13 +37,10 @@ using namespace xt::placeholders;
 #define NUM_CLASSES 1
 
 std::vector<std::pair<int, int>> JOINT_PAIRS = {
-    {0, 1}, {1, 3}, {0, 2}, {2, 4},
-    {5, 6}, {5, 7}, {7, 9}, {6, 8}, {8, 10},
-    {5, 11}, {6, 12}, {11, 12},
-    {11, 13}, {12, 14}, {13, 15}, {14, 16}
-};
+    {0, 1}, {1, 3}, {0, 2}, {2, 4}, {5, 6}, {5, 7}, {7, 9}, {6, 8}, {8, 10}, {5, 11}, {6, 12}, {11, 12}, {11, 13}, {12, 14}, {13, 15}, {14, 16}};
 
-std::pair<std::vector<KeyPt>, std::vector<PairPairs>> process_single_decoding(const Decodings& dec, const std::vector<int>& network_dims, float joint_threshold=0.5) {
+std::pair<std::vector<KeyPt>, std::vector<PairPairs>> process_single_decoding(const Decodings &dec, const std::vector<int> &network_dims, float joint_threshold = 0.5)
+{
     std::vector<KeyPt> keypoints;
     std::vector<PairPairs> pairs;
 
@@ -52,21 +49,23 @@ std::pair<std::vector<KeyPt>, std::vector<PairPairs>> process_single_decoding(co
     auto score = keypoint_coordinates_and_score.second;
 
     // Filter keypoints
-    for (uint i = 0; i < score.shape(0); i++){
-        if (score(i,0) > joint_threshold) {
-            keypoints.push_back(KeyPt({coordinates(i, 0) / network_dims[0], coordinates(i, 1) / network_dims[1], score(i,0)}));
+    for (uint i = 0; i < score.shape(0); i++)
+    {
+        if (score(i, 0) > joint_threshold)
+        {
+            keypoints.push_back(KeyPt({coordinates(i, 0) / network_dims[0], coordinates(i, 1) / network_dims[1], score(i, 0)}));
         }
     }
 
     // Filter joints pair
-    for (const auto& pair : JOINT_PAIRS) {
-        if (score(pair.first,0) >= joint_threshold && score(pair.second, 0) >= joint_threshold){
-            PairPairs pr = PairPairs({
-                            std::make_pair(coordinates(pair.first,0) / network_dims[0], coordinates(pair.first,1) / network_dims[1]),
-                            std::make_pair(coordinates(pair.second,0) / network_dims[0], coordinates(pair.second,1) / network_dims[1]),
-                            score(pair.first, 0),
-                            score(pair.second, 0)
-                            });
+    for (const auto &pair : JOINT_PAIRS)
+    {
+        if (score(pair.first, 0) >= joint_threshold && score(pair.second, 0) >= joint_threshold)
+        {
+            PairPairs pr = PairPairs({std::make_pair(coordinates(pair.first, 0) / network_dims[0], coordinates(pair.first, 1) / network_dims[1]),
+                                      std::make_pair(coordinates(pair.second, 0) / network_dims[0], coordinates(pair.second, 1) / network_dims[1]),
+                                      score(pair.first, 0),
+                                      score(pair.second, 0)});
             pairs.push_back(pr);
         }
     }
@@ -74,11 +73,13 @@ std::pair<std::vector<KeyPt>, std::vector<PairPairs>> process_single_decoding(co
 }
 
 // filter keypoints iterates over all decodings
-std::pair<std::vector<KeyPt>, std::vector<PairPairs>> filter_keypoints(const std::vector<Decodings>& filtered_decodings, const std::vector<int>& network_dims, float joint_threshold=0.5) {
+std::pair<std::vector<KeyPt>, std::vector<PairPairs>> filter_keypoints(const std::vector<Decodings> &filtered_decodings, const std::vector<int> &network_dims, float joint_threshold = 0.5)
+{
     std::vector<KeyPt> filtered_keypoints;
     std::vector<PairPairs> filtered_pairs;
 
-    for (const auto& dec : filtered_decodings){
+    for (const auto &dec : filtered_decodings)
+    {
         auto result = process_single_decoding(dec, network_dims, joint_threshold);
         filtered_keypoints.insert(filtered_keypoints.end(), result.first.begin(), result.first.end());
         filtered_pairs.insert(filtered_pairs.end(), result.second.begin(), result.second.end());
@@ -102,7 +103,8 @@ float iou_calc(const HailoBBox &box_1, const HailoBBox &box_2)
     return area_of_overlap / (box_1_area + box_2_area - area_of_overlap);
 }
 
-std::vector<Decodings> nms(std::vector<Decodings> &decodings, const float iou_thr, bool should_nms_cross_classes = false) {
+std::vector<Decodings> nms(std::vector<Decodings> &decodings, const float iou_thr, bool should_nms_cross_classes = false)
+{
 
     std::vector<Decodings> decodings_after_nms;
 
@@ -139,57 +141,61 @@ std::vector<Decodings> nms(std::vector<Decodings> &decodings, const float iou_th
     return decodings_after_nms;
 }
 
-
-float dequantize_value(uint8_t val, float32_t qp_scale, float32_t qp_zp){
+float dequantize_value(uint16_t val, float32_t qp_scale, float32_t qp_zp)
+{
     return (float(val) - qp_zp) * qp_scale;
 }
 
-
-void dequantize_box_values(xt::xarray<float>& dequantized_outputs, int index,
-                        xt::xarray<uint8_t>& quantized_outputs,
-                        size_t dim1, size_t dim2, float32_t qp_scale, float32_t qp_zp){
-    for (size_t i = 0; i < dim1; i++){
-        for (size_t j = 0; j < dim2; j++){
+void dequantize_box_values(xt::xarray<float> &dequantized_outputs, int index,
+                           xt::xarray<uint16_t> &quantized_outputs,
+                           size_t dim1, size_t dim2, float32_t qp_scale, float32_t qp_zp)
+{
+    for (size_t i = 0; i < dim1; i++)
+    {
+        for (size_t j = 0; j < dim2; j++)
+        {
             dequantized_outputs(i, j) = dequantize_value(quantized_outputs(index, i, j), qp_scale, qp_zp);
         }
     }
 }
 
-std::vector<xt::xarray<double>> get_centers(std::vector<int>& strides, std::vector<int>& network_dims,
-                                        std::size_t boxes_num, int strided_width, int strided_height){
+std::vector<xt::xarray<double>> get_centers(std::vector<int> &strides, std::vector<int> &network_dims,
+                                            std::size_t boxes_num, int strided_width, int strided_height)
+{
 
-        std::vector<xt::xarray<double>> centers(boxes_num);
+    std::vector<xt::xarray<double>> centers(boxes_num);
 
-        for (uint i=0; i < boxes_num; i++) {
-            strided_width = network_dims[0] / strides[i];
-            strided_height = network_dims[1] / strides[i];
+    for (uint i = 0; i < boxes_num; i++)
+    {
+        strided_width = network_dims[0] / strides[i];
+        strided_height = network_dims[1] / strides[i];
 
-            // Create a meshgrid of the proper strides
-            xt::xarray<int> grid_x = xt::arange(0, strided_width);
-            xt::xarray<int> grid_y = xt::arange(0, strided_height);
+        // Create a meshgrid of the proper strides
+        xt::xarray<int> grid_x = xt::arange(0, strided_width);
+        xt::xarray<int> grid_y = xt::arange(0, strided_height);
 
-            auto mesh = xt::meshgrid(grid_x, grid_y);
-            grid_x = std::get<1>(mesh);
-            grid_y = std::get<0>(mesh);
+        auto mesh = xt::meshgrid(grid_x, grid_y);
+        grid_x = std::get<1>(mesh);
+        grid_y = std::get<0>(mesh);
 
-            // Use the meshgrid to build up box center prototypes
-            auto ct_row = (xt::flatten(grid_y) + 0.5) * strides[i];
-            auto ct_col = (xt::flatten(grid_x) + 0.5) * strides[i];
+        // Use the meshgrid to build up box center prototypes
+        auto ct_row = (xt::flatten(grid_y) + 0.5) * strides[i];
+        auto ct_col = (xt::flatten(grid_x) + 0.5) * strides[i];
 
-            centers[i] = xt::stack(xt::xtuple(ct_col, ct_row, ct_col, ct_row), 1);
-        }
+        centers[i] = xt::stack(xt::xtuple(ct_col, ct_row, ct_col, ct_row), 1);
+    }
 
-        return centers;
+    return centers;
 }
 
-
 std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> raw_boxes_outputs,
-                                                                    xt::xarray<float> scores,
-                                                                    std::vector<HailoTensorPtr> raw_keypoints,
-                                                                    std::vector<int> network_dims,
-                                                                    std::vector<int> strides,
-                                                                    int regression_length) {
-    int strided_width =-1;
+                                                  xt::xarray<float> scores,
+                                                  std::vector<HailoTensorPtr> raw_keypoints,
+                                                  std::vector<int> network_dims,
+                                                  std::vector<int> strides,
+                                                  int regression_length)
+{
+    int strided_width = -1;
     int strided_height = -1;
     int class_index = 0;
     std::vector<Decodings> decodings;
@@ -201,7 +207,7 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
     auto centers = get_centers(std::ref(strides), std::ref(network_dims), raw_boxes_outputs.size(), strided_width, strided_height);
 
     // Box distribution to distance
-    auto regression_distance =  xt::reshape_view(xt::arange(0, regression_length + 1), {1, 1, regression_length + 1});
+    auto regression_distance = xt::reshape_view(xt::arange(0, regression_length + 1), {1, 1, regression_length + 1});
 
     for (uint i = 0; i < raw_boxes_outputs.size(); i++)
     {
@@ -212,24 +218,30 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
         auto output_b = common::get_xtensor(raw_boxes_outputs[i]);
         int num_proposals = output_b.shape(0) * output_b.shape(1);
         auto output_boxes = xt::view(output_b, xt::all(), xt::all(), xt::all());
-        xt::xarray<uint8_t> quantized_boxes = xt::reshape_view(output_boxes, {num_proposals, 4, regression_length + 1});
+        xt::xarray<uint16_t> quantized_boxes = xt::reshape_view(output_boxes, {num_proposals, 4, regression_length + 1});
 
         auto shape = {quantized_boxes.shape(1), quantized_boxes.shape(2)};
 
         // Keypoints setup
         float32_t qp_scale_kpts = raw_keypoints[i]->vstream_info().quant_info.qp_scale;
         float32_t qp_zp_kpts = raw_keypoints[i]->vstream_info().quant_info.qp_zp;
+        hailo_format_type_t keypoints_format = raw_keypoints[i]->vstream_info().format.type;
+        if (keypoints_format == HAILO_FORMAT_TYPE_UINT8)
+        {
+            throw std::runtime_error("This postprocess does not support uint8 keypoints format, download the updated HEF version.");
+        }
 
-        auto output_keypoints = common::get_xtensor(raw_keypoints[i]);
+        auto output_keypoints = common::get_xtensor_uint16(raw_keypoints[i]);
         int num_proposals_keypoints = output_keypoints.shape(0) * output_keypoints.shape(1);
         auto output_keypoints_quantized = xt::view(output_keypoints, xt::all(), xt::all(), xt::all());
-        xt::xarray<uint8_t> quantized_keypoints = xt::reshape_view(output_keypoints_quantized, {num_proposals_keypoints, 17, 3});
+        xt::xarray<uint16_t> quantized_keypoints = xt::reshape_view(output_keypoints_quantized, {num_proposals_keypoints, 17, 3});
 
         auto keypoints_shape = {quantized_keypoints.shape(1), quantized_keypoints.shape(2)};
 
         // Bbox decoding
-        for (uint j = 0; j < uint(num_proposals); j++) {
-            confidence =    xt::row(scores, instance_index)(0);
+        for (uint j = 0; j < uint(num_proposals); j++)
+        {
+            confidence = xt::row(scores, instance_index)(0);
             instance_index++;
             if (confidence < SCORE_THRESHOLD)
                 continue;
@@ -238,8 +250,8 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
             xt::xarray<float> kpts_corrdinates_and_scores(keypoints_shape);
 
             dequantize_box_values(box, j, quantized_boxes,
-                                    box.shape(0), box.shape(1),
-                                    qp_scale, qp_zp);
+                                  box.shape(0), box.shape(1),
+                                  qp_scale, qp_zp);
             common::softmax_2D(box.data(), box.shape(0), box.shape(1));
 
             auto box_distance = box * regression_distance;
@@ -262,8 +274,8 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
 
             // Decode keypoints
             dequantize_box_values(kpts_corrdinates_and_scores, j, quantized_keypoints,
-                                    kpts_corrdinates_and_scores.shape(0), kpts_corrdinates_and_scores.shape(1),
-                                    qp_scale_kpts, qp_zp_kpts);
+                                  kpts_corrdinates_and_scores.shape(0), kpts_corrdinates_and_scores.shape(1),
+                                  qp_scale_kpts, qp_zp_kpts);
 
             auto kpts_corrdinates = xt::view(kpts_corrdinates_and_scores, xt::all(), xt::range(0, 2));
             auto keypoints_scores = xt::view(kpts_corrdinates_and_scores, xt::all(), xt::range(2, xt::placeholders::_));
@@ -271,7 +283,7 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
             kpts_corrdinates *= 2;
 
             auto center = xt::view(centers[i], xt::all(), xt::range(0, 2));
-            auto center_values = xt::xarray<float>{(float)center(j,0), (float)center(j,1)};
+            auto center_values = xt::xarray<float>{(float)center(j, 0), (float)center(j, 1)};
 
             kpts_corrdinates = strides[i] * (kpts_corrdinates - 0.5) + center_values;
 
@@ -287,18 +299,19 @@ std::vector<Decodings> decode_boxes_and_keypoints(std::vector<HailoTensorPtr> ra
     return decodings;
 }
 
-
-Triple get_boxes_scores_keypoints(std::vector<HailoTensorPtr> &tensors, int num_classes, int regression_length){
+Triple get_boxes_scores_keypoints(std::vector<HailoTensorPtr> &tensors, int num_classes, int regression_length)
+{
     std::vector<HailoTensorPtr> outputs_boxes(tensors.size() / 3);
     std::vector<HailoTensorPtr> outputs_keypoints(tensors.size() / 3);
 
     // Prepare the scores xarray at the size we will fill in in-place
     int total_scores = 0;
-    for (uint i = 0; i < tensors.size(); i = i + 3) {
-        total_scores += tensors[i+1]->width() * tensors[i+1]->height();
+    for (uint i = 0; i < tensors.size(); i = i + 3)
+    {
+        total_scores += tensors[i + 1]->width() * tensors[i + 1]->height();
     }
 
-    std::vector<size_t> scores_shape = { (long unsigned int)total_scores, (long unsigned int)num_classes};
+    std::vector<size_t> scores_shape = {(long unsigned int)total_scores, (long unsigned int)num_classes};
 
     xt::xarray<float> scores(scores_shape);
 
@@ -310,8 +323,8 @@ Triple get_boxes_scores_keypoints(std::vector<HailoTensorPtr> &tensors, int num_
         outputs_boxes[i / 3] = tensors[i];
 
         // Extract and dequantize the scores outputs
-        auto dequantized_output_s = common::dequantize(common::get_xtensor(tensors[i+1]), tensors[i+1]->vstream_info().quant_info.qp_scale, tensors[i+1]->vstream_info().quant_info.qp_zp);
-        int num_proposals_scores = dequantized_output_s.shape(0)*dequantized_output_s.shape(1);
+        auto dequantized_output_s = common::dequantize(common::get_xtensor(tensors[i + 1]), tensors[i + 1]->vstream_info().quant_info.qp_scale, tensors[i + 1]->vstream_info().quant_info.qp_zp);
+        int num_proposals_scores = dequantized_output_s.shape(0) * dequantized_output_s.shape(1);
 
         // From the layer extract the scores
         auto output_scores = xt::view(dequantized_output_s, xt::all(), xt::all(), xt::all());
@@ -319,17 +332,16 @@ Triple get_boxes_scores_keypoints(std::vector<HailoTensorPtr> &tensors, int num_
         view_index_scores += num_proposals_scores;
 
         // Keypoints extraction will be done later according to the boxes that surpass the threshold
-        outputs_keypoints[i / 3] = tensors[i+2];
-
+        outputs_keypoints[i / 3] = tensors[i + 2];
     }
     return Triple{outputs_boxes, scores, outputs_keypoints};
 }
 
 std::vector<Decodings> yolov8pose_postprocess(std::vector<HailoTensorPtr> &tensors,
-                                std::vector<int> network_dims,
-                                std::vector<int> strides,
-                                int regression_length,
-                                int num_classes)
+                                              std::vector<int> network_dims,
+                                              std::vector<int> strides,
+                                              int regression_length,
+                                              int num_classes)
 {
     std::vector<Decodings> decodings;
     if (tensors.size() == 0)
@@ -371,7 +383,8 @@ std::pair<std::vector<KeyPt>, std::vector<PairPairs>> yolov8(HailoROIPtr roi)
 
     std::vector<HailoDetection> detections;
 
-    for (auto& dec : filtered_decodings){
+    for (auto &dec : filtered_decodings)
+    {
         HailoDetection detection = dec.detection_box;
         std::pair<std::vector<KeyPt>, std::vector<PairPairs>> keypoints_and_pairs = process_single_decoding(dec, network_dims, 0.0f);
         std::vector<KeyPt> scaled_keypoints = keypoints_and_pairs.first;
@@ -380,7 +393,8 @@ std::pair<std::vector<KeyPt>, std::vector<PairPairs>> yolov8(HailoROIPtr roi)
         xt::xarray<float> landmarks = xt::empty<float>({int(scaled_keypoints.size()), 3});
 
         // Fill the xarray with the data from the vector
-        for (size_t i = 0; i < scaled_keypoints.size(); ++i) {
+        for (size_t i = 0; i < scaled_keypoints.size(); ++i)
+        {
             landmarks(i, 0) = scaled_keypoints[i].xs;
             landmarks(i, 1) = scaled_keypoints[i].ys;
             landmarks(i, 2) = scaled_keypoints[i].joints_scores;
@@ -388,7 +402,6 @@ std::pair<std::vector<KeyPt>, std::vector<PairPairs>> yolov8(HailoROIPtr roi)
 
         hailo_common::add_landmarks_to_detection(detection, "centerpose", landmarks, SCORE_THRESHOLD, JOINT_PAIRS);
         detections.push_back(detection);
-
     }
 
     hailo_common::add_detections(roi, detections);

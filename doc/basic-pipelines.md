@@ -238,18 +238,6 @@ Use the `INFERENCE_PIPELINE` function to set up the inference stage of your pipe
 
 ---
 
-### `DETECTION_PIPELINE`
-
-**Description:**
-Builds a GStreamer pipeline string specifically for detection tasks using HailoRT post-processing. This pipeline is optimized for detection models compiled with HailoRT post-processing capabilities.
-
-**Usage:**
-Leverage the `DETECTION_PIPELINE` function to create a detection-focused pipeline segment, providing paths to HEF files and label configurations as needed.
-
-**For more details, refer to the [`DETECTION_PIPELINE` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
----
-
 ### `INFERENCE_PIPELINE_WRAPPER`
 
 **Description:**

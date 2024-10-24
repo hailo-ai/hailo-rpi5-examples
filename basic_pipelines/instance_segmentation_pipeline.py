@@ -16,8 +16,6 @@ from hailo_rpi_common import (
     INFERENCE_PIPELINE,
     USER_CALLBACK_PIPELINE,
     DISPLAY_PIPELINE,
-    get_caps_from_pad,
-    get_numpy_from_buffer,
     GStreamerApp,
     app_callback_class,
     dummy_callback,
@@ -68,7 +66,7 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             self.config_file = os.path.join(self.current_path, '../resources/yolov5n_seg.json')
         else:
             raise ValueError("HEF version not supported, you will need to provide a config file")
-        self.default_post_process_so = os.path.join(self.current_path, '../resources/libyolov5seg_post.so')
+        self.default_post_process_so = os.path.join(self.current_path, '../resources/libyolov5seg_postprocess.so')
         self.post_function_name = "yolov5seg"
         self.app_callback = app_callback
 

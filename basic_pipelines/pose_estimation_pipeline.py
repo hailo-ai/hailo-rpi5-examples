@@ -16,8 +16,6 @@ from hailo_rpi_common import (
     INFERENCE_PIPELINE,
     USER_CALLBACK_PIPELINE,
     DISPLAY_PIPELINE,
-    get_caps_from_pad,
-    get_numpy_from_buffer,
     GStreamerApp,
     app_callback_class,
     dummy_callback,
@@ -62,12 +60,12 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         elif self.arch == "hailo8":
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8m_pose.hef')
         else:  # hailo8l
-            self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l_pi.hef')
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l.hef')
 
         self.app_callback = app_callback
 
         # Set the post-processing shared object file
-        self.post_process_so = os.path.join(self.postprocess_dir, 'libyolov8pose_post.so')
+        self.post_process_so = os.path.join(self.current_path, '../resources/libyolov8pose_postprocess.so')
         self.post_process_function = "filter"
 
 

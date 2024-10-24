@@ -13,12 +13,10 @@ from hailo_rpi_common import (
     get_default_parser,
     QUEUE,
     SOURCE_PIPELINE,
-    DETECTION_PIPELINE,
+    INFERENCE_PIPELINE,
     INFERENCE_PIPELINE_WRAPPER,
     USER_CALLBACK_PIPELINE,
     DISPLAY_PIPELINE,
-    get_caps_from_pad,
-    get_numpy_from_buffer,
     GStreamerApp,
     app_callback_class,
     dummy_callback,
@@ -72,6 +70,9 @@ class GStreamerDetectionApp(GStreamerApp):
         else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_h8l.hef')
 
+        # Set the post-processing shared object file
+        self.post_process_so = os.path.join(self.current_path, '../resources/libyolo_hailortpp_postprocess.so')
+
         # User-defined label JSON file
         self.labels_json = args.labels_json
 
@@ -90,7 +91,12 @@ class GStreamerDetectionApp(GStreamerApp):
 
     def get_pipeline_string(self):
         source_pipeline = SOURCE_PIPELINE(self.video_source)
-        detection_pipeline = DETECTION_PIPELINE(hef_path=self.hef_path, batch_size=self.batch_size, labels_json=self.labels_json, additional_params=self.thresholds_str)
+        detection_pipeline = INFERENCE_PIPELINE(
+            hef_path=self.hef_path,
+            post_process_so=self.post_process_so,
+            batch_size=self.batch_size,
+            config_json=self.labels_json,
+            additional_params=self.thresholds_str)
         user_callback_pipeline = USER_CALLBACK_PIPELINE()
         display_pipeline = DISPLAY_PIPELINE(video_sink=self.video_sink, sync=self.sync, show_fps=self.show_fps)
         pipeline_string = (
