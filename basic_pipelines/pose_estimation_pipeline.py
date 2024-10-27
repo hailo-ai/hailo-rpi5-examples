@@ -16,11 +16,10 @@ from hailo_rpi_common import (
     INFERENCE_PIPELINE,
     USER_CALLBACK_PIPELINE,
     DISPLAY_PIPELINE,
-    get_caps_from_pad,
-    get_numpy_from_buffer,
     GStreamerApp,
     app_callback_class,
     dummy_callback,
+    detect_hailo_arch,
 )
 
 #-----------------------------------------------------------------------------------------------
@@ -41,10 +40,34 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         self.network_width = 640
         self.network_height = 640
         self.network_format = "RGB"
-        self.default_post_process_so = os.path.join(self.postprocess_dir, 'libyolov8pose_post.so')
-        self.post_function_name = "filter"
-        self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l_pi.hef')
+
+
+        # Determine the architecture if not specified
+        if args.arch is None:
+            detected_arch = detect_hailo_arch()
+            if detected_arch is None:
+                raise ValueError("Could not auto-detect Hailo architecture. Please specify --arch manually.")
+            self.arch = detected_arch
+            print(f"Auto-detected Hailo architecture: {self.arch}")
+        else:
+            self.arch = args.arch
+
+
+
+        # Set the HEF file path based on the architecture
+        if args.hef_path:
+            self.hef_path = args.hef_path
+        elif self.arch == "hailo8":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov8m_pose.hef')
+        else:  # hailo8l
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_pose_h8l.hef')
+
         self.app_callback = app_callback
+
+        # Set the post-processing shared object file
+        self.post_process_so = os.path.join(self.current_path, '../resources/libyolov8pose_postprocess.so')
+        self.post_process_function = "filter"
+
 
         # Set the process title
         setproctitle.setproctitle("Hailo Pose Estimation App")
@@ -55,8 +78,9 @@ class GStreamerPoseEstimationApp(GStreamerApp):
         source_pipeline = SOURCE_PIPELINE(video_source=self.video_source)
         infer_pipeline = INFERENCE_PIPELINE(
             hef_path=self.hef_path,
-            post_process_so=self.default_post_process_so,
-            post_function_name=self.post_function_name
+            post_process_so=self.post_process_so,
+            post_function_name=self.post_process_function,
+            batch_size=self.batch_size
         )
         user_callback_pipeline = USER_CALLBACK_PIPELINE()
         display_pipeline = DISPLAY_PIPELINE(video_sink=self.video_sink, sync=self.sync, show_fps=self.show_fps)
