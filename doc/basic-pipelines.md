@@ -124,7 +124,7 @@ python basic_pipelines/pose_estimation.py
 ```
 Run example using Pi camera:
 ```bash
-python basic_pipelines/instance_segmentation.py --input rpi
+python basic_pipelines/pose_estimation.py --input rpi
 ```
 ##### To close the application, press `Ctrl+C`.
 
