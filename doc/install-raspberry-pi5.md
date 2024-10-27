@@ -1,6 +1,6 @@
-# How to Set Up Raspberry Pi 5 and Hailo-8L
+# How to Set Up Raspberry Pi 5 and Hailo
 
-In this guide, you will learn how to set up the Raspberry Pi 5 with a Hailo-8L AI accelerator.
+In this guide, you will learn how to set up the Raspberry Pi 5 with a Hailo-8/8L AI accelerator.
 
 ## Table of Contents
 - [What You'll Need](#what-youll-need)
@@ -9,10 +9,13 @@ In this guide, you will learn how to set up the Raspberry Pi 5 with a Hailo-8L A
 - [Troubleshooting](#troubleshooting)
 
 ## What You'll Need
-- Raspberry Pi 5
-- Raspberry Pi M.2 M-Key HAT
-- Hailo-8L M.2 module (Hailo-8 is also supported)
-- Thermal pad (Included with the kit)
+- Raspberry Pi 5 (8GB recommended)
+- Raspberry Pi 5 AI KIT (option 1)
+  - Raspberry Pi M.2 M-Key HAT
+  - Hailo-8L M.2 M-Key module (Hailo-8 is also supported)
+- Raspberry Pi 5 AI HAT (option 2)
+  - 26TOPs and 13TOPs are supported
+- Active Cooler for the Raspberry Pi 5
 - Optional: Heat sink
 - Optional: An official Raspberry Pi camera (e.g., Camera Module 3 or High-Quality Camera)
 - Optional: USB camera
@@ -26,8 +29,15 @@ For this guide, we used the Raspberry Pi 5 model along with the official Active 
 The Raspberry Pi M.2 M-Key HAT can be used with the Hailo-8L M.2 key M or B+M. (Hailo-8 is also supported).
 When installing the M.2 module, make sure to use the thermal pad to ensure proper heat dissipation between the M.2 module and the HAT.
 If your project is encapsulated in a case, make sure to have proper ventilation to avoid overheating. If required, add a heat sink to the Hailo-8L module.
-For detailed instructions on how to install the M.2 module, follow [Raspberry Pi's official Guide](https://www.raspberrypi.com/documentation/accessories/m2-hat-plus.html).
-![Raspberry Pi M.2 HAT](./images/Raspberry_Pi_5_Hailo-8.png)
+For detailed instructions on how to install the M.2 module, follow [Raspberry Pi's official AI Kit Guide](https://www.raspberrypi.com/documentation/accessories/ai-kit.html#ai-kit).
+
+![Raspberry Pi AI Kit](./images/ai-kit.jpg)
+
+### Raspberry Pi AI HAT
+The Raspberry Pi AI HAT is a standalone board that includes the Hailo-8L AI accelerator. It is a plug-and-play solution that can be used with the Raspberry Pi 5.
+When using the AI HAT, make sure to have proper ventilation to avoid overheating. If required, add a heat sink to the Hailo-8 module.
+[Raspberry Pi's official AI HAT Guide](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html#ai-hat-plus).
+![Raspberry Pi AI HAT](./images/ai-hat-plus.jpg)
 
 ### Raspberry Pi Camera
 See the [Raspberry Pi Camera Guide](https://www.raspberrypi.com/documentation/accessories/camera.html#install-a-raspberry-pi-camera) for instructions on how to install the camera.

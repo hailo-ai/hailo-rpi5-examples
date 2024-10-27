@@ -58,7 +58,7 @@ def get_pose_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
     H8_HEFS = [
         "yolov8m_pose.hef",
-        "yolov8S_pose.hef",
+        "yolov8s_pose.hef",
     ]
 
     H8L_HEFS = [
