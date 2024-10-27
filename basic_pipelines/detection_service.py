@@ -59,9 +59,11 @@ def app_callback(pad, info, user_data):
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
 
     # Parse the detections
+    labels = []
     detection_count = 0
     for detection in detections:
         label = detection.get_label()
+        labels.append(label)
         bbox = detection.get_bbox()
         confidence = detection.get_confidence()
         if label == "person":
