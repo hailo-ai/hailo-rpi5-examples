@@ -13,16 +13,17 @@ from hailo_rpi_common import (
     get_default_parser,
     QUEUE,
     SOURCE_PIPELINE,
-    DETECTION_PIPELINE,
+    INFERENCE_PIPELINE,
     INFERENCE_PIPELINE_WRAPPER,
     USER_CALLBACK_PIPELINE,
     DISPLAY_PIPELINE,
-    get_caps_from_pad,
-    get_numpy_from_buffer,
     GStreamerApp,
     app_callback_class,
     dummy_callback,
+    detect_hailo_arch,
 )
+
+
 
 # -----------------------------------------------------------------------------------------------
 # User Gstreamer Application
@@ -32,18 +33,6 @@ from hailo_rpi_common import (
 class GStreamerDetectionApp(GStreamerApp):
     def __init__(self, app_callback, user_data):
         parser = get_default_parser()
-        # Add additional arguments here
-        parser.add_argument(
-            "--network",
-            default="yolov6n",
-            choices=['yolov6n', 'yolov8s'],
-            help="Which Network to use, default is yolov6n",
-        )
-        parser.add_argument(
-            "--hef-path",
-            default=None,
-            help="Path to HEF file",
-        )
         parser.add_argument(
             "--labels-json",
             default=None,
@@ -61,15 +50,28 @@ class GStreamerDetectionApp(GStreamerApp):
         nms_score_threshold = 0.3
         nms_iou_threshold = 0.45
 
+
+        # Determine the architecture if not specified
+        if args.arch is None:
+            detected_arch = detect_hailo_arch()
+            if detected_arch is None:
+                raise ValueError("Could not auto-detect Hailo architecture. Please specify --arch manually.")
+            self.arch = detected_arch
+            print(f"Auto-detected Hailo architecture: {self.arch}")
+        else:
+            self.arch = args.arch
+
+
         if args.hef_path is not None:
             self.hef_path = args.hef_path
-        # Set the HEF file path based on the network
-        elif args.network == "yolov6n":
-            self.hef_path = os.path.join(self.current_path, '../resources/yolov6n.hef')
-        elif args.network == "yolov8s":
+        # Set the HEF file path based on the arch
+        elif self.arch == "hailo8":
+            self.hef_path = os.path.join(self.current_path, '../resources/yolov8m.hef')
+        else:  # hailo8l
             self.hef_path = os.path.join(self.current_path, '../resources/yolov8s_h8l.hef')
-        else:
-            assert False, "Invalid network type"
+
+        # Set the post-processing shared object file
+        self.post_process_so = os.path.join(self.current_path, '../resources/libyolo_hailortpp_postprocess.so')
 
         # User-defined label JSON file
         self.labels_json = args.labels_json
@@ -89,7 +91,12 @@ class GStreamerDetectionApp(GStreamerApp):
 
     def get_pipeline_string(self):
         source_pipeline = SOURCE_PIPELINE(self.video_source)
-        detection_pipeline = DETECTION_PIPELINE(hef_path=self.hef_path, batch_size=self.batch_size, labels_json=self.labels_json, additional_params=self.thresholds_str)
+        detection_pipeline = INFERENCE_PIPELINE(
+            hef_path=self.hef_path,
+            post_process_so=self.post_process_so,
+            batch_size=self.batch_size,
+            config_json=self.labels_json,
+            additional_params=self.thresholds_str)
         user_callback_pipeline = USER_CALLBACK_PIPELINE()
         display_pipeline = DISPLAY_PIPELINE(video_sink=self.video_sink, sync=self.sync, show_fps=self.show_fps)
         pipeline_string = (
