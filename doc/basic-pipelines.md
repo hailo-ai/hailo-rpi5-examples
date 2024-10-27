@@ -56,6 +56,11 @@ Alternatively, you can manually perform the setup using the steps below.
 This example demonstrates object detection using the YOLOv8s model for Hailo-8L (13 TOPS) and the YOLOv8m model for Hailo-8 (26 TOPS) by default. It also supports all models compiled with HailoRT NMS post process. Hailo's Non-Maximum Suppression (NMS) layer is integrated into the HEF file, allowing any detection network compiled with NMS to function with the same codebase.
 
 ### To Run the Example:
+When opening a new terminal session, ensure you have sourced the environment setup script:
+```bash
+source setup_env.sh
+```
+Run the detection example:
 ```bash
 python basic_pipelines/detection.py
 ```
@@ -109,6 +114,11 @@ python basic_pipelines/detection.py --labels-json resources/barcode-labels.json 
 This example demonstrates human pose estimation using the `yolov8s_pose` model for Hailo-8 Lite (H8l) and the `yolov8m_pose` model for Hailo-8 (H8)
 
 ### To Run the Example:
+When opening a new terminal session, ensure you have sourced the environment setup script:
+```bash
+source setup_env.sh
+```
+Run the example:
 ```bash
 python basic_pipelines/pose_estimation.py
 ```
@@ -134,7 +144,12 @@ The callback function retrieves pose estimation metadata from the network output
 
 This example demonstrates instance segmentation using the `yolov5n_seg` model for Hailo-8 Lite (H8l) and the `yolov5m_seg` model for Hailo-8 (H8).
 
-### To Run the Examples:
+### To Run the Example:
+When opening a new terminal session, ensure you have sourced the environment setup script:
+```bash
+source setup_env.sh
+```
+Run the example:
 ```bash
 python basic_pipelines/instance_segmentation.py
 ```
