@@ -12,46 +12,69 @@ Navigate to the repository directory:
 cd hailo-rpi5-examples
 ```
 
-### Environment Configuration
-Ensure your environment is set up correctly by sourcing the provided script. This script sets the required environment variables and activates the Hailo virtual environment. If the virtual environment does not exist, it will be created automatically.
+### Quick Installation
+Run the following script to automate the installation process:
 ```bash
-source setup_env.sh
+./install.sh
 ```
+### Manual Installation (Use Only if Quick Installation Was Not Performed)
+Alternatively, you can manually perform the setup using the steps below.
 
-### Requirements Installation
-Within the activated virtual environment, install the necessary Python packages:
-```bash
-pip install -r requirements.txt
-```
+1. ### Environment Configuration  (Required for Each New Terminal Session)
+    Ensure your environment is set up correctly by sourcing the provided script. This script sets the required environment variables and activates the Hailo virtual environment. If the virtual environment does not exist, it will be created automatically.
+    ```bash
+    source setup_env.sh
+    ```
 
-**Note:** The `rapidjson-dev` package is typically installed by default on Raspberry Pi OS. If it's missing, install it using:
-```bash
-sudo apt install -y rapidjson-dev
-```
+2. ### Requirements Installation
+    Within the activated virtual environment, install the necessary Python packages:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Resources Download
-Download the required resources by running:
-```bash
-./download_resources.sh
-```
+    **Note:** The `rapidjson-dev` package is typically installed by default on Raspberry Pi OS. If it's missing, install it using:
+    ```bash
+    sudo apt install -y rapidjson-dev
+    ```
 
-### Post Process Compilation
-The post-process functionality is integrated into the TAPPAS core starting from version 3.29.0 and will be deprecated in this repository in the future. If you are using an older version of TAPPAS, compile the post-process using:
-```bash
-./compile_postprocess.sh
-```
-**Note:** Using an older version without compiling the post-process may result in incorrect labels.
+3. ### Resources Download
+    Download the required resources by running:
+    ```bash
+    ./download_resources.sh
+    ```
+    To download all models , You should use the `--all` with the ./download_resources.sh
+
+4. ### Post Process Compilation
+    This will compile post process files required for the demos. You can review the code in the `cpp` directory and tweak it as needed.
+    ```bash
+    ./compile_postprocess.sh
+    ```
 
 # Detection Example
 ![Banner](images/detection.gif)
 
-This example showcases object detection using the YOLOv6n model by default. It also supports `yolov8s` and `yolox_s_leaky` models. Hailo's Non-Maximum Suppression (NMS) layer is integrated into the HEF file, allowing any detection network compiled with NMS to function with the same codebase.
+This example demonstrates object detection using the YOLOv8s model for Hailo-8L (13 TOPS) and the YOLOv8m model for Hailo-8 (26 TOPS) by default. It also supports all models compiled with HailoRT NMS post process. Hailo's Non-Maximum Suppression (NMS) layer is integrated into the HEF file, allowing any detection network compiled with NMS to function with the same codebase.
 
 ### To Run the Example:
+When opening a new terminal session, ensure you have sourced the environment setup script:
 ```bash
-python basic_pipelines/detection.py --input resources/detection0.mp4
+source setup_env.sh
 ```
-##### To close the application, press `Ctrl+C`.
+Run the detection example:
+```bash
+python basic_pipelines/detection.py
+```
+- To close the application, press `Ctrl+C`.
+#### Example For Using USB camera input:
+   Detect the available camera using this script:
+  ```bash
+  python basic_pipelines/get_usb_camera.py
+  ```
+  Run example using USB camera - Use the device found by the previous script:
+
+  ```bash
+  python basic_pipelines/detection.py --input /dev/video<X>
+  ```
 
 For additional options, execute:
 ```bash
@@ -73,23 +96,35 @@ Shows how to add more command-line options using the `argparse` library. For ins
 ### Using Retrained Models
 Supports using retrained detection models compiled with HailoRT NMS Post Process (`HailortPP`). Load a custom model’s HEF using the `--hef-path` flag. Default labels are COCO labels ([80 classes](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/core/hailo/libs/postprocesses/common/labels/coco_eighty.hpp)). For custom models with different labels, use the `--labels-path` flag to load your labels file (e.g., `resources/barcode-labels.json`).
 
-The `download_resources.sh` script downloads the network trained in the [Retraining Example](doc/retraining-example.md#using-yolov8-retraining-docker), which can be used as a reference.
+The `download_resources.sh` script downloads the network trained in the [Retraining Example](retraining-example.md#using-yolov8-retraining-docker), which can be used as a reference.
 
-**Example (using the RPi camera input):**
+To download all models , You should use the `--all` with the ./download_resources.sh
+
+**Example:**
 ```bash
-python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef resources/yolov8s-hailo8l-barcode.hef -i rpi
+python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef resources/yolov8s-hailo8l-barcode.hef --input resources/barcode.mp4
 ```
+
 **Example Output:**
 ![Barcode Detection Example](images/barcode-example.png)
 
 # Pose Estimation Example
 ![Banner](images/pose_estimation.gif)
 
-This example demonstrates human pose estimation using the `yolov8s_pose` model.
+This example demonstrates human pose estimation using the `yolov8s_pose` model for Hailo-8 Lite (H8l) and the `yolov8m_pose` model for Hailo-8 (H8)
 
 ### To Run the Example:
+When opening a new terminal session, ensure you have sourced the environment setup script:
 ```bash
-python basic_pipelines/pose_estimation.py --input resources/detection0.mp4
+source setup_env.sh
+```
+Run the example:
+```bash
+python basic_pipelines/pose_estimation.py
+```
+Run example using Pi camera:
+```bash
+python basic_pipelines/pose_estimation.py --input rpi
 ```
 ##### To close the application, press `Ctrl+C`.
 
@@ -107,11 +142,16 @@ The callback function retrieves pose estimation metadata from the network output
 # Instance Segmentation Example
 ![Banner](images/instance_segmentation.gif)
 
-This example demonstrates instance segmentation using the `yolov5n_seg` model.
+This example demonstrates instance segmentation using the `yolov5n_seg` model for Hailo-8 Lite (H8l) and the `yolov5m_seg` model for Hailo-8 (H8).
 
 ### To Run the Example:
+When opening a new terminal session, ensure you have sourced the environment setup script:
 ```bash
-python basic_pipelines/instance_segmentation.py --input resources/detection0.mp4
+source setup_env.sh
+```
+Run the example:
+```bash
+python basic_pipelines/instance_segmentation.py
 ```
 ##### To close the application, press `Ctrl+C`.
 
@@ -213,18 +253,6 @@ Use the `INFERENCE_PIPELINE` function to set up the inference stage of your pipe
 
 ---
 
-### `DETECTION_PIPELINE`
-
-**Description:**
-Builds a GStreamer pipeline string specifically for detection tasks using HailoRT post-processing. This pipeline is optimized for detection models compiled with HailoRT post-processing capabilities.
-
-**Usage:**
-Leverage the `DETECTION_PIPELINE` function to create a detection-focused pipeline segment, providing paths to HEF files and label configurations as needed.
-
-**For more details, refer to the [`DETECTION_PIPELINE` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
----
-
 ### `INFERENCE_PIPELINE_WRAPPER`
 
 **Description:**
@@ -267,55 +295,72 @@ Run any example with the `--help` flag to view all available options.
 **Example:**
 ```bash
 python basic_pipelines/pose_estimation.py --help
-# Example output:
-usage: pose_estimation.py [-h] [--input INPUT] [--use-frame] [--show-fps] [--disable-sync] [--dump-dot]
+
+usage: pose_estimation.py [-h] [--input INPUT] [--use-frame] [--show-fps]
+                          [--arch {hailo8,hailo8l}] [--hef-path HEF_PATH]
+                          [--disable-sync] [--dump-dot]
 
 Hailo App Help
 
 options:
   -h, --help            show this help message and exit
   --input INPUT, -i INPUT
-                        Input source. Can be a file, USB or RPi camera (CSI camera module). For RPi camera use '-i rpi' (Still in Beta). Defaults to /dev/video0
+                        Input source. Can be a file, USB or RPi camera (CSI
+                        camera module). For RPi camera use '-i rpi' (Still in
+                        Beta). Defaults to example video
+                        resources/detection0.mp4
   --use-frame, -u       Use frame from the callback function
   --show-fps, -f        Print FPS on sink
-  --disable-sync        Disables display sink sync, will run as fast as possible. Relevant when using file source.
+  --arch {hailo8,hailo8l}
+                        Specify the Hailo architecture (hailo8 or hailo8l).
+                        Default is None , app will run check.
+  --hef-path HEF_PATH   Path to HEF file
+  --disable-sync        Disables display sink sync, will run as fast as
+                        possible. Relevant when using file source.
   --dump-dot            Dump the pipeline graph to a dot file pipeline.dot
+
 ```
 Refer to the following sections for more information on using these options.
 
 ### Running with Different Input Sources
-By default, these examples use a USB camera (`/dev/video0`). You can change the input source using the `--input` flag.
+By default, these examples use an example video source. You can change the input source using the `--input` flag.
 
-**To use a Raspberry Pi camera:**
+
+#### Raspberry Pi Camera Input
+To use the Raspberry Pi camera input, run the following command:
 ```bash
 python basic_pipelines/detection.py --input rpi
 ```
 *(Still in Beta)*
 
-**Other examples:**
+#### USB Camera Input
+To determine which USB camera to use, please run the following script:
 ```bash
-python basic_pipelines/detection.py --input /dev/video2
-python basic_pipelines/detection.py --input rpi
+python basic_pipelines/get_usb_camera.py
+```
+This will help you identify an available camera.
+
+**Test the camera functionality:**
+```bash
+ffplay -f v4l2 /dev/video<X>
+```
+**USB Camera input example:**
+```bash
+python basic_pipelines/detection.py --input /dev/video<X>
+```
+
+#### File input
+```bash
 python basic_pipelines/detection.py --input resources/detection0.mp4
 ```
 
-**Note:** The USB camera device might not always be `/dev/video0`. To check available video devices:
-```bash
-ls /dev/video*
-```
-**Test the camera functionality:**
-```bash
-ffplay -f v4l2 /dev/video0
-```
-If an error occurs, try a different device (e.g., `/dev/video2`), typically an even-numbered device.
-
-#### Using the Frame Buffer
+### Using the Frame Buffer
 To utilize the frame buffer, add the `--use-frame` flag. Be aware that extracting and displaying video frames can slow down the application due to non-optimized implementation. Writing to the buffer and replacing the old buffer in the pipeline is possible but inefficient.
 
-#### Printing the Frame Rate
+### Printing the Frame Rate
 To display the frame rate, add the `--show-fps` flag. This will print the FPS to both the terminal and the video output window.
 
-#### Dumping the Pipeline Graph
+### Dumping the Pipeline Graph
 Useful for debugging and understanding the pipeline structure. To dump the pipeline graph to a DOT file, add the `--dump-dot` flag:
 ```bash
 python basic_pipelines/detection.py --dump-dot

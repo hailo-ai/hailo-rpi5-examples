@@ -10,6 +10,7 @@ import setproctitle
 import cv2
 import time
 import signal
+import subprocess
 
 # Try to import hailo python module
 try:
@@ -66,6 +67,30 @@ def dummy_callback(pad, info, user_data):
 # -----------------------------------------------------------------------------------------------
 # Common functions
 # -----------------------------------------------------------------------------------------------
+def detect_hailo_arch():
+    try:
+        # Run the hailortcli command to get device information
+        result = subprocess.run(['hailortcli', 'fw-control', 'identify'], capture_output=True, text=True)
+
+        # Check if the command was successful
+        if result.returncode != 0:
+            print(f"Error running hailortcli: {result.stderr}")
+            return None
+
+        # Search for the "Device Architecture" line in the output
+        for line in result.stdout.split('\n'):
+            if "Device Architecture" in line:
+                if "HAILO8L" in line:
+                    return "hailo8l"
+                elif "HAILO8" in line:
+                    return "hailo8"
+
+        print("Could not determine Hailo architecture from device information.")
+        return None
+    except Exception as e:
+        print(f"An error occurred while detecting Hailo architecture: {e}")
+        return None
+
 def get_caps_from_pad(pad: Gst.Pad):
     caps = pad.get_current_caps()
     if caps:
@@ -91,14 +116,27 @@ def display_user_data_frame(user_data: app_callback_class):
 
 def get_default_parser():
     parser = argparse.ArgumentParser(description="Hailo App Help")
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    default_video_source = os.path.join(current_path, '../resources/detection0.mp4')
     parser.add_argument(
-        "--input", "-i", type=str, default="/dev/video0",
+        "--input", "-i", type=str, default=default_video_source,
         help="Input source. Can be a file, USB or RPi camera (CSI camera module). \
         For RPi camera use '-i rpi' (Still in Beta). \
-        Defaults to /dev/video0"
+        Defaults to example video resources/detection0.mp4"
     )
     parser.add_argument("--use-frame", "-u", action="store_true", help="Use frame from the callback function")
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
+    parser.add_argument(
+            "--arch",
+            default=None,
+            choices=['hailo8', 'hailo8l'],
+            help="Specify the Hailo architecture (hailo8 or hailo8l). Default is None , app will run check.",
+        )
+    parser.add_argument(
+            "--hef-path",
+            default=None,
+            help="Path to HEF file",
+        )
     parser.add_argument(
         "--disable-sync", action="store_true",
         help="Disables display sink sync, will run as fast as possible. Relevant when using file source."
@@ -226,25 +264,6 @@ def INFERENCE_PIPELINE(hef_path, post_process_so, batch_size=1, config_json=None
     )
 
     return inference_pipeline
-
-def DETECTION_PIPELINE(hef_path, batch_size=1, labels_json=None, additional_params='', name='detection'):
-    """
-    Creates a GStreamer pipeline string for detection inference, using HailoRT post-processing.
-    This pipeline is compatible with detection models which is compiled with HailoRT post-processing.
-
-    Args:
-        hef_path (str): The path to the HEF file.
-        batch_size (int, optional): The batch size for the hailonet element. Defaults to 1.
-        labels_json (str, optional): The path to the labels JSON file. If None, no labels are added. Defaults to None.
-        additional_params (str, optional): Additional parameters for the hailonet element. Defaults to ''.
-        name (str, optional): The prefix name for the pipeline elements. Defaults to 'detection'.
-
-    Returns:
-        str: A string representing the GStreamer pipeline for detection.
-    """
-    post_process_so = os.path.join(os.environ.get('TAPPAS_POST_PROC_DIR', ''), 'libyolo_hailortpp_post.so')
-    detection_pipeline = INFERENCE_PIPELINE(hef_path=hef_path, post_process_so=post_process_so, batch_size=batch_size, config_json=labels_json, additional_params=additional_params, name=name)
-    return detection_pipeline
 
 def INFERENCE_PIPELINE_WRAPPER(inner_pipeline, bypass_max_size_buffers=20, name='inference_wrapper'):
     """

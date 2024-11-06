@@ -4,6 +4,7 @@
 # Hailo Raspberry Pi 5 Examples
 
 Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases various examples demonstrating the capabilities of the Hailo AI processor on a Raspberry Pi 5. These examples will help you get started with AI on embedded devices.
+The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors. The examples can also be run on an x86_64 Ubuntu machine with the Hailo8/8L AI processor.
 Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
 
 ## Table of Contents
@@ -30,11 +31,11 @@ Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
   - [License](#license)
   - [Disclaimer](#disclaimer)
 
-![Raspberry Pi 5 with Hailo M.2](doc/images/Raspberry_Pi_5_Hailo-8.png)
+![Raspberry Pi 5 with Hailo AI HAT](doc/images/ai-hat-plus.jpg)
 
 ## Hailo Packages Installation
 
-For installation instructions, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo-8l).
+For installation instructions, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
 
 ### Hailo Version Upgrade Instructions
 
