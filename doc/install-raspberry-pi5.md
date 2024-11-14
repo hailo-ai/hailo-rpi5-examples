@@ -62,6 +62,10 @@ sudo apt update
 sudo apt full-upgrade
 ```
 This will update your system to the latest Raspberry Pi kernel, which includes Hailo driver support.
+If you get errors from the `apt full-upgrade` command try running this and retry.
+```bash
+sudo apt --fix-broken install
+```
 
 ### Set PCIe to Gen3
 To achieve optimal performance from the Hailo device, it is necessary to set PCIe to Gen3. While using Gen2 is an option, it will result in lower performance.
