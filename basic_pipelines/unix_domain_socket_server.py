@@ -122,22 +122,36 @@ class UnixDomainSocketServer(threading.Thread):
         # Update the last_state to the new_data after sending diffs
         self.last_state = new_data.copy()
 
-def shutdown(self):
-    logger.info("Shutting down Unix Domain Socket Server")
-    self.running = False
-    with self.lock:
-        for client in self.clients:
-            try:
-                client.close()
-            except Exception as e:
-                logger.error(f"Error closing client socket: {e}")
-        self.clients.clear()
+    def _send_message(self, message):
+        message_str = json.dumps(message) + "\n"
+        with self.lock:
+            for client in self.clients[:]:
+                try:
+                    client.sendall(message_str.encode('utf-8'))
+                    logger.info(f"Sent event to client: {message}")
+                except BrokenPipeError:
+                    logger.warning("Client disconnected.")
+                    self.clients.remove(client)
+                except Exception as e:
+                    logger.error(f"Error sending event to client: {e}")
+                    self.clients.remove(client)
 
-def make_serializable(obj):
-    if isinstance(obj, set):
-        return list(obj)
-    # Add other custom serialization logic as needed
-    return str(obj)  # Fallback to string representation
+    def shutdown(self):
+        logger.info("Shutting down Unix Domain Socket Server")
+        self.running = False
+        with self.lock:
+            for client in self.clients:
+                try:
+                    client.close()
+                except Exception as e:
+                    logger.error(f"Error closing client socket: {e}")
+            self.clients.clear()
+
+    def make_serializable(obj):
+        if isinstance(obj, set):
+            return list(obj)
+        # Add other custom serialization logic as needed
+        return str(obj)  # Fallback to string representation
 
 # -----------------------------------------------------------------------------------------------
 # Example Usage
