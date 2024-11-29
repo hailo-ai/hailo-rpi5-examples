@@ -61,13 +61,27 @@ class UnixDomainSocketServer(threading.Thread):
         """
         Sends only the differences (diffs) between the new_data and the last sent state.
         Implements object uptime for visibility detection.
+        
+        Args:
+            new_data: Dict or List of objects with 'id' field
         """
-        # Compute the difference between new_data and last_state
-        diff = DeepDiff(self.last_state, new_data, ignore_order=True).to_dict()
+        # Convert list to dict if needed
+        if isinstance(new_data, list):
+            new_data = {"objects": new_data}
+        elif not isinstance(new_data, dict):
+            logger.error(f"Invalid data type for new_data: {type(new_data)}")
+            return
 
+        # Ensure objects key exists
+        if 'objects' not in new_data:
+            new_data['objects'] = []
+
+        # Rest of the method remains the same
+        diff = DeepDiff(self.last_state, new_data, ignore_order=True).to_dict()
+        
         if not diff:
             logger.info("No changes detected. No event sent.")
-            return  # No changes to send
+            return
 
         # Update object logs
         detected_objects = {obj['id'] for obj in new_data.get('objects', [])}
