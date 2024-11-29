@@ -70,16 +70,16 @@ class UnixDomainSocketServer(threading.Thread):
             return  # No changes to send
 
         # Update object logs
-        detected_objects = set(new_data)
+        detected_objects = set(obj['id'] for obj in new_data.get('objects', []))
         for obj_id in detected_objects:
             if obj_id not in self.object_logs:
                 self.object_logs[obj_id] = deque(maxlen=self.UPTIME_WINDOW_SIZE)
             self.object_logs[obj_id].append(1)  # Detected
 
         # Update logs for objects not detected in this event
-        for obj_id, log in self.object_logs.items():
+        for obj_id in list(self.object_logs.keys()):
             if obj_id not in detected_objects:
-                log.append(0)  # Not detected
+                self.object_logs[obj_id].append(0)  # Not detected
 
         # Determine currently viewable objects based on uptime
         visible_objects = []
@@ -87,10 +87,11 @@ class UnixDomainSocketServer(threading.Thread):
             uptime = sum(log) / len(log)
             if uptime >= self.APPEAR_THRESHOLD:
                 visible_objects.append(obj_id)
-            elif uptime < self.DISAPPEAR_THRESHOLD and obj_id in self.last_state:
+            elif uptime < self.DISAPPEAR_THRESHOLD and obj_id in self.last_state.get('objects', [{}]):
                 # Fire disappearance event
                 disappearance_event = {'event': 'object_disappeared', 'object_id': obj_id}
                 self._send_message(disappearance_event)
+                del self.object_logs[obj_id]  # Remove object from logs
 
         # Initialize last_sent_visible_objects if not already done
         if not hasattr(self, 'last_sent_visible_objects'):
@@ -121,7 +122,7 @@ class UnixDomainSocketServer(threading.Thread):
 
         # Update the last_state to the new_data after sending diffs
         self.last_state = new_data.copy()
-
+    
     def _send_message(self, message):
         message_str = json.dumps(message) + "\n"
         with self.lock:
