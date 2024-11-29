@@ -136,22 +136,22 @@ class UnixDomainSocketServer(threading.Thread):
                     logger.error(f"Error sending event to client: {e}")
                     self.clients.remove(client)
 
-    def shutdown(self):
-        logger.info("Shutting down Unix Domain Socket Server")
-        self.running = False
-        with self.lock:
-            for client in self.clients:
-                try:
-                    client.close()
-                except Exception as e:
-                    logger.error(f"Error closing client socket: {e}")
-            self.clients.clear()
+def shutdown(self):
+    logger.info("Shutting down Unix Domain Socket Server")
+    self.running = False
+    with self.lock:
+        for client in self.clients:
+            try:
+                client.close()
+            except Exception as e:
+                logger.error(f"Error closing client socket: {e}")
+        self.clients.clear()
 
-    def make_serializable(obj):
-        if isinstance(obj, set):
-            return list(obj)
-        # Add other custom serialization logic as needed
-        return str(obj)  # Fallback to string representation
+def make_serializable(obj):
+    if isinstance(obj, set):
+        return list(obj)
+    # Add other custom serialization logic as needed
+    return str(obj)  # Fallback to string representation
 
 # -----------------------------------------------------------------------------------------------
 # Example Usage
