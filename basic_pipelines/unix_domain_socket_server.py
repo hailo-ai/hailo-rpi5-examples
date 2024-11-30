@@ -122,12 +122,12 @@ class UnixDomainSocketServer(threading.Thread):
             if object_id in self.last_sent_visible_objects:
                 if uptime_ratio < self.DISAPPEAR_THRESHOLD:
                     disappearance_event = {'event': 'object_disappeared', 'object_id': object_id}
-                    self.send_message_to_client(disappearance_event)
+                    self._send_message(disappearance_event)
                     self.last_sent_visible_objects.remove(object_id)
             else:
                 if uptime_ratio >= self.APPEAR_THRESHOLD:
                     appearance_event = {'event': 'object_appeared', 'object_id': object_id}
-                    self.send_message_to_client(appearance_event)
+                    self._send_message(appearance_event)
                     self.last_sent_visible_objects.add(object_id)
         return list(self.last_sent_visible_objects)    
     
