@@ -57,74 +57,117 @@ class UnixDomainSocketServer(threading.Thread):
         self.server.close()
         logger.info("Unix Domain Socket Server shut down.")
 
-    def send_event(self, new_data):
+    def send_event(self, event_payload):
         """
         Sends only the differences (diffs) between the new_data and the last sent state.
         Implements object uptime for visibility detection.
         """
-        # Convert new_data list to dictionary format
-        new_data_dict = {'objects': [{'id': obj_id} for obj_id in new_data]}
-
-        # Compute the difference between new_data and last_state
-        diff = DeepDiff(self.last_state, new_data_dict, ignore_order=True).to_dict()
-
-        if not diff:
+        new_state = self._event_payload_to_state(event_payload)
+        differences = self.compute_differences(new_state)
+    
+        if not differences:
             logger.info("No changes detected. No event sent.")
-            return  # No changes to send
+            return
+    
+        self.update_object_logs(new_state)
+        currently_visible_objects = self.determine_visible_objects()
+    
+        self.send_visible_objects(currently_visible_objects)
+    
+        self.update_last_state(new_state)
+    
+    def _event_payload_to_state(self, event_payload):
+        """
+        Converts new_data list to dictionary format with full word keys.
+        """
+        return {'objects': [{'id': object_id} for object_id in event_payload]}
+    
+    def compute_differences(self, new_state):
+        """
+        Computes the difference between the new_data and last_state.
+        """
+        return DeepDiff(self.last_state, new_state, ignore_order=True) != {}
+    
+    def update_object_logs(self, new_state):
+        """
+        Updates object logs based on detected object IDs.
+        """
+        objects = new_state.get('objects', [])
+        detected_object_ids = set(object['id'] for object in objects)
+        for object_id in detected_object_ids:
+            if object_id not in self.object_logs:
+                self.object_logs[object_id] = deque(maxlen=self.UPTIME_WINDOW_SIZE)
+            self.object_logs[object_id].append(1)  # Object detected
+    
+        for object_id in list(self.object_logs.keys()):
+            if object_id not in detected_object_ids:
+                self.object_logs[object_id].append(0)  # Object not detected
 
-        # Update object logs
-        detected_objects = set(obj['id'] for obj in new_data_dict.get('objects', []))
-        for obj_id in detected_objects:
-            if obj_id not in self.object_logs:
-                self.object_logs[obj_id] = deque(maxlen=self.UPTIME_WINDOW_SIZE)
-            self.object_logs[obj_id].append(1)  # Detected
-
-        # Update logs for objects not detected in this event
-        for obj_id in list(self.object_logs.keys()):
-            if obj_id not in detected_objects:
-                self.object_logs[obj_id].append(0)  # Not detected
-
-        # Determine currently viewable objects based on uptime
-        visible_objects = []
-        for obj_id, log in self.object_logs.items():
-            uptime = sum(log) / len(log)
-            if uptime >= self.APPEAR_THRESHOLD:
-                visible_objects.append(obj_id)
-            elif uptime < self.DISAPPEAR_THRESHOLD and obj_id in self.last_state.get('objects', [{}]):
-                # Fire disappearance event
-                disappearance_event = {'event': 'object_disappeared', 'object_id': obj_id}
-                self._send_message(disappearance_event)
-                del self.object_logs[obj_id]  # Remove object from logs
-
-        # Initialize last_sent_visible_objects if not already done
+        # Remove objects that are not detected for a long time
+        for object_id, log in self.object_logs.items():
+            if len(log) == self.UPTIME_WINDOW_SIZE and sum(log) == 0:
+                del self.object_logs[object_id]
+        
+        return detected_object_ids
+    
+    def determine_visible_objects(self):
+        """
+        Determines currently viewable objects based on uptime.
+        An object becomes visible once uptime_ratio >= APPEAR_THRESHOLD and remains visible until uptime_ratio < DISAPPEAR_THRESHOLD.
+        """
+        for object_id, log in self.object_logs.items():
+            uptime_ratio = sum(log) / len(log)
+            if object_id in self.last_sent_visible_objects:
+                if uptime_ratio < self.DISAPPEAR_THRESHOLD:
+                    disappearance_event = {'event': 'object_disappeared', 'object_id': object_id}
+                    self.send_message_to_client(disappearance_event)
+                    self.last_sent_visible_objects.remove(object_id)
+            else:
+                if uptime_ratio >= self.APPEAR_THRESHOLD:
+                    appearance_event = {'event': 'object_appeared', 'object_id': object_id}
+                    self.send_message_to_client(appearance_event)
+                    self.last_sent_visible_objects.add(object_id)
+        return list(self.last_sent_visible_objects)    
+    
+    def _object_existed(self, object_id):
+        return object_id in self.last_state.get('objects', [{}])[0]
+    
+    def has_visible_objects_changed(self, currently_visible_objects):
+        """
+        Checks if there is a change in visible objects.
+        """
         if not hasattr(self, 'last_sent_visible_objects'):
             self.last_sent_visible_objects = set()
-
-        # Convert lists to sets for comparison
-        current_visible = set(visible_objects)
-        last_visible = self.last_sent_visible_objects
-
-        # Check if there is a change in visible objects
-        if current_visible != last_visible:
-            message = json.dumps({'visible_objects': list(current_visible)}, default=make_serializable) + "\n"
-            
-            with self.lock:
-                for client in self.clients[:]:
-                    try:
-                        client.sendall(message.encode('utf-8'))
-                        logger.info(f"Sent visible objects to client: {current_visible}")
-                    except BrokenPipeError:
-                        logger.warning("Client disconnected.")
-                        self.clients.remove(client)
-                    except Exception as e:
-                        logger.error(f"Error sending data to client: {e}")
-                        self.clients.remove(client)
-            
-            # Update the last sent visible objects
-            self.last_sent_visible_objects = current_visible.copy()
-
-        # Update the last_state to the new_data after sending diffs
-        self.last_state = new_data_dict.copy()
+        current_visible_set = set(currently_visible_objects)
+        last_visible_set = self.last_sent_visible_objects
+        if current_visible_set != last_visible_set:
+            self.current_visible_set = current_visible_set
+            return True
+        return False
+    
+    def send_visible_objects(self, currently_visible_objects):
+        """
+        Sends the list of currently visible objects to clients.
+        """
+        message = json.dumps({'visible_objects': list(self.current_visible_set)}, default=make_serializable) + "\n"
+        with self.lock:
+            for client_connection in self.clients[:]:
+                try:
+                    client_connection.sendall(message.encode('utf-8'))
+                    logger.info(f"Sent visible objects to client: {self.current_visible_set}")
+                except BrokenPipeError:
+                    logger.warning("Client disconnected.")
+                    self.clients.remove(client_connection)
+                except Exception as exception_error:
+                    logger.error(f"Error sending data to client: {exception_error}")
+                    self.clients.remove(client_connection)
+        self.last_sent_visible_objects = self.current_visible_set.copy()
+    
+    def update_last_state(self, new_data_dictionary):
+        """
+        Updates the last_state to the new_data after sending diffs.
+        """
+        self.last_state = new_data_dictionary.copy()
     
     def _send_message(self, message):
         message_str = json.dumps(message) + "\n"
