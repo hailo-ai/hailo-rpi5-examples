@@ -62,15 +62,18 @@ class UnixDomainSocketServer(threading.Thread):
         Sends only the differences (diffs) between the new_data and the last sent state.
         Implements object uptime for visibility detection.
         """
+        # Convert new_data list to dictionary format
+        new_data_dict = {'objects': [{'id': obj_id} for obj_id in new_data]}
+
         # Compute the difference between new_data and last_state
-        diff = DeepDiff(self.last_state, new_data, ignore_order=True).to_dict()
+        diff = DeepDiff(self.last_state, new_data_dict, ignore_order=True).to_dict()
 
         if not diff:
             logger.info("No changes detected. No event sent.")
             return  # No changes to send
 
         # Update object logs
-        detected_objects = set(obj['id'] for obj in new_data.get('objects', []))
+        detected_objects = set(obj['id'] for obj in new_data_dict.get('objects', []))
         for obj_id in detected_objects:
             if obj_id not in self.object_logs:
                 self.object_logs[obj_id] = deque(maxlen=self.UPTIME_WINDOW_SIZE)
@@ -121,7 +124,7 @@ class UnixDomainSocketServer(threading.Thread):
             self.last_sent_visible_objects = current_visible.copy()
 
         # Update the last_state to the new_data after sending diffs
-        self.last_state = new_data.copy()
+        self.last_state = new_data_dict.copy()
     
     def _send_message(self, message):
         message_str = json.dumps(message) + "\n"
