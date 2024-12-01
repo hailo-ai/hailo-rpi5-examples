@@ -79,7 +79,7 @@ class UnixDomainSocketServer(threading.Thread):
             logger.info("No changes in visible objects. No event sent.")
             return
         
-        self.send_visible_objects(currently_visible_objects)
+        self.send_visible_objects()
     
         self.update_last_state(new_state)
     
@@ -122,19 +122,23 @@ class UnixDomainSocketServer(threading.Thread):
         Determines currently viewable objects based on uptime.
         An object becomes visible once uptime_ratio >= APPEAR_THRESHOLD and remains visible until uptime_ratio < DISAPPEAR_THRESHOLD.
         """
+        current_visible_objects = self.last_sent_visible_objects.copy()
         for object_id, log in self.object_logs.items():
             uptime_ratio = sum(log) / len(log)
             if object_id in self.last_sent_visible_objects:
                 if uptime_ratio < self.DISAPPEAR_THRESHOLD:
                     disappearance_event = {'event': 'object_disappeared', 'object_id': object_id}
                     self._send_message(disappearance_event)
-                    self.last_sent_visible_objects.remove(object_id)
+                    current_visible_objects.remove(object_id)
             else:
                 if uptime_ratio >= self.APPEAR_THRESHOLD:
                     appearance_event = {'event': 'object_appeared', 'object_id': object_id}
                     self._send_message(appearance_event)
-                    self.last_sent_visible_objects.add(object_id)
-        return list(self.last_sent_visible_objects)    
+                    current_visible_objects.add(object_id)
+
+        self.current_visible_set = current_visible_objects.copy()
+
+        return list(current_visible_objects)    
     
     def _object_existed(self, object_id):
         return object_id in self.last_state.get('objects', [{}])[0]
@@ -152,30 +156,20 @@ class UnixDomainSocketServer(threading.Thread):
             return True
         return False
     
-    def send_visible_objects(self, currently_visible_objects):
+    def send_visible_objects(self):
         """
         Sends the list of currently visible objects to clients.
         """
-        message = json.dumps({'visible_objects': list(self.current_visible_set)}, default=make_serializable) + "\n"
-        with self.lock:
-            for client_connection in self.clients[:]:
-                try:
-                    self._send_message(message)
-                    #client_connection.sendall(message.encode('utf-8'))
-                    logger.info(f"Sent visible objects to client: {self.current_visible_set}")
-                except BrokenPipeError:
-                    logger.warning("Client disconnected.")
-                    self.clients.remove(client_connection)
-                except Exception as exception_error:
-                    logger.error(f"Error sending data to client: {exception_error}")
-                    self.clients.remove(client_connection)
-        self.last_sent_visible_objects = self.current_visible_set.copy()
+        message = json.dumps({'visible_objects': list(self.current_visible_set)}, default=make_serializable)
+        self._send_message(message)
     
     def update_last_state(self, new_data_dictionary):
         """
         Updates the last_state to the new_data after sending diffs.
         """
         self.last_state = new_data_dictionary.copy()
+        self.last_sent_visible_objects = self.current_visible_set.copy()
+
     
     def _send_message(self, message):
         message_str = json.dumps(message) + "\n"
