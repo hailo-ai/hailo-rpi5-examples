@@ -65,15 +65,20 @@ class UnixDomainSocketServer(threading.Thread):
         Implements object uptime for visibility detection.
         """
         new_state = self._event_payload_to_state(event_payload)
-        differences = self.compute_differences(new_state)
+        #differences = self.compute_differences(new_state)
     
-        if not differences:
-            logger.info("No changes detected. No event sent.")
-            return
+        #if not differences:
+        #    logger.info("No changes detected. No event sent.")
+        #    return
     
         self.update_object_logs(new_state)
+        previously_visible_objects = self.last_sent_visible_objects.copy()
         currently_visible_objects = self.determine_visible_objects()
-    
+        visible_objects_changed = DeepDiff(previously_visible_objects, currently_visible_objects) != {}
+        if not visible_objects_changed:
+            logger.info("No changes in visible objects. No event sent.")
+            return
+        
         self.send_visible_objects(currently_visible_objects)
     
         self.update_last_state(new_state)
@@ -155,7 +160,8 @@ class UnixDomainSocketServer(threading.Thread):
         with self.lock:
             for client_connection in self.clients[:]:
                 try:
-                    client_connection.sendall(message.encode('utf-8'))
+                    self._send_message(message)
+                    #client_connection.sendall(message.encode('utf-8'))
                     logger.info(f"Sent visible objects to client: {self.current_visible_set}")
                 except BrokenPipeError:
                     logger.warning("Client disconnected.")
