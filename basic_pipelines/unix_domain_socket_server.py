@@ -72,9 +72,8 @@ class UnixDomainSocketServer(threading.Thread):
         #    return
     
         self.update_object_logs(new_state)
-        previously_visible_objects = self.last_sent_visible_objects.copy()
-        currently_visible_objects = self.determine_visible_objects()
-        visible_objects_changed = DeepDiff(previously_visible_objects, currently_visible_objects) != {}
+        self.determine_visible_objects()
+        visible_objects_changed = DeepDiff(self.last_sent_visible_objects, self.current_visible_set) != {}
         if not visible_objects_changed:
             logger.info("No changes in visible objects. No event sent.")
             return
