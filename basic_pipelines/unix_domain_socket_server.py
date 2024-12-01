@@ -28,7 +28,7 @@ class UnixDomainSocketServer(threading.Thread):
         self.last_state = {}
         self.object_logs = {}  # To track detections per object
         self.last_sent_visible_objects = set() # To track visible objects
-
+        self.current_visible_set = set()  # To track visible objects
 
         # Ensure the socket does not already exist
         try:
