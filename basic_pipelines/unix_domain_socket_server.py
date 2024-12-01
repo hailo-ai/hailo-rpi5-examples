@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # Unix Domain Socket Server
 # -----------------------------------------------------------------------------------------------
 class UnixDomainSocketServer(threading.Thread):
-    UPTIME_WINDOW_SIZE = 100  # Number of events to track per object
+    UPTIME_WINDOW_SIZE = 30  # Number of events to track per object, 10 per second
     APPEAR_THRESHOLD = 0.6
     DISAPPEAR_THRESHOLD = 0.3
 
