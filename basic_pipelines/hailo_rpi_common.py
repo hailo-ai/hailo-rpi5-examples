@@ -153,11 +153,12 @@ def get_source_type(input_source):
     # return values can be "file", "mipi" or "usb"
     if input_source.startswith("/dev/video"):
         return 'usb'
+    elif input_source.startswith("rpi"):
+         return 'rpi'
+    elif input_source.startswith("http"):
+         return 'http'
     else:
-        if input_source.startswith("rpi"):
-            return 'rpi'
-        else:
-            return 'file'
+         return 'file'
 
 def QUEUE(name, max_size_buffers=3, max_size_bytes=0, max_size_time=0, leaky='no'):
     """
@@ -201,6 +202,10 @@ def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_hei
         source_element = (
             f'v4l2src device={video_source} name={name} ! '
             'video/x-raw, width=640, height=480 ! '
+        )
+    elif source_type == 'http':
+        source_element = (
+            f'souphttpsrc location={video_source} name={name} ! queue ! jpegdec ! '
         )
     else:
         source_element = (
