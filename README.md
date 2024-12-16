@@ -7,31 +7,6 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors. The examples can also be run on an x86_64 Ubuntu machine with the Hailo8/8L AI processor.
 Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
 
-## Table of Contents
-
-- [Hailo Raspberry Pi 5 Examples](#hailo-raspberry-pi-5-examples)
-  - [Table of Contents](#table-of-contents)
-  - [Hailo Packages Installation](#hailo-packages-installation)
-    - [Hailo Version Upgrade Instructions](#hailo-version-upgrade-instructions)
-  - [Available Examples and Resources](#available-examples-and-resources)
-    - [Hailo Python API](#hailo-python-api)
-    - [Hailo Examples](#hailo-examples)
-      - [Basic Pipelines (Python)](#basic-pipelines-python)
-        - [Detection Example](#detection-example)
-        - [Pose Estimation Example](#pose-estimation-example)
-        - [Instance Segmentation Example](#instance-segmentation-example)
-      - [CLIP Application](#clip-application)
-      - [Frigate Integration - Coming Soon](#frigate-integration---coming-soon)
-    - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
-      - [rpicam-apps](#rpicam-apps)
-      - [picamera2](#picamera2)
-    - [Hailo Dataflow Compiler (DFC)](#hailo-dataflow-compiler-dfc)
-  - [Contributing](#contributing)
-  - [License](#license)
-  - [Disclaimer](#disclaimer)
-
-![Raspberry Pi 5 with Hailo AI HAT](doc/images/ai-hat-plus.jpg)
-
 ## Hailo Packages Installation
 
 For installation instructions, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
