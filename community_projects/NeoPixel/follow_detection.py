@@ -8,12 +8,12 @@ import cv2
 import hailo
 sys.path.append('../../basic_pipelines')
 
-from hailo_rpi_common import (
+from hailo_apps_infra.hailo_rpi_common import (
     get_caps_from_pad,
     get_numpy_from_buffer,
     app_callback_class,
 )
-from detection_pipeline import GStreamerDetectionApp
+from hailo_apps_infra.detection_pipeline import GStreamerDetectionApp
 
 # Based on https://github.com/vanshksingh/Pi5Neo
 # Pins connections:
