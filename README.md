@@ -7,7 +7,7 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors. The examples can also be run on an x86_64 Ubuntu machine with the Hailo8/8L AI processor.
 Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
 
-# Quick Start – For Those Who Prefer to Skip the Documentation
+## Quick Start – For Those Who Prefer to Skip the Documentation
 
 [Follow these commands to get up and running quickly](doc/quick-start.md)
 
