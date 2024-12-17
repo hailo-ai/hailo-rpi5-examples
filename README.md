@@ -7,10 +7,6 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors. The examples can also be run on an x86_64 Ubuntu machine with the Hailo8/8L AI processor.
 Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
 
-## Quick Start – For Those Who Prefer to Skip the Documentation
-
-[Follow these commands to get up and running quickly](doc/quick-start.md)
-
 ## Hailo Packages Installation
 
 For installation instructions, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
@@ -20,12 +16,6 @@ For installation instructions, see the [Hailo Raspberry Pi 5 installation guide]
 See the [Upgrade or Downgrade Hailo Software](doc/install-raspberry-pi5.md#hailo-version-upgrade-instructions) section for instructions on how to upgrade the Hailo software.
 
 ## Available Examples and Resources
-
-### Hailo Python API
-The Hailo Python API is now available on the Raspberry Pi 5. This API allows you to run inference on the Hailo-8L AI processor using Python.
-For examples, see our [Python code examples](https://github.com/hailo-ai/Hailo-Application-Code-Examples/tree/main/runtime/python).
-Additional examples can be found in RPi [picamera2](#picamera2) code.
-Visit our [HailoRT Python API documentation](https://hailo.ai/developer-zone/documentation/hailort-v4-18-0/?page=api%2Fpython_api.html#module-hailo_platform.drivers) for more information.
 
 ### Hailo Examples
 
@@ -68,32 +58,20 @@ Frigate is an open-source video surveillance software that runs on a Raspberry P
 
 Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post-processing examples.
 This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework.
-The documentation on how to use rpicam-apps can be found [here](https://www.raspberrypi.com/documentation/accessories/ai-kit.html).
-The run command is simplified, and the assets are pre-installed in the system.
-To run an example from rpicam-apps, run:
-
-```bash
-rpicam-hello -t 0 --post-process-file /usr/share/rpi-camera-assets/hailo_yolov6_inference.json
-```
-
-See more available examples in the `/usr/share/rpi-camera-assets` directory.
+The documentation on how to use rpicam-apps can be found [here](https://www.raspberrypi.com/documentation/computers/ai.html).
 
 #### picamera2
 
 Raspberry Pi [picamera2](https://github.com/raspberrypi/picamera2) is the libcamera-based replacement for Picamera, which was a Python interface to the Raspberry Pi's legacy camera stack. Picamera2 also presents an easy-to-use Python API.
-Run the following command to clone the picamera2 repo and get the example files:
 
-```bash
-git clone --depth 1 https://github.com/raspberrypi/picamera2
-```
+## Additional Resources
 
-The examples will be in `./picamera2/examples/hailo/`.
-To run an example from picamera2, run:
+### Hailo Python API
+The Hailo Python API is now available on the Raspberry Pi 5. This API allows you to run inference on the Hailo-8L AI processor using Python.
+For examples, see our [Python code examples](https://github.com/hailo-ai/Hailo-Application-Code-Examples/tree/main/runtime/python).
+Additional examples can be found in RPi [picamera2](#picamera2) code.
+Visit our [HailoRT Python API documentation](https://hailo.ai/developer-zone/documentation/hailort-v4-18-0/?page=api%2Fpython_api.html#module-hailo_platform.drivers) for more information.
 
-```bash
-cd picamera2/examples/hailo/
-python3 pose.py
-```
 ### Hailo Dataflow Compiler (DFC)
 
 The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to compile their neural networks to run on the Hailo-8/8L AI processors.
