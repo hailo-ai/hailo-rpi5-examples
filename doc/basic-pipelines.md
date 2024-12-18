@@ -65,7 +65,7 @@ Run the detection example:
 python basic_pipelines/detection.py
 ```
 - To close the application, press `Ctrl+C`.
-#### Example For Using USB camera input:
+#### Example For Using USB camera input (webcam):
    Detect the available camera using this script:
   ```bash
   python basic_pipelines/get_usb_camera.py
@@ -74,6 +74,11 @@ python basic_pipelines/detection.py
 
   ```bash
   python basic_pipelines/detection.py --input /dev/video<X>
+  ```
+
+#### Example For Using Raspberry Pi Camera input:
+  ```bash
+  python basic_pipelines/detection.py --input rpi
   ```
 
 For additional options, execute:
