@@ -68,7 +68,7 @@ python basic_pipelines/detection.py
 #### Example For Using USB camera input (webcam):
    Detect the available camera using this script:
   ```bash
-  python basic_pipelines/get_usb_camera.py
+  get-usb-camera
   ```
   Run example using USB camera - Use the device found by the previous script:
 
@@ -341,7 +341,7 @@ python basic_pipelines/detection.py --input rpi
 #### USB Camera Input
 To determine which USB camera to use, please run the following script:
 ```bash
-python basic_pipelines/get_usb_camera.py
+get-usb-camera
 ```
 This will help you identify an available camera.
 
