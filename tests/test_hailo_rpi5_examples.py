@@ -9,7 +9,7 @@ import logging
 
 # Adjust the sys.path to include the parent directory of the test folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from basic_pipelines.get_usb_camera import get_usb_video_devices
+from hailo_apps_infra.get_usb_camera import get_usb_video_devices
 
 try:
     from picamera2 import Picamera2
@@ -48,8 +48,6 @@ def test_rpi_camera_connection():
         else:
             log_file.write("RPI camera is connected and working.\n")
             log_file.write("Test completed successfully.\n")
-
-
 
 def get_device_architecture():
     """Get the device architecture from hailortcli."""
@@ -161,7 +159,6 @@ def test_all_pipelines():
                 assert "Error" not in stderr.decode(), f"{pipeline} (video input) encountered an error: {stderr.decode()}"
                 assert "frame" in stdout.decode().lower(), f"{pipeline} (video input) did not process any frames"
                 assert "detection" in stdout.decode().lower(), f"{pipeline} (video input) did not make any detections"
-
 
 def test_all_pipelines_cameras():
     """

@@ -5,7 +5,7 @@ import subprocess
 import time
 import os
 import signal
-from tests.test_hailo_rpi5_examples import get_device_architecture, get_detection_compatible_hefs
+from test_hailo_rpi5_examples import get_device_architecture, get_detection_compatible_hefs
 
 # Register custom marks
 def pytest_configure(config):
@@ -49,7 +49,7 @@ def run_download_resources():
 def test_inference_speed():
     models = ['detection.py', 'pose_estimation.py', 'instance_segmentation.py']
     for model in models:
-        stdout, _ = run_pipeline(model, 'resources/detection0.mp4', duration=60)
+        stdout, _ = run_pipeline(model, 'resources/example.mp4', duration=60)
         fps_lines = [line for line in stdout.split('\n') if 'FPS' in line or 'fps' in line]
 
         if not fps_lines:
@@ -95,7 +95,7 @@ def test_detection_pipeline_all_hefs():
 
     for hef_path in detection_hefs:
         print(f"Testing detection pipeline with HEF: {hef_path}")
-        stdout, stderr = run_pipeline('detection.py', 'resources/detection0.mp4', duration=30, additional_args=['--hef-path', hef_path])
+        stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=30, additional_args=['--hef-path', hef_path])
 
         assert "Traceback" not in stderr, f"Exception occurred with HEF {hef_path}: {stderr}"
         assert "Error" not in stderr, f"Error occurred with HEF {hef_path}: {stderr}"
