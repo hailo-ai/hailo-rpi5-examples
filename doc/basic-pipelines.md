@@ -350,6 +350,48 @@ ffplay -f v4l2 /dev/video<X>
 python basic_pipelines/detection.py --input /dev/video<X>
 ```
 
+#### XImage Camera Input
+This input is not compatible with Raspberry Pi (RPi).
+
+In the CLI, run:
+```bash
+xwininfo
+```
+You should get an output like this:
+```bash
+xwininfo: Please select the window about which you
+          would like information by clicking the
+          mouse in that window.
+
+xwininfo: Window id: 0xc3 (has no name)
+
+  Absolute upper-left X:  0
+  Absolute upper-left Y:  0
+  Relative upper-left X:  0
+  Relative upper-left Y:  0
+  Width: 7040
+  Height: 1440
+  Depth: 24
+  Visual: 0x21
+  Visual Class: TrueColor
+  Border width: 0
+  Class: InputOutput
+  Colormap: 0x20 (installed)
+  Bit Gravity State: ForgetGravity
+  Window Gravity State: NorthWestGravity
+  Backing Store State: NotUseful
+  Save Under State: no
+  Map State: IsViewable
+  Override Redirect State: yes
+  Corners:  +0+0  -0+0  -0-0  +0-0
+  -geometry 7040x1440+0+0
+```
+**USB Camera input example:**
+
+```bash
+python basic_pipelines/detection.py --input <window id(In our example it is 0xc3)>
+```
+
 #### File input
 ```bash
 python basic_pipelines/detection.py --input resources/example.mp4
