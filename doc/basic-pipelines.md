@@ -310,7 +310,7 @@ Hailo App Help
 options:
   -h, --help            show this help message and exit
   --input INPUT, -i INPUT
-                        Input source. Can be a file, USB (webcam), RPi camera (CSI camera module) or ximage (Not working for RPi). For RPi camera use '-i rpi' Defaults to example video resources/example.mp4
+                        Input source. Can be a file, USB (webcam), RPi camera (CSI camera module) or ximage (Not compatible with RPi). For RPi camera use '-i rpi' Defaults to example video resources/example.mp4
   --use-frame, -u       Use frame from the callback function
   --show-fps, -f        Print FPS on sink
   --arch {hailo8,hailo8l}
