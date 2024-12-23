@@ -37,9 +37,8 @@ def app_callback(pad, info, user_data):
     if buffer is None:
         return Gst.PadProbeReturn.OK
 
-    width = 40
-    height = 20
-
+    width = user_data.wled.panel_width * user_data.wled.panels
+    height = user_data.wled.panel_height
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
 
@@ -56,7 +55,7 @@ def app_callback(pad, info, user_data):
             y = int(point.y() * height)
             hand_positions[(track_id << 1) + i] = (x, y)
 
-    user_data.particle_simulation.update_hand_positions(hand_positions)
+    user_data.particle_simulation.update_player_positions(hand_positions)
     user_data.particle_simulation.update()
 
     frame = user_data.particle_simulation.get_frame(
