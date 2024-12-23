@@ -11,10 +11,6 @@ Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
 
 For installation instructions, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
 
-### Hailo Version Upgrade Instructions
-
-See the [Upgrade or Downgrade Hailo Software](doc/install-raspberry-pi5.md#hailo-version-upgrade-instructions) section for instructions on how to upgrade the Hailo software.
-
 ## Available Examples and Resources
 
 ### Hailo Examples

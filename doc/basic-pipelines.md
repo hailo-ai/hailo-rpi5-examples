@@ -310,10 +310,7 @@ Hailo App Help
 options:
   -h, --help            show this help message and exit
   --input INPUT, -i INPUT
-                        Input source. Can be a file, USB or RPi camera (CSI
-                        camera module). For RPi camera use '-i rpi' (Still in
-                        Beta). Defaults to example video
-                        resources/detection0.mp4
+                        Input source. Can be a file, USB (webcam), RPi camera (CSI camera module) or ximage (Not working for RPi). For RPi camera use '-i rpi' Defaults to example video resources/example.mp4
   --use-frame, -u       Use frame from the callback function
   --show-fps, -f        Print FPS on sink
   --arch {hailo8,hailo8l}
@@ -336,7 +333,6 @@ To use the Raspberry Pi camera input, run the following command:
 ```bash
 python basic_pipelines/detection.py --input rpi
 ```
-*(Still in Beta)*
 
 #### USB Camera Input
 To determine which USB camera to use, please run the following script:
@@ -356,7 +352,7 @@ python basic_pipelines/detection.py --input /dev/video<X>
 
 #### File input
 ```bash
-python basic_pipelines/detection.py --input resources/detection0.mp4
+python basic_pipelines/detection.py --input resources/example.mp4
 ```
 
 ### Using the Frame Buffer
@@ -393,7 +389,6 @@ This creates a file named `pipeline.dot` in the `basic_pipelines` directory.
 If you encounter any issues, please open a ticket in the [Hailo Community Forum](https://community.hailo.ai/). The forum is a valuable resource filled with useful information and potential solutions.
 
 **Known Issues:**
-- **RPi Camera Input (Beta):** The Raspberry Pi camera input is currently in Beta. It may not be stable and could cause the application to crash.
 - **Frame Buffer Performance:** The frame buffer extraction and display are not optimized, potentially slowing down the application. It is provided as a simple example.
 - **DEVICE_IN_USE() Error:**
   The `DEVICE_IN_USE()` error indicates that the Hailo device (usually `/dev/hailo0`) is being accessed or locked by another process. This can occur during concurrent access attempts or if a previous process did not terminate cleanly.

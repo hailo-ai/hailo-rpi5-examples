@@ -67,7 +67,7 @@ def test_inference_speed():
 
 @pytest.mark.stress
 def test_long_running():
-    stdout, stderr = run_pipeline('detection.py', 'resources/detection0.mp4', duration=360)
+    stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=360)
     assert "Error" not in stderr, f"Errors encountered during long-running test: {stderr}"
 
 @pytest.mark.camera

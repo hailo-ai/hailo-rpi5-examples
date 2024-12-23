@@ -218,7 +218,7 @@ def test_detection_hefs():
         log_file_path = os.path.join(log_dir, f"detection_{hef_name}_video_test.log")
         logging.info(f"Running detection with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', 'resources/detection0.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', 'resources/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -253,7 +253,7 @@ def test_pose_hefs():
         log_file_path = os.path.join(log_dir, f"pose_{hef_name}_video_test.log")
         logging.info(f"Running pose with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/pose_estimation.py', '--input', 'resources/detection0.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', 'basic_pipelines/pose_estimation.py', '--input', 'resources/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -288,7 +288,7 @@ def test_seg_hefs():
         log_file_path = os.path.join(log_dir, f"seg_{hef_name}_video_test.log")
         logging.info(f"Running seg with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/detection0.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
