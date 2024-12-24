@@ -5,6 +5,10 @@ import os
 import numpy as np
 import cv2
 import hailo
+import sys
+
+sys.path.append('../../basic_pipelines')
+
 from hailo_rpi_common import (
     get_caps_from_pad,
     get_numpy_from_buffer,
