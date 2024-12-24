@@ -384,16 +384,6 @@ This creates a file named `pipeline.dot` in the `basic_pipelines` directory.
 ![detection_pipeline](images/detection_pipeline.png)
 *Tip: Right-click the image and select "Open image in new tab" to view the full image.*
 
-##### [Detection Example](doc/basic-pipelines.md#detection-example)
-![Detection Example](doc/images/detection.gif)
-
-# Detection-service Example
-![Banner](images/detection_Servier.gif)
-
-This mode allows integration with minimal changes to your app.  
-You can test out the integration, as well as see a demo how to integrate it in your app by looking at **test_tools**.  
-The test tool allows for integrating with either holding for next input, or continuing.
-
 # Troubleshooting and Known Issues
 If you encounter any issues, please open a ticket in the [Hailo Community Forum](https://community.hailo.ai/). The forum is a valuable resource filled with useful information and potential solutions.
 
