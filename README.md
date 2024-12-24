@@ -38,6 +38,7 @@ This application includes support for using retrained detection models. For more
 ### Community Projects
 
 Get involved and make your mark! Explore our Community Projects and start contributing today—because together, we build better things! 🚀
+Check out our [Community Projects](community_projects/community_projects.md) for more information.
 
 ### CLIP Application
 
@@ -89,11 +90,11 @@ You can find it here  see the [Hailo Apps Infra](https://github.com/giladnah/hai
 ## Contributing
 
 We welcome contributions from the community. You can contribute by:
-1. Opening a pull request.
+1. Contribute to our [Community Projects](community_projects/community_projects.md).
 2. Reporting issues and bugs.
 3. Suggesting new features or improvements.
 4. Joining the discussion on the [Hailo Community Forum](https://community.hailo.ai/).
-5. Contribute to our [Community Projects](community_projects/community_projects.md)
+
 
 ## License
 
