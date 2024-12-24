@@ -20,6 +20,7 @@ Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum
         - [Detection Example](#detection-example)
         - [Pose Estimation Example](#pose-estimation-example)
         - [Instance Segmentation Example](#instance-segmentation-example)
+        - [Detection as a service Example](#detection-service-example)
       - [CLIP Application](#clip-application)
       - [Frigate Integration - Coming Soon](#frigate-integration---coming-soon)
     - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
@@ -69,6 +70,10 @@ This application includes support for using retrained detection models. For more
 
 ##### [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
 ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
+
+##### [Detection Service Example](doc/basic-pipelines.md#detection-service-example)
+![Detection Service Example](doc/images/detection.gif)
+
 
 #### CLIP Application
 
