@@ -5,12 +5,8 @@ import sys
 import numpy as np
 import cv2
 import hailo
-sys.path.append('../../basic_pipelines')
 
-from hailo_apps_infra.hailo_rpi_common import (
-    get_caps_from_pad,
-    app_callback_class,
-)
+from hailo_apps_infra.hailo_rpi_common import app_callback_class
 from hailo_apps_infra.pose_estimation_pipeline import GStreamerPoseEstimationApp
 
 from wled_display import WLEDDisplay

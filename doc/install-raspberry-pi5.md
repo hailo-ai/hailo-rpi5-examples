@@ -47,12 +47,6 @@ See the [Raspberry Pi Camera Guide](https://www.raspberrypi.com/documentation/ac
 ### Install Raspberry Pi OS
 Download and install the latest Raspberry Pi Imager for your OS (Windows, macOS, or Ubuntu) from [Raspberry Pi OS](https://www.raspberrypi.com/software/)
 
-### Update System
-Boot up your Raspberry Pi 5 to a graphical environment and update your base software. To do this, open a terminal window and run:
-```bash
-sudo apt update
-sudo apt full-upgrade
-```
 ### Install your Raspberry Pi AI Kit or AI HAT
 For AI Kit follow [Raspberry Pi's official AI Kit Guide](https://www.raspberrypi.com/documentation/accessories/ai-kit.html#ai-kit)
 
@@ -164,25 +158,12 @@ rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
 ```
 ##### If everything is OK you can continue installing the [hailo_rpi5_examples.](../README.md#configure-environment)
 
-## Upgrade or Downgrade Hailo Software
-To upgrade to the latest version of the Hailo software package, run the following commands:
-```bash
-sudo apt update
-sudo apt full-upgrade
-sudo apt install hailo-all
-sudo reboot
-```
 Don't forget to update our GitHub repository to the latest version to get the latest examples and resources.
 ```bash
 cd [your-path]/hailo-rpi5-examples
 git pull
 ```
 
-To downgrade to a previous version (TAPPAS 3.28.2), run the following commands:
-```bash
-sudo apt install hailort=4.17.0 hailo-tappas-core-3.28.2 hailofw=4.17.0-2 hailo-dkms=4.17.0-1
-sudo reboot
-```
 
 ## Troubleshooting
 Got a question? Join the discussion on [Hailo Community Forum](https://community.hailo.ai/).
