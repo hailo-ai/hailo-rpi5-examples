@@ -1,5 +1,7 @@
 # Hailo RPi5 Basic Pipelines
 This repository contains examples of basic pipelines using Hailo's H8 and H8L accelerators. The examples demonstrate object detection, human pose estimation, and instance segmentation, providing a solid foundation for your own projects.
+This repo is using our new [Hailo Apps Infra](https://github.com/giladnah/hailo-apps-infra) repo.
+See our Developement Guide for more information on how to use the pipelines to create your own custom pipelines.
 
 ## Installation
 
@@ -44,12 +46,6 @@ Alternatively, you can manually perform the setup using the steps below.
     ```
     To download all models , You should use the `--all` with the ./download_resources.sh
 
-4. ### Post Process Compilation
-    This will compile post process files required for the demos. You can review the code in the `cpp` directory and tweak it as needed.
-    ```bash
-    ./compile_postprocess.sh
-    ```
-
 # Detection Example
 ![Banner](images/detection.gif)
 
@@ -65,15 +61,20 @@ Run the detection example:
 python basic_pipelines/detection.py
 ```
 - To close the application, press `Ctrl+C`.
-#### Example For Using USB camera input:
+#### Example For Using USB camera input (webcam):
    Detect the available camera using this script:
   ```bash
-  python basic_pipelines/get_usb_camera.py
+  get-usb-camera
   ```
   Run example using USB camera - Use the device found by the previous script:
 
   ```bash
   python basic_pipelines/detection.py --input /dev/video<X>
+  ```
+
+#### Example For Using Raspberry Pi Camera input:
+  ```bash
+  python basic_pipelines/detection.py --input rpi
   ```
 
 For additional options, execute:
@@ -207,205 +208,3 @@ GStreamer pipelines are constructed by chaining together individual elements. Th
 In our examples, we will use the second method. This approach allows you to describe the pipeline with a simple string, which can also be executed directly from the command line using the `gst-launch-1.0` command. This is the method used in the TAPPAS pipelines.
 
 GStreamer is a powerful framework that enables the seamless flow of data between elements such as sources, filters, and sinks. For more detailed information on constructing pipelines, refer to the [GStreamer documentation](https://gstreamer.freedesktop.org/documentation/) and the [TAPPAS Architecture documentation](https://github.com/hailo-ai/tappas/blob/master/docs/TAPPAS_architecture.rst).
-
-## Hailo Raspberry Pi Common Utilities
-The `hailo_rpi_common.py` file contains shared classes and functions that support the various pipeline scripts:
-
-- **GStreamerApp Class**: Manages the GStreamer pipeline, handling events and callbacks.
-- **App Callback Class**: Facilitates communication between the main application and callback functions, allowing for easy customization and extension.
-- **pipeline helper functions** These functions are designed to encapsulate GStreamer pipelines, enabling developers to build robust and efficient pipelines without delving into the complexities of GStreamer syntax.
-
-
-## Pipeline Helper Functions
-Instead of manually crafting GStreamer pipelines, it is highly recommended to utilize the **pipeline helper functions** provided in `basic_pipelines/hailo_rpi_common.py`. This approach not only streamlines the development process but also ensures that best practices are consistently applied across all pipeline scripts. Queues also enfoces
-
-### `QUEUE`
-
-**Description:**
-Creates a GStreamer `queue` element with configurable parameters. Queues are essential for managing the flow of data between different pipeline elements, ensuring smooth and efficient processing.It is also used to enable multithreading. A queue will create a new thread on its output, allowing different parts of the pipeline to run in parallel. See [Gstreamer Multithreading documentation](https://gstreamer.freedesktop.org/documentation/tutorials/basic/handy-elements.html#multithreading) for more details.
-
-**Usage:**
-Use the `QUEUE` function to insert buffering points in your pipeline, controlling the number of buffers, bytes, and time the queue can handle, as well as its leak behavior.
-
-**For more details, refer to the [`QUEUE` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
-### `SOURCE_PIPELINE`
-
-**Description:**
-Generates a GStreamer pipeline string tailored to the specified video source type (e.g., Raspberry Pi camera, USB camera, or file). It automatically configures essential properties such as format, width, and height based on the source.
-
-**Usage:**
-Utilize the `SOURCE_PIPELINE` function to create the source segment of your pipeline without manually specifying each element and property.
-
-**For more details, refer to the [`SOURCE_PIPELINE` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
----
-
-### `INFERENCE_PIPELINE`
-
-**Description:**
-Constructs a GStreamer pipeline string for performing inference and post-processing using user-provided HEF files and shared object (`.so`) post processing files. Integrates Hailo's inference engine (`hailonet`) and post-processing (`hailofilter`) elements seamlessly.
-
-**Usage:**
-Use the `INFERENCE_PIPELINE` function to set up the inference stage of your pipeline, specifying parameters like batch size, configuration files, and additional processing options.
-
-**For more details, refer to the [`INFERENCE_PIPELINE` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
----
-
-### `INFERENCE_PIPELINE_WRAPPER`
-
-**Description:**
-Wraps an existing inference pipeline with `hailocropper` and `hailoaggregator` elements. This wrapper maintains the original video resolution and color space, ensuring seamless integration with complex pipelines.
-
-**Usage:**
-Use the `INFERENCE_PIPELINE_WRAPPER` function to encapsulate your inference pipeline, facilitating advanced processing like cropping and aggregation without altering the original pipeline's properties.
-**Note:** The post process will have to warp the network output to the 'original' resolution. This is not yet implemented in all post processes and metadata types.
-
-**For more details, refer to the [`INFERENCE_PIPELINE_WRAPPER` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
----
-
-### `DISPLAY_PIPELINE`
-
-**Description:**
-Generates a GStreamer pipeline string for displaying video output. Incorporates the `hailooverlay` plugin to render bounding boxes and labels, enhancing the visual output of processed frames.
-
-**Usage:**
-Utilize the `DISPLAY_PIPELINE` function to add a display segment to your pipeline, with options to enable FPS overlay and configure the video sink.
-
-**For more details, refer to the [`DISPLAY_PIPELINE` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
----
-
-### `USER_CALLBACK_PIPELINE`
-
-**Description:**
-Creates a GStreamer pipeline string for integrating a user-defined callback element. This allows developers to inject custom processing logic at specific points within the pipeline.
-
-**Usage:**
-Use the `USER_CALLBACK_PIPELINE` function to add a callback stage to your pipeline, enabling custom data handling and processing as needed.
-
-**For more details, refer to the [`USER_CALLBACK_PIPELINE` function in `hailo_rpi_common.py`](../basic_pipelines/hailo_rpi_common.py).**
-
-
-## Additional Features
-Run any example with the `--help` flag to view all available options.
-
-**Example:**
-```bash
-python basic_pipelines/pose_estimation.py --help
-
-usage: pose_estimation.py [-h] [--input INPUT] [--use-frame] [--show-fps]
-                          [--arch {hailo8,hailo8l}] [--hef-path HEF_PATH]
-                          [--disable-sync] [--dump-dot]
-
-Hailo App Help
-
-options:
-  -h, --help            show this help message and exit
-  --input INPUT, -i INPUT
-                        Input source. Can be a file, USB or RPi camera (CSI
-                        camera module). For RPi camera use '-i rpi' (Still in
-                        Beta). Defaults to example video
-                        resources/detection0.mp4
-  --use-frame, -u       Use frame from the callback function
-  --show-fps, -f        Print FPS on sink
-  --arch {hailo8,hailo8l}
-                        Specify the Hailo architecture (hailo8 or hailo8l).
-                        Default is None , app will run check.
-  --hef-path HEF_PATH   Path to HEF file
-  --disable-sync        Disables display sink sync, will run as fast as
-                        possible. Relevant when using file source.
-  --dump-dot            Dump the pipeline graph to a dot file pipeline.dot
-
-```
-Refer to the following sections for more information on using these options.
-
-### Running with Different Input Sources
-By default, these examples use an example video source. You can change the input source using the `--input` flag.
-
-
-#### Raspberry Pi Camera Input
-To use the Raspberry Pi camera input, run the following command:
-```bash
-python basic_pipelines/detection.py --input rpi
-```
-*(Still in Beta)*
-
-#### USB Camera Input
-To determine which USB camera to use, please run the following script:
-```bash
-python basic_pipelines/get_usb_camera.py
-```
-This will help you identify an available camera.
-
-**Test the camera functionality:**
-```bash
-ffplay -f v4l2 /dev/video<X>
-```
-**USB Camera input example:**
-```bash
-python basic_pipelines/detection.py --input /dev/video<X>
-```
-
-#### File input
-```bash
-python basic_pipelines/detection.py --input resources/detection0.mp4
-```
-
-### Using the Frame Buffer
-To utilize the frame buffer, add the `--use-frame` flag. Be aware that extracting and displaying video frames can slow down the application due to non-optimized implementation. Writing to the buffer and replacing the old buffer in the pipeline is possible but inefficient.
-
-### Printing the Frame Rate
-To display the frame rate, add the `--show-fps` flag. This will print the FPS to both the terminal and the video output window.
-
-### Dumping the Pipeline Graph
-Useful for debugging and understanding the pipeline structure. To dump the pipeline graph to a DOT file, add the `--dump-dot` flag:
-```bash
-python basic_pipelines/detection.py --dump-dot
-```
-This creates a file named `pipeline.dot` in the `basic_pipelines` directory.
-
-**Visualize the pipeline using Graphviz:**
-1. **Install Graphviz:**
-    ```bash
-    sudo apt install graphviz
-    ```
-2. **Visualize the pipeline:**
-    ```bash
-    dot -Tx11 basic_pipelines/pipeline.dot &
-    ```
-3. **Save the pipeline as a PNG:**
-    ```bash
-    dot -Tpng basic_pipelines/pipeline.dot -o pipeline.png
-    ```
-**Example Output:**
-![detection_pipeline](images/detection_pipeline.png)
-*Tip: Right-click the image and select "Open image in new tab" to view the full image.*
-
-# Troubleshooting and Known Issues
-If you encounter any issues, please open a ticket in the [Hailo Community Forum](https://community.hailo.ai/). The forum is a valuable resource filled with useful information and potential solutions.
-
-**Known Issues:**
-- **RPi Camera Input (Beta):** The Raspberry Pi camera input is currently in Beta. It may not be stable and could cause the application to crash.
-- **Frame Buffer Performance:** The frame buffer extraction and display are not optimized, potentially slowing down the application. It is provided as a simple example.
-- **DEVICE_IN_USE() Error:**
-  The `DEVICE_IN_USE()` error indicates that the Hailo device (usually `/dev/hailo0`) is being accessed or locked by another process. This can occur during concurrent access attempts or if a previous process did not terminate cleanly.
-
-  **Steps to Resolve:**
-
-  1. **Identify the Device:**
-     Ensure that `/dev/hailo0` is the correct device file for your setup.
-
-  2. **Find Processes Using the Device:**
-     List any processes currently using the Hailo device:
-     ```bash
-     sudo lsof /dev/hailo0
-     ```
-
-  3. **Terminate Processes:**
-     Use the PID (Process ID) from the previous command's output to terminate the process. Replace `<PID>` with the actual PID:
-     ```bash
-     sudo kill -9 <PID>
-     ```
