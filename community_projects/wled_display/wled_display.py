@@ -10,7 +10,8 @@ class WLEDDisplay:
 
     def __init__(
         self,
-        ip="wled-hailo.local",
+        # ip="wled-hailo.local", You can use mDNS if available
+        ip="192.168.200.20", # Or use the IP address directly
         port=21324,
         panel_width=20,
         panel_height=20,
