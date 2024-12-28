@@ -552,9 +552,7 @@ def get_numpy_from_buffer(buffer, format, width, height):
         handler = FORMAT_HANDLERS.get(format)
         if handler is None:
             raise ValueError(f"Unsupported format: {format}")
-        data = handler(map_info, width, height)
-
-        return data
+        return handler(map_info, width, height)
     finally:
         buffer.unmap(map_info)
 
