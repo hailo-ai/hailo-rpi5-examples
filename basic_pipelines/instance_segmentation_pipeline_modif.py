@@ -96,9 +96,19 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             # videoconvert aprÃ¨s cairooverlay
             f'{QUEUE("hailo_display_videoconvert_q")} ! '
             f'videoconvert name=hailo_display_videoconvert n-threads=2 qos=false ! '
-            # fpsdisplaysink pour l'affichage final
-            f'{QUEUE("hailo_display_q")} ! '
+            # Ajout du tee
+            f'tee name=t '
+            # Branche pour l'affichage local
+            f't. ! queue ! '
             f'fpsdisplaysink name=hailo_display video-sink={self.video_sink} sync={self.sync} text-overlay={self.show_fps} signal-fps-measurements=true '
+            # Branche pour le streaming RTMP
+            f't. ! queue ! '
+            f'x264enc tune=zerolatency bitrate=1200 speed-preset=superfast ! '
+            f'flvmux streamable=true ! '
+            f'rtmpsink location="rtmp://192.168.50.2/live/stream live=1" '
+            # # fpsdisplaysink pour l'affichage final
+            # f'{QUEUE("hailo_display_q")} ! '
+            # f'fpsdisplaysink name=hailo_display video-sink={self.video_sink} sync={self.sync} text-overlay={self.show_fps} signal-fps-measurements=true '
         )
         print(pipeline_string)
         return pipeline_string
