@@ -16,10 +16,10 @@ class ServoController:
     """
     Pilotage d'un servo via PCA9685.
     - channel : canal PCA9685 (0..15)
-    - freq : fréquence PWM (50Hz pour servos)
-    - i2c_address : adresse I2C PCA9685 (0x40 par défaut)
-    - servo_min_us / servo_max_us : impulsion min et max (µs)
-    - max_angle : amplitude max (par ex. 180° ou 270°)
+    - freq : frÃ©quence PWM (50Hz pour servos)
+    - i2c_address : adresse I2C PCA9685 (0x40 par dÃ©faut)
+    - servo_min_us / servo_max_us : impulsion min et max (Âµs)
+    - max_angle : amplitude max (par ex. 180Â° ou 270Â°)
     """
     def __init__(
         self, 
@@ -40,13 +40,13 @@ class ServoController:
         self.servo_max_us = servo_max_us
         self.max_angle = max_angle
 
-        # Angle actuel (on suppose qu'on démarre "au milieu")
+        # Angle actuel (on suppose qu'on dÃ©marre "au milieu")
         self.current_angle = max_angle / 2.0
         self.set_servo_angle(self.current_angle)
 
     def _us_to_duty_cycle(self, pulse_us):
-        """Convertit une impulsion en µs vers le duty cycle 16 bits (0..65535)."""
-        period_us = 1_000_000 // self.pca.frequency  # ex: 20_000 µs @ 50Hz
+        """Convertit une impulsion en Âµs vers le duty cycle 16 bits (0..65535)."""
+        period_us = 1_000_000 // self.pca.frequency  # ex: 20_000 Âµs @ 50Hz
         duty_cycle = int((pulse_us / period_us) * 65535)
         return max(0, min(65535, duty_cycle))
 
@@ -63,7 +63,7 @@ class ServoController:
         self.pca.channels[self.channel].duty_cycle = self._us_to_duty_cycle(pulse_us)
 
     def cleanup(self):
-        """Coupe la PWM et libère le PCA."""
+        """Coupe la PWM et libÃ¨re le PCA."""
         self.pca.channels[self.channel].duty_cycle = 0
         self.pca.deinit()
 
@@ -72,8 +72,8 @@ class ServoController:
 # ---------------------------------------------------------------------------
 class PID:
     """
-    Implémentation simple d'un PID.
-    - kp, ki, kd : gains proportionnel, intégral, dérivé
+    ImplÃ©mentation simple d'un PID.
+    - kp, ki, kd : gains proportionnel, intÃ©gral, dÃ©rivÃ©
     - setpoint : la consigne (0.5 pour centrer x ou y sur 0.5)
     - output_limits : borne la sortie (ex: (-50, 50))
     """
@@ -95,21 +95,21 @@ class PID:
 
     def update(self, measurement):
         """
-        Calcule la correction PID pour la mesure donnée.
+        Calcule la correction PID pour la mesure donnÃ©e.
         measurement : la valeur actuelle (ex: x_center ou y_center).
         """
         now = time.time()
         dt = now - self._last_time
         if dt <= 0.0:
-            dt = 1e-16  # évite division par 0
+            dt = 1e-16  # Ã©vite division par 0
 
         error = self.setpoint - measurement
         # Proportionnel
         p_out = self.kp * error
-        # Intégral
+        # IntÃ©gral
         self._integral += error * dt
         i_out = self.ki * self._integral
-        # Dérivé
+        # DÃ©rivÃ©
         derivative = (error - self._last_error) / dt
         d_out = self.kd * derivative
 
@@ -118,7 +118,7 @@ class PID:
         min_out, max_out = self.output_limits
         output = max(min_out, min(output, max_out))
 
-        # Mémorise pour la prochaine itération
+        # MÃ©morise pour la prochaine itÃ©ration
         self._last_error = error
         self._last_time = now
 
@@ -129,9 +129,9 @@ class PID:
 # ---------------------------------------------------------------------------
 class CameraDeplacement:
     """
-    Gère deux servos :
+    GÃ¨re deux servos :
       - servo horizontal = channel=0, max_angle=270
-      - servo vertical   = channel=1, max_angle=180 (limité 45..135)
+      - servo vertical   = channel=1, max_angle=180 (limitÃ© 45..135)
     + 2 PID (un pour x, un pour y) + zone morte + limites d'angle.
     """
     def __init__(
@@ -142,17 +142,17 @@ class CameraDeplacement:
         p_vertical=1.0, i_vertical=0.0, d_vertical=0.0,
         # zone morte (autour de 0.5)
         dead_zone=0.05,
-        # Limites d'angle (°) pour le servo vertical
+        # Limites d'angle (Â°) pour le servo vertical
         vertical_min_angle=45,
         vertical_max_angle=135,
-        # Limites d'angle (°) pour le servo horizontal (facultatif, on peut tout autoriser 0..270)
+        # Limites d'angle (Â°) pour le servo horizontal (facultatif, on peut tout autoriser 0..270)
         horizontal_min_angle=0,
         horizontal_max_angle=270
     ):
         # 1) Servos
-        # canal 0 => horizontal => 0..270°
+        # canal 0 => horizontal => 0..270Â°
         self.servo_horizontal = ServoController(channel=0, max_angle=270)
-        # canal 1 => vertical => 0..180°, mais on le limitera 45..135
+        # canal 1 => vertical => 0..180Â°, mais on le limitera 45..135
         self.servo_vertical = ServoController(channel=1, max_angle=180)
 
         # 2) PID horizontal (pour x)
@@ -190,17 +190,17 @@ class CameraDeplacement:
                 label = det.get_label()
                 confidence = det.get_confidence()
 
-                # Priorité pour les chats
+                # PrioritÃ© pour les chats
                 if label == "cat":
                     best_confidence = confidence
                     best_det = det
                     cat_detected = True
-                    break  # On arrête la boucle dès qu'on trouve un chat
+                    break  # On arrÃªte la boucle dÃ¨s qu'on trouve un chat
 
                 if label not in TRACK_OBJECTS:
                     continue
 
-                # Sélectionner la détection avec la meilleure confiance si aucun chat n'est détecté
+                # SÃ©lectionner la dÃ©tection avec la meilleure confiance si aucun chat n'est dÃ©tectÃ©
                 if confidence > best_confidence and not cat_detected:
                     best_confidence = confidence
                     best_det = det
@@ -209,8 +209,8 @@ class CameraDeplacement:
 
     def update_position(self, detections, user_data):
         """
-        Appelée à chaque détection.
-        (x_center, y_center) : coord. normalisées [0..1].
+        AppelÃ©e Ã  chaque dÃ©tection.
+        (x_center, y_center) : coord. normalisÃ©es [0..1].
         But : amener x_center -> 0.5 et y_center -> 0.5
         """
         best_det = self.select_best_detection(detections)
@@ -260,9 +260,9 @@ class CameraDeplacement:
 
     def cleanup(self):
         """Coupe la PWM sur les servos et reset les PID."""
-                # Remettre les servomoteurs à leur place d'origine
-        self.servo_horizontal.set_servo_angle(135)  # 135° pour horizontal
-        self.servo_vertical.set_servo_angle(90)     # 90° pour vertical
+                # Remettre les servomoteurs Ã  leur place d'origine
+        self.servo_horizontal.set_servo_angle(135)  # 135Â° pour horizontal
+        self.servo_vertical.set_servo_angle(90)     # 90Â° pour vertical
 
         # Attendre un court instant pour s'assurer que les servos atteignent leur position
         time.sleep(1)

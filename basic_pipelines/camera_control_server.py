@@ -21,30 +21,30 @@ class CameraControlServer:
         self.server_socket = None
         self._stop = False
 
-        # Instanciation du contrôleur de caméra (PID + servos)
+        # Instanciation du contrÃ´leur de camÃ©ra (PID + servos)
         self.camera_deplacement = CameraDeplacement(
-            # Vous pouvez ajuster ici quelques paramètres par défaut
+            # Vous pouvez ajuster ici quelques paramÃ¨tres par dÃ©faut
             p_horizontal=30.0,
             i_horizontal=0.01,
             d_horizontal=0.2,
             p_vertical=15.0,
             i_vertical=0.01,
             d_vertical=0.1,
-            dead_zone=0.02  # zone morte à +/- 0.05 autour du centre
+            dead_zone=0.02  # zone morte Ã  +/- 0.05 autour du centre
         )
 
         # Initialisation de user_data
         self.user_data = UserData()
 
     def start(self):
-        # Si le fichier socket existe déjà, on le supprime
+        # Si le fichier socket existe dÃ©jÃ , on le supprime
         if os.path.exists(self.socket_path):
             os.remove(self.socket_path)
 
         self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.server_socket.bind(self.socket_path)
         self.server_socket.listen(1)
-        print(f"[CameraControlServer] Serveur démarré sur {self.socket_path}")
+        print(f"[CameraControlServer] Serveur dÃ©marrÃ© sur {self.socket_path}")
 
         self.thread = threading.Thread(target=self._accept_loop, daemon=True)
         self.thread.start()
@@ -58,7 +58,7 @@ class CameraControlServer:
         if os.path.exists(self.socket_path):
             os.remove(self.socket_path)
 
-        # Arrêt et remise à zéro des servos
+        # ArrÃªt et remise Ã  zÃ©ro des servos
         self.camera_deplacement.cleanup()
 
     def _accept_loop(self):
@@ -66,7 +66,7 @@ class CameraControlServer:
             try:
                 client_sock, addr = self.server_socket.accept()
                 print("[CameraControlServer] Connexion entrante (Unix domain socket)")
-                # On lance un thread qui va écouter ce client
+                # On lance un thread qui va Ã©couter ce client
                 t = threading.Thread(
                     target=self._handle_client, 
                     args=(client_sock,),
@@ -75,7 +75,7 @@ class CameraControlServer:
                 t.start()
             except socket.error:
                 if self._stop:
-                    print("[CameraControlServer] Arrêt du serveur.")
+                    print("[CameraControlServer] ArrÃªt du serveur.")
                 else:
                     raise
 
@@ -93,7 +93,7 @@ class CameraControlServer:
                     line = line.strip()
                     if not line:
                         continue
-                    # On tente de décoder le JSON
+                    # On tente de dÃ©coder le JSON
                     try:
                         message = json.loads(line.decode("utf-8"))
                         self._handle_detection(message)
@@ -102,26 +102,26 @@ class CameraControlServer:
 
     def _handle_detection(self, detection):
         """
-        Méthode appelée pour chaque détection reçue.
-        On récupère (x_center, y_center) et on les envoie au PID.
+        MÃ©thode appelÃ©e pour chaque dÃ©tection reÃ§ue.
+        On rÃ©cupÃ¨re (x_center, y_center) et on les envoie au PID.
         """
         label = detection.get("label", "unknown")
         conf = detection.get("confidence", 0.0)
-        x = detection.get("x_center", 0.5)  # Valeur par défaut = centre
+        x = detection.get("x_center", 0.5)  # Valeur par dÃ©faut = centre
         y = detection.get("y_center", 0.5)
 
-        print(f"[CameraControlServer] Reçu: label={label}, "
+        print(f"[CameraControlServer] ReÃ§u: label={label}, "
               f"confidence={conf:.2f}, x={x:.2f}, y={y:.2f}")
 
-        # Mettre à jour les coordonnées du barycentre dans user_data
+        # Mettre Ã  jour les coordonnÃ©es du barycentre dans user_data
         self.user_data.barycentre_x = x
         self.user_data.barycentre_y = y
 
-        # Créez une détection factice pour tester
+        # CrÃ©ez une dÃ©tection factice pour tester
         detection = Detection(label, conf, x, y)
         detections = [detection]
 
-        # Mise à jour de la position de la caméra
+        # Mise Ã  jour de la position de la camÃ©ra
         self.camera_deplacement.update_position(detections, self.user_data)
 
 class Detection:
@@ -138,7 +138,7 @@ class Detection:
         return self.confidence
 
     def get_bbox(self):
-        # Retourne une boîte englobante factice pour tester
+        # Retourne une boÃ®te englobante factice pour tester
         return BBox(self.x_center, self.y_center)
 
 class BBox:
@@ -163,7 +163,7 @@ def main():
     server = CameraControlServer()
     server.start()
     try:
-        # On attend indéfiniment (Ctrl+C pour arrêter)
+        # On attend indÃ©finiment (Ctrl+C pour arrÃªter)
         server.thread.join()
     except KeyboardInterrupt:
         pass

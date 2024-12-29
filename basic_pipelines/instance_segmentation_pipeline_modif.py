@@ -78,7 +78,7 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
         )
         user_callback_pipeline = USER_CALLBACK_PIPELINE()
 
-        # On insère videoconvert avant cairooverlay pour assurer un format compatible
+        # On insÃ¨re videoconvert avant cairooverlay pour assurer un format compatible
         # On garde fpsdisplaysink pour l'affichage final
         pipeline_string = (
             f'{source_pipeline} '
@@ -93,7 +93,7 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             # cairooverlay
             f'{QUEUE("cairo_q")} ! '
             f'cairooverlay name=cairo_overlay ! '
-            # videoconvert après cairooverlay
+            # videoconvert aprÃ¨s cairooverlay
             f'{QUEUE("hailo_display_videoconvert_q")} ! '
             f'videoconvert name=hailo_display_videoconvert n-threads=2 qos=false ! '
             # fpsdisplaysink pour l'affichage final

@@ -3,19 +3,19 @@ import time
 from hailo_platform import Device
 from gpiozero import PWMOutputDevice
 
-# Configuration du GPIO 18 pour le contrôle PWM
+# Configuration du GPIO 18 pour le contrÃ´le PWM
 fan = PWMOutputDevice(18)
 
-# Fonction pour obtenir la température du module Hailo
+# Fonction pour obtenir la tempÃ©rature du module Hailo
 def get_hailo_temperature():
     target = Device()
     temp = target.control.get_chip_temperature().ts0_temperature
     return temp
 
-# Fonction pour ajuster la vitesse du ventilateur en fonction de la température
+# Fonction pour ajuster la vitesse du ventilateur en fonction de la tempÃ©rature
 def adjust_fan_speed(temp):
     if temp < 35:
-        speed = 0.0  # Ventilateur éteint
+        speed = 0.0  # Ventilateur Ã©teint
     elif 35 <= temp < 45:
         speed = 0.4
     elif 45 <= temp < 55:
@@ -34,7 +34,7 @@ try:
     while True:
         temperature = get_hailo_temperature()
         adjust_fan_speed(temperature)
-        time.sleep(5)  # Vérifie la température toutes les 5 secondes
+        time.sleep(5)  # VÃ©rifie la tempÃ©rature toutes les 5 secondes
 except KeyboardInterrupt:
     print("Arrêt du script par l'utilisateur.")
 finally:

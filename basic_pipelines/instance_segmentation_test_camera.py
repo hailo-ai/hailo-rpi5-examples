@@ -3,7 +3,7 @@
 
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import Gst, GLib
+from gi.repository import Gst, GLib, GObject
 
 import os
 import socket
@@ -22,12 +22,12 @@ from hailo_rpi_common import (
 from instance_segmentation_pipeline_modif import GStreamerInstanceSegmentationApp
 
 # -----------------------------
-# Paramètres de détection
+# ParamÃ¨tres de dÃ©tection
 # -----------------------------
 TRACK_OBJECTS = ["person", "cat"]  # on peut changer si besoin
 
 # -----------------------------
-# Paramètres du socket
+# ParamÃ¨tres du socket
 # -----------------------------
 SOCKET_PATH = "/tmp/hailo_camera.sock"
 
@@ -56,7 +56,7 @@ def app_callback(pad, info, user_data):
         user_data.width = width
         user_data.height = height
 
-    # Récupération des détections via Hailo
+    # RÃ©cupÃ©ration des dÃ©tections via Hailo
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
     user_data.last_detections = detections
@@ -70,12 +70,12 @@ def draw_overlay(cairooverlay, cr, timestamp, duration, user_data):
     width = user_data.width
     height = user_data.height
 
-    # Dessiner un point bleu au centre de la vidéo
+    # Dessiner un point bleu au centre de la vidÃ©o
     cr.set_source_rgb(0, 0, 1)  # Bleu
     cr.arc(width / 2, height / 2, 5, 0, 2 * 3.14159)
     cr.fill()
 
-    # Dessiner un point rouge au barycentre de chaque masque de détection
+    # Dessiner un point rouge au barycentre de chaque masque de dÃ©tection
     cr.set_source_rgb(1, 0, 0)  # Rouge
     for det in user_data.last_detections:
         label = det.get_label()  # "person", "cat", etc.
@@ -98,12 +98,12 @@ def draw_overlay(cairooverlay, cr, timestamp, duration, user_data):
                 barycentre_x = int(np.sum(x_indices * data[y_indices, x_indices]) / total_weight)
                 barycentre_y = int(np.sum(y_indices * data[y_indices, x_indices]) / total_weight)
 
-                # Convertir les coordonnées du barycentre en coordonnées de l'image
+                # Convertir les coordonnÃ©es du barycentre en coordonnÃ©es de l'image
                 x_min, y_min = int(bbox.xmin() * width), int(bbox.ymin() * height)
                 barycentre_x = x_min + barycentre_x * 4
                 barycentre_y = y_min + barycentre_y * 4
 
-                # Stocker les coordonnées du barycentre dans user_data
+                # Stocker les coordonnÃ©es du barycentre dans user_data
                 user_data.barycentre_x = barycentre_x / width
                 user_data.barycentre_y = barycentre_y / height
                 
@@ -116,8 +116,8 @@ def draw_overlay(cairooverlay, cr, timestamp, duration, user_data):
 # -----------------------------
 class UnixDomainSocketSender:
     """
-    Gère la connexion à un socket Unix local et l'envoi d'un seul message
-    (type dict) à la fois.
+    GÃ¨re la connexion Ã  un socket Unix local et l'envoi d'un seul message
+    (type dict) Ã  la fois.
     """
     def __init__(self, socket_path=SOCKET_PATH):
         self.socket_path = socket_path
@@ -126,7 +126,7 @@ class UnixDomainSocketSender:
         self._stop = False
 
     def start(self):
-        """Essaye de se connecter au socket. Peut être relancé si le serveur n'est pas prêt."""
+        """Essaye de se connecter au socket. Peut Ãªtre relancÃ© si le serveur n'est pas prÃªt."""
         self.thread = threading.Thread(target=self._connect_loop, daemon=True)
         self.thread.start()
 
@@ -143,20 +143,20 @@ class UnixDomainSocketSender:
                 self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 self.sock.connect(self.socket_path)
                 self.connected = True
-                print("[UnixDomainSocketSender] Connecté au serveur camera.")
+                print("[UnixDomainSocketSender] ConnectÃ© au serveur camera.")
                 break
             except socket.error as e:
                 print(f"[UnixDomainSocketSender] Erreur de connexion : {e}. Retry dans 2s...")
                 time.sleep(2)
 
-        # On boucle tant qu'on n'est pas stoppé
+        # On boucle tant qu'on n'est pas stoppÃ©
         while not self._stop and self.connected:
             time.sleep(0.5)
         print("[UnixDomainSocketSender] Fin du _connect_loop.")
 
     def send_detection(self, detection: dict):
         """
-        Envoie un dict JSON représentant la détection:
+        Envoie un dict JSON reprÃ©sentant la dÃ©tection:
         {
           "label": "person" ou "cat",
           "confidence": <float>,
@@ -183,17 +183,17 @@ class UnixDomainSocketSender:
 if __name__ == "__main__":
     Gst.init(None)
 
-    # 1. Préparer l'objet user_data
+    # 1. PrÃ©parer l'objet user_data
     user_data = user_app_callback_class()
 
-    # 2. Création de l'application GStreamer
+    # 2. CrÃ©ation de l'application GStreamer
     app = GStreamerInstanceSegmentationApp(app_callback, user_data)
 
-    # 3. Création du Sender (Unix domain socket)
+    # 3. CrÃ©ation du Sender (Unix domain socket)
     sender = UnixDomainSocketSender(SOCKET_PATH)
     sender.start()
 
-    # 4. Lancement d'un thread qui choisit la détection la plus confiante
+    # 4. Lancement d'un thread qui choisit la dÃ©tection la plus confiante
     def send_loop():
         while True:
             best_confidence = 0.0
@@ -203,8 +203,8 @@ if __name__ == "__main__":
                     label = det.get_label()
                     if label not in TRACK_OBJECTS:
                         continue
-                    # On suppose qu'il existe une méthode get_confidence() ou get_score()
-                    # à adapter selon l'API Hailo
+                    # On suppose qu'il existe une mÃ©thode get_confidence() ou get_score()
+                    # Ã  adapter selon l'API Hailo
                     confidence = det.get_confidence()
                     if confidence > best_confidence:
                         best_confidence = confidence
@@ -225,10 +225,10 @@ if __name__ == "__main__":
     t = threading.Thread(target=send_loop, daemon=True)
     t.start()
 
-    # 5. On récupère le cairo overlay pour dessiner
+    # 5. On rÃ©cupÃ¨re le cairo overlay pour dessiner
     cairo_overlay = app.pipeline.get_by_name("cairo_overlay")
     if cairo_overlay is None:
-        print("Erreur : cairo_overlay non trouvé dans le pipeline.")
+        print("Erreur : cairo_overlay non trouvÃ© dans le pipeline.")
         exit(1)
 
     cairo_overlay.connect("draw", draw_overlay, user_data)

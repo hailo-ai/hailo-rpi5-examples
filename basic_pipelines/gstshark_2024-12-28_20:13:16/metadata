@@ -1,0 +1,66 @@
+/* CTF 1.8 */
+typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
+typealias integer { size = 16; align = 8; signed = false; } := uint16_t;
+typealias integer { size = 32; align = 8; signed = false; } := uint32_t;
+typealias integer { size = 64; align = 8; signed = false; } := uint64_t;
+
+trace {
+    major = 1;
+    minor = 3;
+    uuid = "d18e6374-35a1-cd42-8e70-a9cffa712793";
+    byte_order = le;
+    packet.header := struct {
+        uint32_t magic;
+        uint8_t  uuid[16];
+        uint32_t stream_id;
+    };
+};
+
+clock { 
+    name = monotonic; 
+    uuid = "84db105b-b3f4-4821-b662-efc51455106a"; 
+    description = "Monotonic Clock"; 
+    freq = 1000000; /* Frequency, in Hz */ 
+    /* clock value offset from Epoch is: offset * (1/freq) */ 
+    offset_s = 21600; 
+};
+
+typealias integer {
+    size = 32; align = 8; signed = false;
+    map = clock.monotonic.value;
+} := uint32_clock_monotonic_t;
+
+typealias integer {
+    size = 64; align = 8; signed = false;
+    map = clock.monotonic.value;
+} := uint64_clock_monotonic_t;
+
+struct packet_context {
+    uint64_clock_monotonic_t timestamp_begin;
+    uint64_clock_monotonic_t timestamp_end;
+};
+
+struct event_header {
+    enum : uint16_t { compact = 0 ... 65534, extended = 65535 } id;
+    variant <id> {
+        struct {
+            uint32_t timestamp;
+        } compact;
+        struct {
+            uint32_t id;
+            uint64_t timestamp;
+        } extended;
+    } v;
+} align(8);
+
+stream {
+    id = 0;
+    event.header := struct event_header;
+    packet.context := struct packet_context;
+};
+
+event {
+    name = init;
+    id = 0;
+    stream_id = 0;
+};

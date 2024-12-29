@@ -161,3 +161,4 @@ venv_hailo_rpi5_examples/*
 resources/*.mp4
 resources/*.hef
 resources/*.so
+passtext.txt
