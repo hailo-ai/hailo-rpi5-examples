@@ -105,7 +105,7 @@ class GStreamerInstanceSegmentationApp(GStreamerApp):
             f't. ! queue ! '
             f'x264enc tune=zerolatency bitrate=1200 speed-preset=superfast ! '
             f'flvmux streamable=true ! '
-            f'rtmpsink location="rtmp://192.168.50.2/live/stream live=1" '
+            f'rtmpsink location="rtmp://localhost/live/stream live=1" '
             # # fpsdisplaysink pour l'affichage final
             # f'{QUEUE("hailo_display_q")} ! '
             # f'fpsdisplaysink name=hailo_display video-sink={self.video_sink} sync={self.sync} text-overlay={self.show_fps} signal-fps-measurements=true '

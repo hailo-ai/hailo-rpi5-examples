@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+      <meta charset="UTF-8">
+      <title>WetTheCat - Stream</title>
+      <link rel="stylesheet" href="/static/css/styles.css">
+      <style>
+            body {
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  height: 100vh;
+                  background-color: #222;
+                  margin: 0;
+                  color: #fff;
+                  flex-direction: column;
+            }
+
+            video {
+                  max-width: 80%;
+                  max-height: 80%;
+                  border: 2px solid #fff;
+            }
+
+            .back-link {
+                  margin-top: 20px;
+                  color: #fff;
+                  text-decoration: none;
+                  background-color: #555;
+                  padding: 10px 20px;
+                  border-radius: 5px;
+            }
+
+            .back-link:hover {
+                  background-color: #777;
+            }
+      </style>
+</head>
+
+<body>
+      <h2>Live Stream</h2>
+      <video id="video" controls autoplay></video>
+      <a href="/" class="back-link">Retour à l'Accueil</a>
+
+      <!-- Inclure hls.js depuis un CDN -->
+      <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+      <script>
+        const video = document.getElementById('video');
+        const videoSrc = 'https://www.boissard.net/stream/hls/stream.m3u8';
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play();
+            });
+        }
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
+        }
+      </script>
+</body>
+
+</html>
