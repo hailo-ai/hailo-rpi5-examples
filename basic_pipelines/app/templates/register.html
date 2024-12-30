@@ -1,0 +1,84 @@
+<!-- /home/raspi/hailo-rpi5-examples/basic_pipelines/app/templates/register.html -->
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+      <meta charset="UTF-8">
+      <title>Register - WetTheCat</title>
+      <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+      <div class="container">
+            <h2>Register</h2>
+            <form id="register-form">
+                  <label for="username">Username:</label><br>
+                  <input type="text" id="username" name="username" required><br><br>
+                  <label for="email">Email:</label><br>
+                  <input type="email" id="email" name="email" required><br><br>
+                  <label for="password">Password:</label><br>
+                  <input type="password" id="password" name="password" required>
+                  <input type="checkbox" id="show-password"> Afficher le mot de passe<br><br>
+                  <label for="admin_password">Admin Password:</label><br>
+                  <input type="password" id="admin_password" name="admin_password" required>
+                  <input type="checkbox" id="show-admin-password"> Afficher le mot de passe admin<br><br>
+
+                  <button type="submit">Register</button>
+            </form>
+            <p>Déjà un compte ? <a href="/login">Connectez-vous ici</a>.</p>
+      </div>
+      <script>
+            document.getElementById('register-form').addEventListener('submit', async (e) => {
+                  e.preventDefault();
+                  const username = document.getElementById('username').value;
+                  const email = document.getElementById('email').value;
+                  const password = document.getElementById('password').value;
+                  const admin_password = document.getElementById('admin_password').value;
+
+                  const response = await fetch('/register', {
+                        method: 'POST',
+                        headers: {
+                              'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                              username: username,
+                              email: email,
+                              password: password,
+                              admin_password: admin_password
+                        })
+                  });
+
+                  const data = await response.json();
+                  if (response.ok) {
+                        // Rediriger vers la page de login après l'inscription réussie
+                        alert('Registration OK!');
+                        window.location.href = '/login';
+                  } else {
+                        alert(data.detail || 'Registration failed');
+                  }
+            });
+
+            // Fonctionnalité pour afficher/masquer le mot de passe
+            document.getElementById('show-password').addEventListener('change', function () {
+                  const passwordInput = document.getElementById('password');
+                  if (this.checked) {
+                        passwordInput.type = 'text';
+                  } else {
+                        passwordInput.type = 'password';
+                  }
+            });
+
+            // Fonctionnalité pour afficher/masquer le mot de passe admin
+            document.getElementById('show-admin-password').addEventListener('change', function () {
+                  const adminPasswordInput = document.getElementById('admin_password');
+                  if (this.checked) {
+                        adminPasswordInput.type = 'text';
+                  } else {
+                        adminPasswordInput.type = 'password';
+                  }
+            });
+      </script>
+</body>
+
+</html>

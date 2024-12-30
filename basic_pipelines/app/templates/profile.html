@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+      <meta charset="UTF-8">
+      <title>Profil - WetTheCat</title>
+      <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+      <div class="container">
+            <h2>Votre Profil</h2>
+            <div id="profile-info">
+                  <p><strong>ID:</strong> <span id="user-id"></span></p>
+                  <p><strong>Username:</strong> <span id="user-username"></span></p>
+                  <p><strong>Email:</strong> <span id="user-email"></span></p>
+            </div>
+            <a href="/" class="button">Acceuil</a>
+            <button id="logout-button" class="button">Logout</button>
+      </div>
+      <script>
+            async function fetchUserInfo() {
+                  const response = await fetch('/users/me', {
+                        method: 'GET',
+                        headers: {
+                              'Content-Type': 'application/json',
+                        },
+                        credentials: 'include', // Important pour inclure les cookies
+                  });
+
+                  if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('user-id').textContent = data.id;
+                        document.getElementById('user-username').textContent = data.username;
+                        document.getElementById('user-email').textContent = data.email;
+                  } else {
+                        window.location.href = '/login';
+                  }
+            }
+
+            document.getElementById('logout-button').addEventListener('click', async () => {
+                  const response = await fetch('/logout', {
+                        method: 'POST',
+                  });
+                  if (response.ok) {
+                        alert('Déconnecté avec succès!');
+                        window.location.href = '/login';
+                  } else {
+                        alert('Erreur lors de la déconnexion.');
+                  }
+            });
+
+            // Charger les informations de l'utilisateur au chargement de la page
+            window.onload = fetchUserInfo;
+      </script>
+</body>
+
+</html>

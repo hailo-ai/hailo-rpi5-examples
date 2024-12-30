@@ -23,46 +23,62 @@
                   border: 2px solid #fff;
             }
 
-            .back-link {
+            .back-link,
+            .logout-button {
                   margin-top: 20px;
                   color: #fff;
                   text-decoration: none;
                   background-color: #555;
                   padding: 10px 20px;
                   border-radius: 5px;
+                  cursor: pointer;
+                  border: none;
+                  font-size: 16px;
             }
 
-            .back-link:hover {
+            .back-link:hover,
+            .logout-button:hover {
                   background-color: #777;
             }
       </style>
 </head>
 
 <body>
-      <h2>Live Stream</h2>
-      <video id="video" controls autoplay></video>
-      <a href="/" class="back-link">Retour à l'Accueil</a>
+      <div class="container">
+            <h2>Live Stream</h2>
+            <video id="video" controls autoplay muted></video>
+            <a href="/" class="back-link">Retour à l'Accueil</a>
+            <button id="logout-button" class="logout-button">Logout</button>
+      </div>
 
       <!-- Inclure hls.js depuis un CDN -->
       <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
       <script>
-        const video = document.getElementById('video');
-        const videoSrc = 'https://www.boissard.net/stream/hls/stream.m3u8';
+            const video = document.getElementById('video');
+            const videoSrc = 'https://www.boissard.net/stream/hls/stream.m3u8';
 
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(videoSrc);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play();
+            if (Hls.isSupported()) {
+                  const hls = new Hls();
+                  hls.loadSource(videoSrc);
+                  hls.attachMedia(video);
+                  hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        video.play();
+                  });
+            }
+            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                  video.src = videoSrc;
+                  video.addEventListener('loadedmetadata', function () {
+                        video.play();
+                  });
+            }
+
+            document.getElementById('logout-button').addEventListener('click', async () => {
+                  // Envoyer une requête pour supprimer le cookie côté serveur
+                  await fetch('/logout', {
+                        method: 'POST',
+                  });
+                  window.location.href = '/login';
             });
-        }
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = videoSrc;
-            video.addEventListener('loadedmetadata', function() {
-                video.play();
-            });
-        }
       </script>
 </body>
 

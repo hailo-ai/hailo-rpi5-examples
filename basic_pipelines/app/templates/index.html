@@ -3,15 +3,31 @@
 
 <head>
       <meta charset="UTF-8">
-      <title>WetTheCat - Accueil</title>
+      <title>Accueil - WetTheCat</title>
       <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 
 <body>
       <div class="container">
-            <h1>WetTheCat</h1>
+            <h2>Bienvenue, {{ user.username }}!</h2>
+            <p>Ceci est la page d'accueil protégée.</p>
             <a href="/stream" class="button">Accéder au Stream</a>
+            <a href="/profile" class="button">Voir Profil</a>
+            <button id="logout-button" class="button">Logout</button>
       </div>
+
+      <script>
+            document.getElementById('logout-button').addEventListener('click', async () => {
+                  const response = await fetch('/logout', {
+                        method: 'POST',
+                  });
+                  if (response.ok) {
+                        window.location.href = '/login';
+                  } else {
+                        alert('Erreur lors de la déconnexion.');
+                  }
+            });
+      </script>
 </body>
 
 </html>

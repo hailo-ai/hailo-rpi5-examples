@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+      <meta charset="UTF-8">
+      <title>Login - WetTheCat</title>
+      <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+      <div class="container">
+            <h2>Login</h2>
+            <form id="login-form">
+                  <label for="username">Username or Email:</label><br>
+                  <input type="text" id="username" name="username" required><br><br>
+                  <label for="password">Password:</label><br>
+                  <input type="password" id="password" name="password" required>
+                  <input type="checkbox" id="show-password"> Afficher le mot de passe<br><br>
+                  <button type="submit">Login</button>
+            </form>
+            <p>Pas de compte ? <a href="/register-page">Inscrivez-vous ici</a>.</p>
+      </div>
+      <script>
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                  e.preventDefault();
+                  const username = document.getElementById('username').value;
+                  const password = document.getElementById('password').value;
+
+                  const response = await fetch('/token', {
+                        method: 'POST',
+                        headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+                  });
+
+                  const data = await response.json();
+                  if (response.ok) {
+                        // Rediriger vers la page d'accueil
+                        window.location.href = '/';
+                  } else {
+                        alert(data.detail || 'Login failed');
+                  }
+            });
+            
+            // Fonctionnalité pour afficher/masquer le mot de passe
+            document.getElementById('show-password').addEventListener('change', function () {
+                  const passwordInput = document.getElementById('password');
+                  if (this.checked) {
+                        passwordInput.type = 'text';
+                  } else {
+                        passwordInput.type = 'password';
+                  }
+            });
+
+      </script>
+</body>
+
+</html>
