@@ -162,3 +162,6 @@ resources/*.mp4
 resources/*.hef
 resources/*.so
 passtext.txt
+
+# alembic
+alembic.ini
