@@ -61,7 +61,12 @@ def app_callback(pad, info, user_data):
         bbox = detection.get_bbox()
         confidence = detection.get_confidence()
         if label == "person":
-            string_to_print += f"Detection: {label} {confidence:.2f}\n"
+            # Get track ID
+            track_id = 0
+            track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+            if len(track) == 1:
+                track_id = track[0].get_id()
+            string_to_print += (f"Detection: ID: {track_id} Label: {label} Confidence: {confidence:.2f}\n")
             detection_count += 1
     if user_data.use_frame:
         # Note: using imshow will not work here, as the callback function is not running in the main thread

@@ -24,7 +24,7 @@ from wled_display import WLEDDisplay
 class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
-        self.wled = WLEDDisplay(panels=1, udp_enabled=True)
+        self.wled = WLEDDisplay(panels=2, udp_enabled=True)
         self.frame_skip = 2  # Process every 2nd frame
 
 # Predefined colors (BGR format)
@@ -106,17 +106,19 @@ def app_callback(pad, info, user_data):
                 x_min, y_min = int(bbox.xmin() * reduced_width), int(bbox.ymin() * reduced_height)
                 x_max, y_max = x_min + roi_width, y_min + roi_height
 
-                # Ensure the ROI dimensions match the resized mask dimensions
-                if y_max > reduced_frame.shape[0]:
-                    y_max = reduced_frame.shape[0]
-                if x_max > reduced_frame.shape[1]:
-                    x_max = reduced_frame.shape[1]
+                # Ensure the ROI dimensions are within the frame boundaries and handle negative values
+                y_min = max(y_min, 0)
+                x_min = max(x_min, 0)
+                y_max = min(y_max, reduced_frame.shape[0])
+                x_max = min(x_max, reduced_frame.shape[1])
 
-                # Add mask overlay to the frame
-                mask_overlay = np.zeros_like(reduced_frame)
-                color = COLORS[track_id % len(COLORS)]  # Get color based on track_id
-                mask_overlay[y_min:y_max, x_min:x_max] = np.dstack([(resized_mask_data[:y_max-y_min, :x_max-x_min] > 0.5) * c for c in color])
-                reduced_frame = cv2.addWeighted(reduced_frame, 1, mask_overlay, 0.5, 0)
+                # Ensure ROI dimensions are valid
+                if x_max > x_min and y_max > y_min:
+                    # Add mask overlay to the frame
+                    mask_overlay = np.zeros_like(reduced_frame)
+                    color = COLORS[track_id % len(COLORS)]  # Get color based on track_id
+                    mask_overlay[y_min:y_max, x_min:x_max] = np.dstack([(resized_mask_data[:y_max-y_min, :x_max-x_min] > 0.5) * c for c in color])
+                    reduced_frame = cv2.addWeighted(reduced_frame, 1, mask_overlay, 0.5, 0)
 
     # Resize the frame to the WLED panel size for display
     final_frame = cv2.resize(reduced_frame, (user_data.wled.panel_width * user_data.wled.panels, user_data.wled.panel_height))
