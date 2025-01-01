@@ -29,6 +29,19 @@ This example uses the Hailo pipeline to perform pose estimation. The hand positi
 ```bash
 python wled_pose_estimation.py
 ```
+### Pose Estimation drawing board example (advanced):
+This advanced example uses the Hailo pipeline to perform pose estimation and allows users to draw on a WLED panel using hand gestures.
+
+Features
+Right Hand Drawing: The right hand is used for drawing on the WLED panel.
+Write Mode Activation: The left hand, when held by the chest, activates the "write mode" allowing the right hand to draw.
+Color Palette: A vertical color palette on the right side of the LED matrix allows users to change drawing colors using their right wrist.
+T-Pose Detection: Detects a T-pose gesture to reset the drawing canvas after holding the pose for a specified duration.
+
+```bash
+python gesture_drawing_app.py
+```
+
 
 ### Pose Estimation example (advanced):
 In this example, the hand positions of the persons detected are sent to an external process that implements particle animation. This is an example to send the AI output to an external process.

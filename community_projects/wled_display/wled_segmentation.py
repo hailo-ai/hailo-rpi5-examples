@@ -24,7 +24,7 @@ from wled_display import WLEDDisplay
 class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
-        self.wled = WLEDDisplay(panels=2, udp_enabled=True)
+        self.wled = WLEDDisplay(panels=1, udp_enabled=True)
         self.frame_skip = 2  # Process every 2nd frame
 
 # Predefined colors (BGR format)
