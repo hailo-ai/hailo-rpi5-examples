@@ -7,43 +7,116 @@ Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases 
 The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors. The examples can also be run on an x86_64 Ubuntu machine with the Hailo8/8L AI processor.
 Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
 
-## Hailo Packages Installation
+## Install Hailo Hardware and Software Setup on Raspberry Pi
 
-For installation instructions, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
+For instructions on how to set up Hailo's hardware and software on the Raspberry Pi 5, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
 
-## Available Examples and Resources
 
-### Hailo Examples
+# Hailo RPi5 Basic Pipelines
+The basic pipelines examples demonstrate object detection, human pose estimation, and instance segmentation, providing a solid foundation for your own projects.
+This repo is using our new [Hailo Apps Infra](https://github.com/hailo-ai/hailo-apps-infra) repo as a dependency.
+See our Developement Guide for more information on how to use the pipelines to create your own custom pipelines.
 
-#### [Basic Pipelines (Python)](doc/basic-pipelines.md#hailo-rpi5-basic-pipelines)
+## Installation
 
-These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
-For installation instructions, see the [Basic Pipelines Installation Guide](doc/basic-pipelines.md#installation).
+### Clone the Repository
+```bash
+git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
+```
+Navigate to the repository directory:
+```bash
+cd hailo-rpi5-examples
+```
+
+### Installation
+Run the following script to automate the installation process:
+```bash
+./install.sh
+```
+
+### Documentation
+For additional information and documentation see the [Basic Pipelines Documentation](doc/basic-pipelines.md#installation).
+
 See our [Developement Guide](doc/basic-pipelines.md#development-guide) for more information on how to use the pipelines to create your own custom pipelines.
 
-
-##### [Detection Example](doc/basic-pipelines.md#detection-example)
+### Running The Examples
+When opening a new terminal session, ensure you have sourced the environment setup script:
+```bash
+source setup_env.sh
+```
+### Detection Example
+For more information see [Detection Example Documentation.](doc/basic-pipelines.md#detection-example)
 ![Detection Example](doc/images/detection.gif)
 
-**Retrained Networks Support**
+#### Run the detection example:
+```bash
+python basic_pipelines/detection.py
+```
+To close the application, press `Ctrl+C`.
 
+#### Running with Raspberry Pi Camera input:
+```bash
+python basic_pipelines/detection.py --input rpi
+```
+
+#### Running with USB camera input (webcam):
+Detect the available camera using this script:
+```bash
+get-usb-camera
+```
+Run example using USB camera input - Use the device found by the previous script:
+```bash
+python basic_pipelines/detection.py --input /dev/video<X>
+```
+
+For additional options, execute:
+```bash
+python basic_pipelines/detection.py --help
+```
+
+#### Retrained Networks Support
 This application includes support for using retrained detection models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
 
-##### [Pose Estimation Example](doc/basic-pipelines.md#pose-estimation-example)
+### Pose Estimation Example
+For more information see [Pose Estimation Example Documentation.](doc/basic-pipelines.md#pose-estimation-example)
 ![Pose Estimation Example](doc/images/pose_estimation.gif)
 
-##### [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
+#### Run the pose estimation example:
+```bash
+python basic_pipelines/pose_estimation.py
+```
+To close the application, press `Ctrl+C`.
+See Detection Example above for additional input options examples.
+
+### Instance Segmentation Example
+For more information see [Instance Segmentation Example Documentation.](doc/basic-pipelines.md#instance-segmentation-example)
 ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
+
+#### Run the instance segmentation example:
+```bash
+python basic_pipelines/instance_segmentation.py
+```
+To close the application, press `Ctrl+C`.
+See Detection Example above for additional input options examples.
 
 ### Community Projects
 
-Get involved and make your mark! Explore our Community Projects and start contributing today—because together, we build better things! 🚀
+Get involved and make your mark! Explore our Community Projects and start contributing today, because together, we build better things! 🚀
 Check out our [Community Projects](community_projects/community_projects.md) for more information.
+
+# Additional Examples and Resources
+
+![Hailo Examples Code Structure]()
+
+## Hailo Apps Infra
+Hailo RPi5 Examples are using the [Hailo Apps Infra Repository](https://github.com/hailo-ai/hailo-apps-infra) as a dependency. The Hailo Apps Infra repository contains the infrastructure of Hailo applications and pipelines.
+It is aimed for to provide tools for developers who want to create their own custom pipelines and applications. It features a simple and easy-to-use API for creating custom pipelines and applications.
+It it installed as a pip package and can be used as a dependency in your own projects. See more information in its documentation and Development Guide.
 
 ### CLIP Application
 
-CLIP (Contrastive Language-Image Pretraining) predicts the most relevant text prompt on real-time video frames using the Hailo-8L AI processor.
-See the [hailo-CLIP Repository](https://github.com/giladnah/hailo-CLIP) for more information.
+CLIP (Contrastive Language-Image Pre-training) predicts the most relevant text prompt on real-time video frames using Hailo8/8l AI processor.
+See the [hailo-CLIP Repository](https://github.com/hailo-ai/hailo-CLIP) for more information.
 Click the image below to watch the demo on YouTube.
 
 [![Watch the demo on YouTube](https://img.youtube.com/vi/XXizBHtCLew/0.jpg)](https://youtu.be/XXizBHtCLew)
@@ -82,10 +155,6 @@ For examples, tutorials, and retrain instructions, see the [Hailo Model Zoo Repo
 Additional documentation and [tutorials](https://hailo.ai/developer-zone/documentation/dataflow-compiler/latest/?sp_referrer=tutorials/tutorials.html) can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
 For a full end-to-end training and deployment example, see the [Retraining Example](doc/retraining-example.md).
 The detection basic pipeline example includes support for retrained models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
-
-### Hailo Apps Infra
-The Hailo Apps Infra repository containes the infrastructure of hailo applications and pipelines.
-You can find it here  see the [Hailo Apps Infra](https://github.com/giladnah/hailo-apps-infra).
 
 ## Contributing
 

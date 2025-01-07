@@ -117,7 +117,7 @@ def app_callback(pad, info, user_data):
                         # Add mask overlay to the frame
                         mask_overlay = np.zeros_like(reduced_frame)
                         color = COLORS[track_id % len(COLORS)]  # Get color based on track_id
-                        mask_overlay[y_min:y_max, x_min:x_max] = np.dstack([(resized_mask_data[:y_max-y_min, :x_max-x_min] > 0.5) * c for c in color])
+                        mask_overlay[y_min:y_max, x_min:x_max] = (resized_mask_data[:y_max-y_min, :x_max-x_min, np.newaxis] > 0.5) * color
                         reduced_frame = cv2.addWeighted(reduced_frame, 1, mask_overlay, 0.5, 0)
 
     print(string_to_print)
@@ -126,7 +126,6 @@ def app_callback(pad, info, user_data):
         # Convert the frame to BGR
         reduced_frame = cv2.cvtColor(reduced_frame, cv2.COLOR_RGB2BGR)
         user_data.set_frame(reduced_frame)
-        print("Frame displayed")
 
     return Gst.PadProbeReturn.OK
 
