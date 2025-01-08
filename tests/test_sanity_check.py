@@ -17,14 +17,17 @@ def test_check_hailo_runtime_installed():
 def test_check_required_files():
     """Test if required files exist."""
     required_files = [
-        'setup_env.sh',
+        'setup.py',
         'download_resources.sh',
         'compile_postprocess.sh',
         'requirements.txt',
-        'basic_pipelines/detection.py',
-        'basic_pipelines/pose_estimation.py',
-        'basic_pipelines/instance_segmentation.py',
-        'basic_pipelines/hailo_rpi_common.py'
+        'hailo_apps_infra/detection_pipeline.py',
+        'hailo_apps_infra/pose_estimation_pipeline.py',
+        'hailo_apps_infra/instance_segmentation_pipeline.py',
+        'hailo_apps_infra/hailo_rpi_common.py',
+        'hailo_apps_infra/gstreamer_app.py',
+        'hailo_apps_infra/gstreamer_helper_pipelines.py',
+        'hailo_apps_infra/get_usb_camera.py'
     ]
     for file in required_files:
         assert os.path.exists(file), f"Error: {file} is missing."
@@ -61,7 +64,7 @@ def test_gstreamer_installation():
 
 def test_setup_env():
     """Test setup_env.sh script."""
-    result = subprocess.run(['bash', '-c', 'source setup_env.sh && env'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(['bash', '-c', 'pip install -v -e .'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout_str = result.stdout
     stderr_str = result.stderr
 

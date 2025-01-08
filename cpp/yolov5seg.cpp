@@ -404,10 +404,7 @@ void free_resources(void *params_void_ptr)
  */
 void yolov5seg(HailoROIPtr roi, void *params_void_ptr)
 {
-    Yolov5segParams *params = reinterpret_cast<Yolov5segParams *>(params_void_ptr);
-    std::map<std::string, HailoTensorPtr> tensors = roi->get_tensors_by_name();
-    std::vector<HailoDetection> detections = yolov5seg_post(tensors, params->anchors, params->strides, params->iou_threshold, params->score_threshold, params->grids, params->anchor_grids, params->num_anchors, params->input_shape[0], params->input_shape[1], params->outputs_name);
-    hailo_common::add_detections(roi, detections);
+    filter(roi, params_void_ptr);
 }
 
 /**
@@ -417,5 +414,28 @@ void yolov5seg(HailoROIPtr roi, void *params_void_ptr)
  */
 void filter(HailoROIPtr roi, void *params_void_ptr)
 {
-    yolov5seg(roi, params_void_ptr);
+    Yolov5segParams *params = reinterpret_cast<Yolov5segParams *>(params_void_ptr);
+    std::map<std::string, HailoTensorPtr> tensors = roi->get_tensors_by_name();
+    std::vector<HailoDetection> detections = yolov5seg_post(tensors, params->anchors, params->strides, params->iou_threshold, params->score_threshold, params->grids, params->anchor_grids, params->num_anchors, params->input_shape[0], params->input_shape[1], params->outputs_name);
+    hailo_common::add_detections(roi, detections);
+}
+
+void filter_letterbox(HailoROIPtr roi, void *params_void_ptr)
+{
+    filter(roi, params_void_ptr);
+    // Resize Letterbox
+    HailoBBox roi_bbox = hailo_common::create_flattened_bbox(roi->get_bbox(), roi->get_scaling_bbox());
+    auto detections = hailo_common::get_hailo_detections(roi);
+    for (auto &detection : detections)
+    {
+        auto detection_bbox = detection->get_bbox();
+        auto xmin = (detection_bbox.xmin() * roi_bbox.width()) + roi_bbox.xmin();
+        auto ymin = (detection_bbox.ymin() * roi_bbox.height()) + roi_bbox.ymin();
+        auto xmax = (detection_bbox.xmax() * roi_bbox.width()) + roi_bbox.xmin();
+        auto ymax = (detection_bbox.ymax() * roi_bbox.height()) + roi_bbox.ymin();
+        HailoBBox new_bbox(xmin, ymin, xmax - xmin, ymax - ymin);
+        detection->set_bbox(new_bbox);
+    }
+    // Clear the scaling bbox of main roi because all detections are fixed.
+    roi->clear_scaling_bbox();
 }

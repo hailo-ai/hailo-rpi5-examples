@@ -7,10 +7,10 @@ project('hailo_rpi5_examples', 'c', 'cpp',
                             'cpp_args=-Wno-psabi -Wno-class-memaccess -Wno-deprecated-declarations']
        )
 
-postprocess_dep = dependency('hailo-tappas-core', version : '>=3.29.0', required : false)
+postprocess_dep = dependency('hailo-tappas-core', version : '>=3.30.0', required : false)
 
 if not postprocess_dep.found()
-    postprocess_dep = dependency('hailo_tappas', version : '>=3.29.0')
+    postprocess_dep = dependency('hailo_tappas', version : '>=3.30.0')
 endif
 
 # Use the rapidjson_includedir from the pkg-config file

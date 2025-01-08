@@ -1,141 +1,76 @@
+# Hailo Applications Infrastructure
 
-![Banner](doc/images/hailo_rpi_examples_banner.png)
+This repository provides the core infrastructure and pipelines required to run Hailo application examples.
+It is built to be used on multiple platforms, including Raspberry Pi 4 and 5, and x86_64 and aarch64 Ubuntu machines.
+It includes ready-made pipelines for running detection, pose estimation, and instance segmentation examples. It includes common building block and utilities:
+- Gstreamer Application class
+- Gstreamer pipeline helper functions
+- Post processing scripts
+- Hailo HEF file loader
 
-# Hailo Raspberry Pi 5 Examples
+The infrastructure is aimed to provide tools for developers who want to create their own custom pipelines and applications. It can be 'pip installed' as a dependency in your own projects.
+See more information in our [Development Guide](./doc/development_guide.md).
 
-Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases various examples demonstrating the capabilities of the Hailo AI processor on a Raspberry Pi 5. These examples will help you get started with AI on embedded devices.
-The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors. The examples can also be run on an x86_64 Ubuntu machine with the Hailo8/8L AI processor.
-Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
+For more general information and support visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/).
 
-## Table of Contents
+## Hailo examples code structure
+`hailo-app-infra` is used as a dependency in other Hailo examples repositories. The following diagram shows the code structure of the Hailo examples repositories:
+![alt text](../hailo-rpi5-examples/doc/images/hailo_examples_code_structure.svg)
 
-- [Hailo Raspberry Pi 5 Examples](#hailo-raspberry-pi-5-examples)
-  - [Table of Contents](#table-of-contents)
-  - [Hailo Packages Installation](#hailo-packages-installation)
-    - [Hailo Version Upgrade Instructions](#hailo-version-upgrade-instructions)
-  - [Available Examples and Resources](#available-examples-and-resources)
-    - [Hailo Python API](#hailo-python-api)
-    - [Hailo Examples](#hailo-examples)
-      - [Basic Pipelines (Python)](#basic-pipelines-python)
-        - [Detection Example](#detection-example)
-        - [Pose Estimation Example](#pose-estimation-example)
-        - [Instance Segmentation Example](#instance-segmentation-example)
-      - [CLIP Application](#clip-application)
-      - [Frigate Integration - Coming Soon](#frigate-integration---coming-soon)
-    - [Raspberry Pi Official Examples](#raspberry-pi-official-examples)
-      - [rpicam-apps](#rpicam-apps)
-      - [picamera2](#picamera2)
-    - [Hailo Dataflow Compiler (DFC)](#hailo-dataflow-compiler-dfc)
-  - [Contributing](#contributing)
-  - [License](#license)
-  - [Disclaimer](#disclaimer)
+## Hailo Requirements
+This repo requires Hailo's tools to be installed.
+All the required packages can be found in [Hailo developer Zone SW downloads](https://hailo.ai/developer-zone/software-downloads/)
+For Raspberry Pi users we have it all integrated in Raspberry Pi OS and apt server. See [Raspbery Pi installation Guide](https://github.com/hailo-ai/hailo-rpi5-examples/blob/main/doc/install-raspberry-pi5.md) on `hailo-rpi5-examples` repo for more information.
 
-![Raspberry Pi 5 with Hailo AI HAT](doc/images/ai-hat-plus.jpg)
+Required packages:
+- HailoRT driver (deb package)
+- HailoRT (deb package)
+- HailoRT Python API (whl package)
+- TAPPAS (Installer) or tappas-core (deb package)
+- TAPPAS Python API (whl package)
 
-## Hailo Packages Installation
-
-For installation instructions, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
-
-### Hailo Version Upgrade Instructions
-
-See the [Upgrade or Downgrade Hailo Software](doc/install-raspberry-pi5.md#hailo-version-upgrade-instructions) section for instructions on how to upgrade the Hailo software.
-
-## Available Examples and Resources
-
-### Hailo Python API
-The Hailo Python API is now available on the Raspberry Pi 5. This API allows you to run inference on the Hailo-8L AI processor using Python.
-For examples, see our [Python code examples](https://github.com/hailo-ai/Hailo-Application-Code-Examples/tree/main/runtime/python).
-Additional examples can be found in RPi [picamera2](#picamera2) code.
-Visit our [HailoRT Python API documentation](https://hailo.ai/developer-zone/documentation/hailort-v4-18-0/?page=api%2Fpython_api.html#module-hailo_platform.drivers) for more information.
-
-### Hailo Examples
-
-#### [Basic Pipelines (Python)](doc/basic-pipelines.md#hailo-rpi5-basic-pipelines)
-
-These pipelines are included in this repository. They demonstrate object detection, human pose estimation, and instance segmentation in an easy-to-use format.
-For installation instructions, see the [Basic Pipelines Installation Guide](doc/basic-pipelines.md#installation).
-See our [Developement Guide](doc/basic-pipelines.md#development-guide) for more information on how to use the pipelines to create your own custom pipelines.
-
-
-##### [Detection Example](doc/basic-pipelines.md#detection-example)
-![Detection Example](doc/images/detection.gif)
-
-**Retrained Networks Support**
-
-This application includes support for using retrained detection models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
-
-##### [Pose Estimation Example](doc/basic-pipelines.md#pose-estimation-example)
-![Pose Estimation Example](doc/images/pose_estimation.gif)
-
-##### [Instance Segmentation Example](doc/basic-pipelines.md#instance-segmentation-example)
-![Instance Segmentation Example](doc/images/instance_segmentation.gif)
-
-#### CLIP Application
-
-CLIP (Contrastive Language-Image Pretraining) predicts the most relevant text prompt on real-time video frames using the Hailo-8L AI processor.
-See the [hailo-CLIP Repository](https://github.com/hailo-ai/hailo-CLIP) for more information.
-Click the image below to watch the demo on YouTube.
-
-[![Watch the demo on YouTube](https://img.youtube.com/vi/XXizBHtCLew/0.jpg)](https://youtu.be/XXizBHtCLew)
-
-
-#### Frigate Integration - Coming Soon
-
-Frigate is an open-source video surveillance software that runs on a Raspberry Pi. This integration will allow you to use the Hailo-8L AI processor for object detection in real-time video streams.
-
-### Raspberry Pi Official Examples
-
-#### rpicam-apps
-
-Raspberry Pi [rpicam-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps) Hailo post-processing examples.
-This is Raspberry Pi's official example for AI post-processing using the Hailo AI processor integrated into their CPP camera framework.
-The documentation on how to use rpicam-apps can be found [here](https://www.raspberrypi.com/documentation/accessories/ai-kit.html).
-The run command is simplified, and the assets are pre-installed in the system.
-To run an example from rpicam-apps, run:
-
-```bash
-rpicam-hello -t 0 --post-process-file /usr/share/rpi-camera-assets/hailo_yolov6_inference.json
+## Using the Repository as a Pip Package
+-----------------------------
+To install the package, ensure you are inside a virtual environment with Hailo requirements installed. Then, run the following command:
+```shell script
+pip install git+https://github.com/hailo-ai/hailo-apps-infra.git
 ```
+This will install the Hailo Applications Infrastructure package directly from the repository.
 
-See more available examples in the `/usr/share/rpi-camera-assets` directory.
-
-#### picamera2
-
-Raspberry Pi [picamera2](https://github.com/raspberrypi/picamera2) is the libcamera-based replacement for Picamera, which was a Python interface to the Raspberry Pi's legacy camera stack. Picamera2 also presents an easy-to-use Python API.
-Run the following command to clone the picamera2 repo and get the example files:
-
-```bash
-git clone --depth 1 https://github.com/raspberrypi/picamera2
+## Working Locally
+To make changes and work with the code locally you can clone the repository and install it in editable mode:
+```shell script
+git clone https://github.com/hailo-ai/hailo-apps-infra.git
+pip install --force-reinstall -v -e .
 ```
+`--force-reinstall` is required to reinstall the package if it was already installed. By the hailo-rpi5-examples repository, for example. As part of the installation flow.
 
-The examples will be in `./picamera2/examples/hailo/`.
-To run an example from picamera2, run:
+## Running the Pipelines
+--------------------
+The pipelines should be be imported and wrapped with your own application logic.
+See examples in [Hailo RPi5 examples repo](https://github.com/hailo-ai/hailo-rpi5-examples/blob/main/README.md)
 
-```bash
-cd picamera2/examples/hailo/
-python3 pose.py
-```
-### Hailo Dataflow Compiler (DFC)
-
-The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to compile their neural networks to run on the Hailo-8/8L AI processors.
-The DFC is available for download from the [Hailo Developer Zone](https://hailo.ai/developer-zone/software-downloads/) (Registration required).
-For examples, tutorials, and retrain instructions, see the [Hailo Model Zoo Repo](https://github.com/hailo-ai/hailo_model_zoo).
-Additional documentation and [tutorials](https://hailo.ai/developer-zone/documentation/dataflow-compiler/latest/?sp_referrer=tutorials/tutorials.html) can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
-For a full end-to-end training and deployment example, see the [Retraining Example](doc/retraining-example.md).
-The detection basic pipeline example includes support for retrained models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
+## Hailo Raspberry Pi Common Utilities
+[Hailo Raspberry Pi Common Utilities](doc/development_guide.md)
 
 ## Contributing
 
 We welcome contributions from the community. You can contribute by:
-1. Opening a pull request.
-2. Reporting issues and bugs.
-3. Suggesting new features or improvements.
-4. Joining the discussion on the [Hailo Community Forum](https://community.hailo.ai/).
+1. Contribute to our Community projects directories on other repos:
+   1. [Hailo RPi5 examples Community Projects](https://github.com/hailo-ai/hailo-rpi5-examples/tree/main/community_projects/community_projects.md)
+   2. [Hailo CLIP Community Projects](https://github.com/hailo-ai/hailo-CLIP/community_projects/community_projects.md)
+2. PRs to this repo will not be accepted.
+3. Reporting issues and bugs.
+4. Suggesting new features or improvements.
+5. Joining the discussion on the [Hailo Community Forum](https://community.hailo.ai/).
 
-## License
+License
+----------
+The infrastructure is released under the MIT license. Please see the [LICENSE](LICENSE) file for more information.
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Disclaimer
+Disclaimer
+----------
+This code infrastructure is provided by Hailo solely on an “AS IS” basis and “with all faults”. No responsibility or liability is accepted or shall be imposed upon Hailo regarding the accuracy, merchantability, completeness or suitability of the code infrastructure. Hailo shall not have any liability or responsibility for errors or omissions in, or any business decisions made by you in reliance on this code infrastructure or any part of it. If an error occurs when running this infrastructure, please open a ticket in the "Issues" tab.
 
-This code example is provided by Hailo solely on an “AS IS” basis and “with all faults.” No responsibility or liability is accepted or shall be imposed upon Hailo regarding the accuracy, merchantability, completeness, or suitability of the code example. Hailo shall not have any liability or responsibility for errors or omissions in, or any business decisions made by you in reliance on this code example or any part of it. If an error occurs when running this example, please open a ticket in the "Issues" tab.
+This infrastructure was tested on specific versions and we can only guarantee the expected results using the exact version mentioned above on the exact environment. The infrastructure might work for other versions, other environment or other HEF file, but there is no guarantee that it will.
