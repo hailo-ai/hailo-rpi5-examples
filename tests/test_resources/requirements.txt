@@ -1,2 +1,3 @@
 pytest
 pytest-timeout
+pytest-mock

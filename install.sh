@@ -19,6 +19,3 @@ fi
 
 # Download resources needed for the pipelines
 ./download_resources.sh $DOWNLOAD_RESOURCES_FLAG
-
-# Optional: Post-process compilation (Only for older TAPPAS versions)
-./compile_postprocess.sh
