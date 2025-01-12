@@ -43,7 +43,7 @@ def run_download_resources():
     except subprocess.CalledProcessError as e:
         print(f"Error running download_resources.sh: {e}")
         print("Script output:", e.output)
-        return False
+        return Falseupstream
 
 @pytest.mark.performance
 def test_inference_speed():
