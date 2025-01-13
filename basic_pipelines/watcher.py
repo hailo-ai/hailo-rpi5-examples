@@ -16,9 +16,10 @@ import gtts
 from playsound import playsound
 import datetime
 import argparse
+import math
 
 CLASS_DETECTED_COUNT = 4
-CLASS_GONE_COUNT = 8
+CLASS_GONE_COUNT = 12
 CLASS_MATCH_CONFIDENCE = 0.4
 
 def parse_args():
@@ -29,6 +30,26 @@ def parse_args():
     )
     return parser.parse_known_args()[0]
 
+class Point2D:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        return f"Point2D({self.x}, {self.y})"
+
+    def round(self, n=2):
+        return Point2D(round(self.x, n), round(self.y, n))
+
+    def subtract(self, p):
+        return Point2D(self.x - p.x, self.y - p.y)
+
+    def magnitude(self):
+        return (self.x**2 + self.y**2)**0.5
+
+    def direction(self):
+        return math.degrees(math.atan2(self.y, self.x))
+
 # Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
     def __init__(self):
@@ -38,8 +59,11 @@ class user_app_callback_class(app_callback_class):
         self.detection_counter = 0  # Count consecutive frames with detections
         self.no_detection_counter = 0  # Count consecutive frames without detections
         self.max_instances = 0  # Maximum number of instances detected in a frame
+        self.object_centroid = None  # Current object centroid
+        self.start_centroid = None  # Start centroid when object is first detected
+        self.end_centroid = None  # End centroid when object is gone
         
-        # State tracking, is it active or not?
+        # State tracking, is the debounced object active or not?
         self.is_it_active = False
 
         # Parse class to track arg
@@ -86,7 +110,7 @@ def app_callback(pad, info, user_data):
     object_detected = False
     if detection_instance_count > 0:
         object_detected = True
-        user_data.object_centroid= get_avg_centroid(class_detections)
+        user_data.object_centroid = get_avg_centroid(class_detections).round()
 
     # Debouncing logic
     if object_detected:
@@ -95,7 +119,7 @@ def app_callback(pad, info, user_data):
         
         # Only activate after given amount of consecutive frames with detections
         if user_data.detection_counter >= CLASS_DETECTED_COUNT and not user_data.is_it_active:
-            # Update the is it active variable so this doesnt keep repeating
+            # Debounced object is active (DETECTED)
             user_data.is_it_active = True
             user_data.max_instances = 0
             user_data.start_centroid = user_data.object_centroid
@@ -108,10 +132,12 @@ def app_callback(pad, info, user_data):
         
         # Only deactivate after N consecutive frames without detections
         if user_data.no_detection_counter >= CLASS_GONE_COUNT and user_data.is_it_active:
+            # Debounced object is inactive (END DETECTED)
             user_data.is_it_active = False
             user_data.max_instances = 0
             user_data.end_centroid = user_data.object_centroid
-            print(f"{user_data.class_to_track.upper()} Gone at: {user_data.end_centroid} time: {datetime.datetime.now()}")
+            direction = user_data.end_centroid.subtract(user_data.start_centroid).direction()
+            print(f"{user_data.class_to_track.upper()} Gone at: {user_data.end_centroid} time: {datetime.datetime.now()} direction: {direction} degrees")
 
     if user_data.is_it_active:
         # It's possible that the number of instances detected in a frame is greater than the previous value
@@ -135,13 +161,13 @@ def get_avg_centroid(class_detections):
         bbox = detection.get_bbox()
         centroid_x = (bbox.xmin() + bbox.xmax()) / 2
         centroid_y = (bbox.ymin() + bbox.ymax()) / 2
-        centroids.append((centroid_x, centroid_y))
+        centroids.append(Point2D(centroid_x, centroid_y))
         
     if len(centroids):
-        avg_centroid_x = sum(x for x, y in centroids) / len(centroids)
-        avg_centroid_y = sum(y for x, y in centroids) / len(centroids)
+        avg_centroid_x = sum(point.x for point in centroids) / len(centroids)
+        avg_centroid_y = sum(point.y for point in centroids) / len(centroids)
 
-    return (avg_centroid_x, avg_centroid_y)
+    return Point2D(avg_centroid_x, avg_centroid_y)
 
 if __name__ == "__main__":
 
