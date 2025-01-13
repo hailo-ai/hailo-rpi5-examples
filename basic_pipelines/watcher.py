@@ -75,21 +75,18 @@ def app_callback(pad, info, user_data):
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
-    
-    # Track if we've seen objects of interest this frame
-    object_detected = False
 
     # Filter detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
     class_detections = [
-        detection for detection in detections
-        if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE
+        detection for detection in detections if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE
     ]
 
     # Count the number of detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
-    detection_instances = sum(1 for detection in detections if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE)
-
-    if detection_instances > 0:
+    detection_instance_count = len(class_detections)
+    object_detected = False
+    if detection_instance_count > 0:
         object_detected = True
+        user_data.object_centroid= get_avg_centroid(class_detections)
 
     # Debouncing logic
     if object_detected:
@@ -101,8 +98,9 @@ def app_callback(pad, info, user_data):
             # Update the is it active variable so this doesnt keep repeating
             user_data.is_it_active = True
             user_data.max_instances = 0
+            user_data.start_centroid = user_data.object_centroid
             phrase = f"{user_data.class_to_track.upper()} DETECTED!"
-            print(f"{phrase} at: {datetime.datetime.now()}")         
+            print(f"{phrase} {user_data.start_centroid} at: {datetime.datetime.now()}")         
             playsound("alert.mp3",0)
     else:
         user_data.no_detection_counter += 1
@@ -112,12 +110,13 @@ def app_callback(pad, info, user_data):
         if user_data.no_detection_counter >= CLASS_GONE_COUNT and user_data.is_it_active:
             user_data.is_it_active = False
             user_data.max_instances = 0
-            print(f"{user_data.class_to_track.upper()} Gone at: {datetime.datetime.now()}")
+            user_data.end_centroid = user_data.object_centroid
+            print(f"{user_data.class_to_track.upper()} Gone at: {user_data.end_centroid} time: {datetime.datetime.now()}")
 
     if user_data.is_it_active:
         # It's possible that the number of instances detected in a frame is greater than the previous value
-        if detection_instances > user_data.max_instances:
-            user_data.max_instances = detection_instances
+        if detection_instance_count > user_data.max_instances:
+            user_data.max_instances = detection_instance_count
             print(f"{user_data.class_to_track.upper()} count is {user_data.max_instances}")
 
             # Save the current frame image
@@ -125,23 +124,24 @@ def app_callback(pad, info, user_data):
                 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                 class_to_track = user_data.class_to_track
                 os.makedirs(f"images/{class_to_track}", exist_ok=True)
-                cv2.imwrite(f"images/{class_to_track}/{timestamp}_{user_data.class_to_track}x{detection_instances}.jpg", frame)
+                cv2.imwrite(f"images/{class_to_track}/{timestamp}_{user_data.class_to_track}x{detection_instance_count}.jpg", frame)
 
-        # Compute the centroid of all the detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
-        centroids = []
-        for detection in detections:
-            if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE:
-                bbox = detection.get_bbox()
-                centroid_x = (bbox.xmin() + bbox.xmax()) / 2
-                centroid_y = (bbox.ymin() + bbox.ymax()) / 2
-                centroids.append((centroid_x, centroid_y))
-        
-        if centroids:
-            avg_centroid_x = sum(x for x, y in centroids) / len(centroids)
-            avg_centroid_y = sum(y for x, y in centroids) / len(centroids)
-            print(f"Average centroid for {user_data.class_to_track.upper()} is at ({avg_centroid_x}, {avg_centroid_y})")
     
     return Gst.PadProbeReturn.OK
+
+def get_avg_centroid(class_detections):
+    centroids = []
+    for detection in class_detections:
+        bbox = detection.get_bbox()
+        centroid_x = (bbox.xmin() + bbox.xmax()) / 2
+        centroid_y = (bbox.ymin() + bbox.ymax()) / 2
+        centroids.append((centroid_x, centroid_y))
+        
+    if len(centroids):
+        avg_centroid_x = sum(x for x, y in centroids) / len(centroids)
+        avg_centroid_y = sum(y for x, y in centroids) / len(centroids)
+
+    return (avg_centroid_x, avg_centroid_y)
 
 if __name__ == "__main__":
 
