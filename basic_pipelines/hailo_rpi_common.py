@@ -378,7 +378,7 @@ class GStreamerApp:
         user_data.use_frame = self.options_menu.use_frame
 
         self.sync = "false" if (self.options_menu.disable_sync or self.source_type != "file") else "true"
-        self.show_fps = "true" if self.options_menu.show_fps else "false"
+        self.show_fps = True if self.options_menu.show_fps else False
 
         if self.options_menu.dump_dot:
             os.environ["GST_DEBUG_DUMP_DOT_DIR"] = self.current_path

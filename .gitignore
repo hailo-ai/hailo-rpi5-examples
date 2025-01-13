@@ -160,4 +160,12 @@ cython_debug/
 venv_hailo_rpi5_examples/*
 resources/*.mp4
 resources/*.hef
+resources/*.onnx
 resources/*.so
+
+# Watcher temps
+alert.mp3
+
+# GstShark
+gstshark*
+
