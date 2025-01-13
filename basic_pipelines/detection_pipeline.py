@@ -38,7 +38,7 @@ class GStreamerDetectionApp(GStreamerApp):
             default=None,
             help="Path to costume labels JSON file",
         )
-        args = parser.parse_args()
+        args = parser.parse_known_args()[0]
         # Call the parent class constructor
         super().__init__(args, user_data)
         # Additional initialization code can be added here

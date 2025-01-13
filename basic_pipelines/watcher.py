@@ -15,10 +15,19 @@ from detection_pipeline import GStreamerDetectionApp
 import gtts
 from playsound import playsound
 import datetime
+import argparse
 
-CLASS_TO_TRACK = "dog"
 CLASS_DETECTED_COUNT = 4
 CLASS_GONE_COUNT = 8
+CLASS_MATCH_CONFIDENCE = 0.4
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Object Detection Watcher")
+    parser.add_argument(
+        "--class-to-track", "-c", type=str, default="car",
+        help="Class to track. Defaults to 'car'."
+    )
+    return parser.parse_known_args()[0]
 
 # Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
@@ -28,15 +37,22 @@ class user_app_callback_class(app_callback_class):
         # Initialize state variables for debouncing
         self.detection_counter = 0  # Count consecutive frames with detections
         self.no_detection_counter = 0  # Count consecutive frames without detections
+        self.max_instances = 0  # Maximum number of instances detected in a frame
         
         # State tracking, is it active or not?
         self.is_it_active = False
 
+        # Parse class to track arg
+        args = parse_args()
+        self.class_to_track = args.class_to_track
+
         # Setup speech file
         # make request to google to get synthesis
-        tts = gtts.gTTS(f"Its a {CLASS_TO_TRACK.upper()}")
+        tts = gtts.gTTS(f"Its a {self.class_to_track.upper()}")
         # save the audio file
         tts.save("alert.mp3")
+
+        print(f"Looking for {self.class_to_track.upper()}")
      
 
 def app_callback(pad, info, user_data):
@@ -62,18 +78,18 @@ def app_callback(pad, info, user_data):
     
     # Track if we've seen objects of interest this frame
     object_detected = False
-    detection_string = ""
-    
-    # Parse the detections
-    for detection in detections:
-        label = detection.get_label()
-        confidence = detection.get_confidence()
-        
-        # Check for objects of interest with confidence threshold
-        if confidence > 0.4:  # Adjust confidence threshold as needed
-            if label == CLASS_TO_TRACK:
-                object_detected = True
-                detection_string += f"Detection: {label} {confidence:.2f}\n"
+
+    # Filter detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
+    class_detections = [
+        detection for detection in detections
+        if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE
+    ]
+
+    # Count the number of detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
+    detection_instances = sum(1 for detection in detections if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE)
+
+    if detection_instances > 0:
+        object_detected = True
 
     # Debouncing logic
     if object_detected:
@@ -84,10 +100,9 @@ def app_callback(pad, info, user_data):
         if user_data.detection_counter >= CLASS_DETECTED_COUNT and not user_data.is_it_active:
             # Update the is it active variable so this doesnt keep repeating
             user_data.is_it_active = True
-
-            phrase = f"{CLASS_TO_TRACK.upper()} DETECTED!"
-            print(f"{phrase} at: {datetime.datetime.now()}")
-            
+            user_data.max_instances = 0
+            phrase = f"{user_data.class_to_track.upper()} DETECTED!"
+            print(f"{phrase} at: {datetime.datetime.now()}")         
             playsound("alert.mp3",0)
     else:
         user_data.no_detection_counter += 1
@@ -96,15 +111,40 @@ def app_callback(pad, info, user_data):
         # Only deactivate after N consecutive frames without detections
         if user_data.no_detection_counter >= CLASS_GONE_COUNT and user_data.is_it_active:
             user_data.is_it_active = False
-            print(f"{CLASS_TO_TRACK.upper()} Gone at: {datetime.datetime.now()}")
+            user_data.max_instances = 0
+            print(f"{user_data.class_to_track.upper()} Gone at: {datetime.datetime.now()}")
 
-    # Print detections if any
-    #if detection_string:
-    #    print(detection_string, end='')
+    if user_data.is_it_active:
+        # It's possible that the number of instances detected in a frame is greater than the previous value
+        if detection_instances > user_data.max_instances:
+            user_data.max_instances = detection_instances
+            print(f"{user_data.class_to_track.upper()} count is {user_data.max_instances}")
+
+            # Save the current frame image
+            if frame is not None:
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                class_to_track = user_data.class_to_track
+                os.makedirs(f"images/{class_to_track}", exist_ok=True)
+                cv2.imwrite(f"images/{class_to_track}/{timestamp}_{user_data.class_to_track}x{detection_instances}.jpg", frame)
+
+        # Compute the centroid of all the detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
+        centroids = []
+        for detection in detections:
+            if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE:
+                bbox = detection.get_bbox()
+                centroid_x = (bbox.xmin() + bbox.xmax()) / 2
+                centroid_y = (bbox.ymin() + bbox.ymax()) / 2
+                centroids.append((centroid_x, centroid_y))
+        
+        if centroids:
+            avg_centroid_x = sum(x for x, y in centroids) / len(centroids)
+            avg_centroid_y = sum(y for x, y in centroids) / len(centroids)
+            print(f"Average centroid for {user_data.class_to_track.upper()} is at ({avg_centroid_x}, {avg_centroid_y})")
     
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
+
     # Create an instance of the user app callback class
     user_data = user_app_callback_class()
     app = GStreamerDetectionApp(app_callback, user_data)
