@@ -1,6 +1,8 @@
 {
-    "CLASS_TO_TRACK": "bicycle",
+    "CLASS_TO_TRACK": "dog",
     "CLASS_DETECTED_COUNT": 4,
     "CLASS_GONE_COUNT": 12,
-    "CLASS_MATCH_CONFIDENCE": 0.4
+    "CLASS_MATCH_CONFIDENCE": 0.4,
+    "SAVE_DETECTION_IMAGES": true,
+    "SHOW_DETECTION_BOXES": true
 }

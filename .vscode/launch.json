@@ -1,12 +1,21 @@
-   {
-     "version": "0.2.0",
-     "configurations": [
-       {
-         "name": "Python: Current File", // Test
-         "type": "debugpy",
-         "request": "launch",
-         "program": "${file}",
-         "console": "integratedTerminal"
-       }
-     ]
-   }
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "args": ["--hide-overlay"]
+        },
+        {
+            "name": "Python: Run Watcher",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/basic_pipelines/watcher.py",
+            "console": "integratedTerminal",
+            // "args": ["--hide-overlay"]
+        }
+    ]
+}

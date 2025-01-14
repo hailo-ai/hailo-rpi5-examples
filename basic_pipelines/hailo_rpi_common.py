@@ -142,6 +142,7 @@ def get_default_parser():
         help="Disables display sink sync, will run as fast as possible. Relevant when using file source."
     )
     parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file pipeline.dot")
+    parser.add_argument("--hide-overlay", action="store_true", default=False, help="Hide video overlay. Defaults to false.")
     return parser
 
 #---------------------------------------------------------
@@ -362,7 +363,7 @@ class GStreamerApp:
         self.video_source = self.options_menu.input
         self.source_type = get_source_type(self.video_source)
         self.user_data = user_data
-        self.video_sink = "xvimagesink"
+        self.video_sink = "fakesink" if self.options_menu.hide_overlay else "xvimagesink"
         self.pipeline = None
         self.loop = None
 

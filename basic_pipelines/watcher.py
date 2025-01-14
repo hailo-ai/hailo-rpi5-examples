@@ -28,6 +28,8 @@ CLASS_DETECTED_COUNT = config.get('CLASS_DETECTED_COUNT', 4)
 CLASS_GONE_COUNT = config.get('CLASS_GONE_COUNT', 12)
 CLASS_MATCH_CONFIDENCE = config.get('CLASS_MATCH_CONFIDENCE', 0.4)
 CLASS_TO_TRACK = config.get('CLASS_TO_TRACK', 'dog')
+SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
+SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 
 class Point2D:
     def __init__(self, x, y):
@@ -104,10 +106,12 @@ def app_callback(pad, info, user_data):
     
     # Get the caps from the pad
     format, width, height = get_caps_from_pad(pad)
+    
     # If the user_data.use_frame is set to True, we can get the video frame from the buffer
     frame = None
     if user_data.use_frame and format is not None and width is not None and height is not None:
         frame = get_numpy_from_buffer(buffer, format, width, height)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
     
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
@@ -158,13 +162,21 @@ def app_callback(pad, info, user_data):
             user_data.max_instances = detection_instance_count
             print(f"{CLASS_TO_TRACK.upper()} count is {user_data.max_instances}")
 
-            # Save the current frame image
-            if frame is not None:
+            # Draw bounding boxes on the frame if SHOW_DETECTION_BOXES is True
+            if frame is not None and SHOW_DETECTION_BOXES:
+                for detection in class_detections:
+                    bbox = detection.get_bbox()
+                    cv2.rectangle(frame, 
+                                  (int(bbox.xmin() * width), int(bbox.ymin() * height)), 
+                                  (int(bbox.xmax() * width), int(bbox.ymax() * height)), 
+                                  (0, 0, 255), 5)
+
+            # Save the current frame image if SAVE_DETECTION_IMAGES is True
+            if frame is not None and SAVE_DETECTION_IMAGES:
                 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                 os.makedirs(f"images/{CLASS_TO_TRACK}", exist_ok=True)
                 cv2.imwrite(f"images/{CLASS_TO_TRACK}/{timestamp}_{CLASS_TO_TRACK}x{detection_instance_count}.jpg", frame)
 
-    
     return Gst.PadProbeReturn.OK
 
 def get_avg_centroid(class_detections):
