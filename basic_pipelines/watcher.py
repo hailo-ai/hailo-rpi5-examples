@@ -67,6 +67,10 @@ class user_app_callback_class(app_callback_class):
         # State tracking, is the debounced object active or not?
         self.is_it_active = False
 
+        # Variables for computing average detection instance count
+        self.total_detection_instances = 0
+        self.active_detection_count = 0
+
         # Setup speech file
         # make request to google to get synthesis
         tts = gtts.gTTS(f"Its a {CLASS_TO_TRACK.upper()}")
@@ -75,6 +79,10 @@ class user_app_callback_class(app_callback_class):
 
         print(f"Looking for {CLASS_TO_TRACK.upper()}")
      
+    def get_average_detection_instance_count(self):
+        if self.active_detection_count == 0:
+            return 0
+        return self.total_detection_instances / self.active_detection_count
 
 def app_callback(pad, info, user_data):
     """
@@ -128,6 +136,8 @@ def app_callback(pad, info, user_data):
     if detection_instance_count > 0:
         object_detected = True
         user_data.object_centroid = get_avg_centroid(class_detections).round()
+        user_data.object_area = get_total_bbox_area(class_detections)
+        user_data.detection_frame = frame
 
     # Debouncing logic
     if object_detected:
@@ -140,8 +150,10 @@ def app_callback(pad, info, user_data):
             user_data.is_it_active = True
             user_data.max_instances = 0
             user_data.start_centroid = user_data.object_centroid
-            phrase = f"{CLASS_TO_TRACK.upper()} DETECTED!"
-            print(f"{phrase} {user_data.start_centroid} at: {datetime.datetime.now()}")         
+            user_data.start_area = user_data.object_area
+            user_data.start_frame = user_data.detection_frame
+            phrase = f"{CLASS_TO_TRACK.upper()} DETECTED"
+            print(f"{phrase} {user_data.start_centroid} at: {datetime.datetime.now()}, area: {user_data.start_area}")         
             playsound("alert.mp3",0)
     else:
         user_data.no_detection_counter += 1
@@ -153,29 +165,37 @@ def app_callback(pad, info, user_data):
             user_data.is_it_active = False
             user_data.max_instances = 0
             user_data.end_centroid = user_data.object_centroid
+            user_data.end_area = user_data.object_area
+            user_data.end_frame = user_data.detection_frame
             direction = user_data.end_centroid.subtract(user_data.start_centroid).direction()
-            print(f"{CLASS_TO_TRACK.upper()} Gone at: {user_data.end_centroid} time: {datetime.datetime.now()} direction: {direction} degrees")
+            avg_detection_count = user_data.get_average_detection_instance_count()
+            print(f"{CLASS_TO_TRACK.upper()} GONE at: {user_data.end_centroid} time: {datetime.datetime.now()}, area: {user_data.end_area:.3f}, direction: {direction:.1f} degrees, avg count: {avg_detection_count:.2f}")
 
     if user_data.is_it_active:
         # It's possible that the number of instances detected in a frame is greater than the previous value
         if detection_instance_count > user_data.max_instances:
             user_data.max_instances = detection_instance_count
-            print(f"{CLASS_TO_TRACK.upper()} count is {user_data.max_instances}")
+            print(f"{CLASS_TO_TRACK.upper()} count: {user_data.max_instances}, area: {user_data.object_area}")
 
             # Draw bounding boxes on the frame if SHOW_DETECTION_BOXES is True
             if frame is not None and SHOW_DETECTION_BOXES:
                 for detection in class_detections:
                     bbox = detection.get_bbox()
                     cv2.rectangle(frame, 
-                                  (int(bbox.xmin() * width), int(bbox.ymin() * height)), 
-                                  (int(bbox.xmax() * width), int(bbox.ymax() * height)), 
-                                  (0, 0, 255), 5)
+                                (int(bbox.xmin() * width), int(bbox.ymin() * height)), 
+                                (int(bbox.xmax() * width), int(bbox.ymax() * height)), 
+                                (0, 0, 255), 1)
 
             # Save the current frame image if SAVE_DETECTION_IMAGES is True
             if frame is not None and SAVE_DETECTION_IMAGES:
                 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                 os.makedirs(f"images/{CLASS_TO_TRACK}", exist_ok=True)
                 cv2.imwrite(f"images/{CLASS_TO_TRACK}/{timestamp}_{CLASS_TO_TRACK}x{detection_instance_count}.jpg", frame)
+
+        # Update total detection instances and active detection count
+        if detection_instance_count > 0:
+            user_data.total_detection_instances += detection_instance_count
+            user_data.active_detection_count += 1
 
     return Gst.PadProbeReturn.OK
 
@@ -202,6 +222,22 @@ def get_avg_centroid(class_detections):
         avg_centroid_y = sum(point.y for point in centroids) / len(centroids)
 
     return Point2D(avg_centroid_x, avg_centroid_y)
+
+def get_total_bbox_area(class_detections):
+    """
+    Calculate the total area of all bounding boxes in a list of class detections.
+    Args:
+        class_detections (list): A list of detection objects, each containing a bounding box.
+    Returns:
+        float: The total area of all bounding boxes.
+    """
+    total_area = 0.0
+    for detection in class_detections:
+        bbox = detection.get_bbox()
+        width = bbox.xmax() - bbox.xmin()
+        height = bbox.ymax() - bbox.ymin()
+        total_area += width * height
+    return total_area
 
 if __name__ == "__main__":
 

@@ -7,6 +7,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
+            "args": ["--input", "rpi"],
             // "args": ["--hide-overlay"]
         },
         {
@@ -15,6 +16,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/basic_pipelines/watcher.py",
             "console": "integratedTerminal",
+            "args": ["--input", "rpi"],
             // "args": ["--hide-overlay"]
         }
     ]
