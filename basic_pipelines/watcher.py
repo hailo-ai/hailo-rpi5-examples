@@ -17,18 +17,17 @@ from playsound import playsound
 import datetime
 import argparse
 import math
+import json
 
-CLASS_DETECTED_COUNT = 4
-CLASS_GONE_COUNT = 12
-CLASS_MATCH_CONFIDENCE = 0.4
+# Load configuration from config.json
+with open('config.json', 'r') as config_file:
+    config = json.load(config_file)
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Object Detection Watcher")
-    parser.add_argument(
-        "--class-to-track", "-c", type=str, default="car",
-        help="Class to track. Defaults to 'car'."
-    )
-    return parser.parse_known_args()[0]
+# Load CLASS_* options from config
+CLASS_DETECTED_COUNT = config.get('CLASS_DETECTED_COUNT', 4)
+CLASS_GONE_COUNT = config.get('CLASS_GONE_COUNT', 12)
+CLASS_MATCH_CONFIDENCE = config.get('CLASS_MATCH_CONFIDENCE', 0.4)
+CLASS_TO_TRACK = config.get('CLASS_TO_TRACK', 'dog')
 
 class Point2D:
     def __init__(self, x, y):
@@ -66,20 +65,34 @@ class user_app_callback_class(app_callback_class):
         # State tracking, is the debounced object active or not?
         self.is_it_active = False
 
-        # Parse class to track arg
-        args = parse_args()
-        self.class_to_track = args.class_to_track
-
         # Setup speech file
         # make request to google to get synthesis
-        tts = gtts.gTTS(f"Its a {self.class_to_track.upper()}")
+        tts = gtts.gTTS(f"Its a {CLASS_TO_TRACK.upper()}")
         # save the audio file
         tts.save("alert.mp3")
 
-        print(f"Looking for {self.class_to_track.upper()}")
+        print(f"Looking for {CLASS_TO_TRACK.upper()}")
      
 
 def app_callback(pad, info, user_data):
+    """
+    Callback function for processing video frames and detecting objects.
+    Args:
+        pad (Gst.Pad): The pad from which the buffer is received.
+        info (Gst.PadProbeInfo): The probe info containing the buffer.
+        user_data (UserData): Custom user data object for tracking state and configurations.
+    Returns:
+        Gst.PadProbeReturn: Indicates the result of the pad probe.
+    The function performs the following tasks:
+    - Retrieves the GstBuffer from the probe info.
+    - Increments the frame count using user_data.
+    - Extracts video frame information if user_data.use_frame is True.
+    - Retrieves detections from the buffer and filters them based on class and confidence.
+    - Counts the number of filtered detections.
+    - Implements debouncing logic to determine if an object is detected or not.
+    - Activates or deactivates detection state based on consecutive frames with or without detections.
+    - Logs detection events and saves frame images when an object is detected.
+    """
     # Get the GstBuffer from the probe info
     buffer = info.get_buffer()
     # Check if the buffer is valid
@@ -100,12 +113,12 @@ def app_callback(pad, info, user_data):
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
 
-    # Filter detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
+    # Filter detections that match CLASS_TO_TRACK and have confidence greater than CLASS_MATCH_CONFIDENCE
     class_detections = [
-        detection for detection in detections if detection.get_label() == user_data.class_to_track and detection.get_confidence() > CLASS_MATCH_CONFIDENCE
+        detection for detection in detections if detection.get_label() == CLASS_TO_TRACK and detection.get_confidence() > CLASS_MATCH_CONFIDENCE
     ]
 
-    # Count the number of detections that match class_to_track and have confidence greater than CLASS_MATCH_CONFIDENCE
+    # Count the number of detections that match CLASS_TO_TRACK and have confidence greater than CLASS_MATCH_CONFIDENCE
     detection_instance_count = len(class_detections)
     object_detected = False
     if detection_instance_count > 0:
@@ -123,7 +136,7 @@ def app_callback(pad, info, user_data):
             user_data.is_it_active = True
             user_data.max_instances = 0
             user_data.start_centroid = user_data.object_centroid
-            phrase = f"{user_data.class_to_track.upper()} DETECTED!"
+            phrase = f"{CLASS_TO_TRACK.upper()} DETECTED!"
             print(f"{phrase} {user_data.start_centroid} at: {datetime.datetime.now()}")         
             playsound("alert.mp3",0)
     else:
@@ -137,25 +150,34 @@ def app_callback(pad, info, user_data):
             user_data.max_instances = 0
             user_data.end_centroid = user_data.object_centroid
             direction = user_data.end_centroid.subtract(user_data.start_centroid).direction()
-            print(f"{user_data.class_to_track.upper()} Gone at: {user_data.end_centroid} time: {datetime.datetime.now()} direction: {direction} degrees")
+            print(f"{CLASS_TO_TRACK.upper()} Gone at: {user_data.end_centroid} time: {datetime.datetime.now()} direction: {direction} degrees")
 
     if user_data.is_it_active:
         # It's possible that the number of instances detected in a frame is greater than the previous value
         if detection_instance_count > user_data.max_instances:
             user_data.max_instances = detection_instance_count
-            print(f"{user_data.class_to_track.upper()} count is {user_data.max_instances}")
+            print(f"{CLASS_TO_TRACK.upper()} count is {user_data.max_instances}")
 
             # Save the current frame image
             if frame is not None:
                 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                class_to_track = user_data.class_to_track
-                os.makedirs(f"images/{class_to_track}", exist_ok=True)
-                cv2.imwrite(f"images/{class_to_track}/{timestamp}_{user_data.class_to_track}x{detection_instance_count}.jpg", frame)
+                os.makedirs(f"images/{CLASS_TO_TRACK}", exist_ok=True)
+                cv2.imwrite(f"images/{CLASS_TO_TRACK}/{timestamp}_{CLASS_TO_TRACK}x{detection_instance_count}.jpg", frame)
 
     
     return Gst.PadProbeReturn.OK
 
 def get_avg_centroid(class_detections):
+    """
+    Calculate the average centroid of a list of class detections.
+    Args:
+        class_detections (list): A list of detection objects, each containing a bounding box.
+    Returns:
+        Point2D: The average centroid point of the given detections.
+    Raises:
+        ValueError: If class_detections is empty.
+    """
+    # Your code implementation here
     centroids = []
     for detection in class_detections:
         bbox = detection.get_bbox()

@@ -124,7 +124,7 @@ def get_default_parser():
         For RPi camera use '-i rpi' (Still in Beta). \
         Defaults to example video resources/detection0.mp4"
     )
-    parser.add_argument("--use-frame", "-u", action="store_true", help="Use frame from the callback function")
+    parser.add_argument("--use-frame", "-u", action="store_true", default=True, help="Use frame from the callback function")
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
     parser.add_argument(
             "--arch",

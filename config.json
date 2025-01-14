@@ -1,0 +1,6 @@
+{
+    "CLASS_TO_TRACK": "bicycle",
+    "CLASS_DETECTED_COUNT": 4,
+    "CLASS_GONE_COUNT": 12,
+    "CLASS_MATCH_CONFIDENCE": 0.4
+}

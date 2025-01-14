@@ -6,7 +6,6 @@
          "type": "debugpy",
          "request": "launch",
          "program": "${file}",
-         "args": ["--input", "rpi", "--class-to-track", "car", "--use-frame"],
          "console": "integratedTerminal"
        }
      ]
