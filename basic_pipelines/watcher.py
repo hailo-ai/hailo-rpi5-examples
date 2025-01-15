@@ -30,6 +30,7 @@ CLASS_MATCH_CONFIDENCE = config.get('CLASS_MATCH_CONFIDENCE', 0.4)
 CLASS_TO_TRACK = config.get('CLASS_TO_TRACK', 'dog')
 SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
 SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
+SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
 
 class Point2D:
     def __init__(self, x, y):
@@ -78,6 +79,34 @@ class user_app_callback_class(app_callback_class):
         tts.save("alert.mp3")
 
         print(f"Looking for {CLASS_TO_TRACK.upper()}")
+
+        # Initialize video writer
+        self.video_writer = None
+        self.video_filename = None
+
+    def start_recording(self, frame, width, height):
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        video_dir = f"videos/{CLASS_TO_TRACK}"
+        os.makedirs(video_dir, exist_ok=True)
+        self.video_filename = f"{video_dir}/{timestamp}_{CLASS_TO_TRACK}.mp4"
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        self.video_writer = cv2.VideoWriter(self.video_filename, fourcc, 20.0, (width, height))
+        self.video_writer.write(frame)
+
+    def draw_detection_boxes(self, detections, frame, width, height):
+        if frame is not None and SHOW_DETECTION_BOXES:
+            for detection in detections:
+                bbox = detection.get_bbox()
+                cv2.rectangle(frame, 
+                              (int(bbox.xmin() * width), int(bbox.ymin() * height)), 
+                              (int(bbox.xmax() * width), int(bbox.ymax() * height)), 
+                              (0, 0, 255), 1)
+
+    def stop_recording(self):
+        if self.video_writer is not None:
+            self.video_writer.release()
+            self.video_writer = None
+            print(f"Video saved as {self.video_filename}")
      
     def get_average_detection_instance_count(self):
         if self.active_detection_count == 0:
@@ -172,19 +201,21 @@ def app_callback(pad, info, user_data):
             print(f"{CLASS_TO_TRACK.upper()} GONE at: {user_data.end_centroid} time: {datetime.datetime.now()}, area: {user_data.end_area:.3f}, direction: {direction:.1f} degrees, avg count: {avg_detection_count:.2f}")
 
     if user_data.is_it_active:
+        # If video recording has not started and a frame is available, start recording
+        if SAVE_DETECTION_VIDEO and user_data.video_writer is None and frame is not None:
+            user_data.start_recording(frame, width, height)
+        
+        # If a frame is availabl write the frame to the video
+        if frame is not None and user_data.video_writer is not None:
+            user_data.video_writer.write(frame)
+
         # It's possible that the number of instances detected in a frame is greater than the previous value
         if detection_instance_count > user_data.max_instances:
             user_data.max_instances = detection_instance_count
             print(f"{CLASS_TO_TRACK.upper()} count: {user_data.max_instances}, area: {user_data.object_area}")
 
-            # Draw bounding boxes on the frame if SHOW_DETECTION_BOXES is True
-            if frame is not None and SHOW_DETECTION_BOXES:
-                for detection in class_detections:
-                    bbox = detection.get_bbox()
-                    cv2.rectangle(frame, 
-                                (int(bbox.xmin() * width), int(bbox.ymin() * height)), 
-                                (int(bbox.xmax() * width), int(bbox.ymax() * height)), 
-                                (0, 0, 255), 1)
+            if SHOW_DETECTION_BOXES and frame is not None:
+                user_data.draw_detection_boxes(class_detections, frame, width, height)
 
             # Save the current frame image if SAVE_DETECTION_IMAGES is True
             if frame is not None and SAVE_DETECTION_IMAGES:
@@ -196,6 +227,9 @@ def app_callback(pad, info, user_data):
         if detection_instance_count > 0:
             user_data.total_detection_instances += detection_instance_count
             user_data.active_detection_count += 1
+    else:
+        if user_data.video_writer is not None:
+            user_data.stop_recording()
 
     return Gst.PadProbeReturn.OK
 

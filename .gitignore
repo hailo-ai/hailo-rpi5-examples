@@ -169,5 +169,6 @@ alert.mp3
 # GstShark
 gstshark*
 
-# Temporary images
+# Temporary images and videos
 images/
+videos/
