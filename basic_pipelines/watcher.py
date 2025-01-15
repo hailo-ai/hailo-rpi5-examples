@@ -32,7 +32,6 @@ ALIAS_CLASSES_TO_ALLOW = config.get('ALIAS_CLASSES_TO_ALLOW', [])
 SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
 SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
-SAVE_ALL_DETECTION_IMAGES = config.get('SAVE_ALL_DETECTION_IMAGES', False)
 
 class Point2D:
     def __init__(self, x, y):
@@ -96,14 +95,14 @@ class user_app_callback_class(app_callback_class):
         self.video_writer = cv2.VideoWriter(video_filename, fourcc, 20.0, (width, height))
 
     def write_video_frame(self, frame):
-        if self.video_writer is not None:
+        if self.video_writer is not None and self.current_frame is not None:
             self.video_writer.write(frame)
 
-    def draw_detection_boxes(self, detections, frame, width, height):
-        if frame is not None and SHOW_DETECTION_BOXES:
+    def draw_detection_boxes(self, detections, width, height):
+        if self.current_frame is not None and SHOW_DETECTION_BOXES:
             for detection in detections:
                 bbox = detection.get_bbox()
-                cv2.rectangle(frame, 
+                cv2.rectangle(self.current_frame, 
                               (int(bbox.xmin() * width), int(bbox.ymin() * height)), 
                               (int(bbox.xmax() * width), int(bbox.ymax() * height)), 
                               (0, 0, 255), 1)
@@ -120,87 +119,67 @@ class user_app_callback_class(app_callback_class):
             return 0
         return self.total_detection_instances / self.active_detection_count
 
-    def start_active_tracking(self, class_detections, frame):
+    def start_active_tracking(self, class_detections):
         self.is_active_tracking = True
         self.max_instances = len(class_detections)
         self.start_centroid = self.object_centroid
         self.start_area = self.object_area
-        self.start_frame = self.detection_frame
+        self.save_frame = self.current_frame
+        self.active_timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
 
         # Draw detection boxes on the frame if SHOW_DETECTION_BOXES is True
-        if frame is not None and SHOW_DETECTION_BOXES:
-            self.draw_detection_boxes(class_detections, frame, self.width, self.height)
+        if self.current_frame is not None and SHOW_DETECTION_BOXES:
+            self.draw_detection_boxes(class_detections, self.width, self.height)
 
-        # Save the current frame image if SAVE_DETECTION_IMAGES is True
-        if frame is not None and SAVE_DETECTION_IMAGES:
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-            os.makedirs(f"images/{CLASS_TO_TRACK}", exist_ok=True)
-            self.image_filename = f"images/{CLASS_TO_TRACK}/{timestamp}_{CLASS_TO_TRACK}x{self.max_instances}.jpg"
-            cv2.imwrite(self.image_filename, frame)
-
-            # Start recording video if SAVE_DETECTION_VIDEO and self.video_writer is None and frame is not None:
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Start recording video if SAVE_DETECTION_VIDEO and self.video_writer is None and frame is not None:
+        if SAVE_DETECTION_VIDEO and self.video_writer is None and self.current_frame is not None:
             video_dir = f"videos/{CLASS_TO_TRACK}"
             os.makedirs(video_dir, exist_ok=True)
-            video_filename = f"{video_dir}/{timestamp}_{CLASS_TO_TRACK}.mp4"
+            video_filename = f"{video_dir}/{self.active_timestamp}_{CLASS_TO_TRACK}.mp4"
             self.start_video_recording(self.width, self.height, video_filename)
 
         phrase = f"{CLASS_TO_TRACK.upper()} DETECTED"
         print(f"{phrase} {self.start_centroid} at: {datetime.datetime.now()}")
         playsound("alert.mp3", 0)
 
-    def active_tracking(self, class_detections, frame):
+    def active_tracking(self, class_detections):
         # If a frame is available, write the frame to the video
-        if frame is not None:
-            self.write_video_frame(frame)
-
-            # Draw detection boxes on the frame if SHOW_DETECTION_BOXES is True
-            if SHOW_DETECTION_BOXES:
-                self.draw_detection_boxes(class_detections, frame, self.width, self.height)
+        if self.current_frame is not None:
+            self.write_video_frame(self.current_frame)
 
         # Update total detection instances and active detection count for later averaging
         detection_instance_count = len(class_detections)
         if detection_instance_count > 0:
+            # Draw detection boxes on the frame if SHOW_DETECTION_BOXES is True
+            if SHOW_DETECTION_BOXES:
+                self.draw_detection_boxes(class_detections, self.width, self.height)
             self.total_detection_instances += detection_instance_count
             self.active_detection_count += 1
             if detection_instance_count > self.max_instances:
                 self.max_instances = detection_instance_count
-                            
-                # Save the current frame image if SAVE_DETECTION_IMAGES is True
-                if frame is not None and (SAVE_DETECTION_IMAGES):
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-                    os.makedirs(f"images/{CLASS_TO_TRACK}", exist_ok=True)
-                    self.image_filename = f"images/{CLASS_TO_TRACK}/{timestamp}_{CLASS_TO_TRACK}x{self.max_instances}.jpg"
-                    cv2.imwrite(self.image_filename, frame)
-
-            # Save the current frame image if SAVE_ALL_DETECTION_IMAGES is True
-            if frame is not None and (SAVE_ALL_DETECTION_IMAGES):
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-                os.makedirs(f"images/{CLASS_TO_TRACK}", exist_ok=True)
-                self.image_filename = f"images/{CLASS_TO_TRACK}/{timestamp}_{CLASS_TO_TRACK}.jpg"
-                cv2.imwrite(self.image_filename, frame)
+                self.save_frame = self.detection_frame
 
     def stop_active_tracking(self):
         self.is_active_tracking = False
         self.end_centroid = self.object_centroid
         self.end_area = self.object_area
-        self.end_frame = self.detection_frame
 
         direction = self.end_centroid.subtract(self.start_centroid).direction()
         avg_detection_count = self.get_average_detection_instance_count()
         print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, area: {self.end_area:.3f}, direction: {direction:.1f} degrees, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}")
 
         # Stop any video recording and rename the file to include the average count
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        final_filename = f"videos/{CLASS_TO_TRACK}/{timestamp}_{CLASS_TO_TRACK}x{self.max_instances}({avg_detection_count:.2f}).mp4"
+        final_filename = f"videos/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}x{self.max_instances}({avg_detection_count:.2f}).mp4"
         self.stop_video_recording(final_filename)
 
-        # Rename the image file to include the average count
-        if SAVE_DETECTION_IMAGES:
-            final_image_filename = self.image_filename.replace(f"{CLASS_TO_TRACK}x{self.max_instances}.jpg", f"{CLASS_TO_TRACK}x{self.max_instances}({avg_detection_count:.2f}).jpg")
-            os.rename(self.image_filename, final_image_filename)
+        # Save the frame with the most instances if SAVE_DETECTION_IMAGES is True
+        if self.save_frame is not None and SAVE_DETECTION_IMAGES:
+            self.image_filename = f"images/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}x{self.max_instances}({avg_detection_count:.2f}).jpg"
+            cv2.imwrite(self.image_filename, self.save_frame)
+            print(f"Image saved as {self.image_filename}")
 
         self.max_instances = 0
+        self.save_frame = None
 
     def get_avg_centroid(self, class_detections):
         """
@@ -274,10 +253,9 @@ def app_callback(pad, info, user_data):
     user_data.format, user_data.width, user_data.height = get_caps_from_pad(pad)
     
     # If the user_data.use_frame is set to True, we can get the video frame from the buffer
-    frame = None
     if user_data.use_frame and user_data.format is not None and user_data.width is not None and user_data.height is not None:
-        frame = get_numpy_from_buffer(buffer, user_data.format, user_data.width, user_data.height)
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        user_data.current_frame = get_numpy_from_buffer(buffer, user_data.format, user_data.width, user_data.height)
+        user_data.current_frame = cv2.cvtColor(user_data.current_frame, cv2.COLOR_RGB2BGR)
     
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
@@ -295,7 +273,7 @@ def app_callback(pad, info, user_data):
         object_detected = True
         user_data.object_centroid = user_data.get_avg_centroid(class_detections).round()
         user_data.object_area = user_data.get_total_bbox_area(class_detections)
-        user_data.detection_frame = frame
+        user_data.detection_frame = user_data.current_frame
 
     # Debouncing logic to start/stop active tracking
     if object_detected:
@@ -304,7 +282,7 @@ def app_callback(pad, info, user_data):
         
         # Only activate after CLASS_DETECTED_COUNT consecutive frames with detections
         if user_data.detection_counter >= CLASS_DETECTED_COUNT and not user_data.is_active_tracking:
-            user_data.start_active_tracking(class_detections, frame)
+            user_data.start_active_tracking(class_detections)
     else:
         user_data.no_detection_counter += 1
         user_data.detection_counter = 0
@@ -315,7 +293,7 @@ def app_callback(pad, info, user_data):
 
     # Active tracking
     if user_data.is_active_tracking:
-        user_data.active_tracking(class_detections, frame)
+        user_data.active_tracking(class_detections)
 
     return Gst.PadProbeReturn.OK
 

@@ -172,3 +172,6 @@ gstshark*
 # Temporary images and videos
 images/
 videos/
+
+# Temporary models
+default.mdl
