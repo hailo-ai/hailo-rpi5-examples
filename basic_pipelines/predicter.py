@@ -1,52 +1,96 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import SGDClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 import joblib
+import os
+from datetime import datetime
+import random
 
 class Predictor:
 
     def __init__(self, model_filename='default.mdl'):
         self.model = self._create_model()
         self.model_filename = model_filename
+        self.label_encoder = LabelEncoder()
+        self.scaler = StandardScaler()
         self.load_model()
 
     def _create_model(self):
         # Initialize the model
-        self.scaler = StandardScaler()
-        self.model = SGDClassifier(loss='log_loss')
-        return self.model
+        return SGDClassifier(loss='log_loss')
 
-    def learn(self, new_record, new_label):
-        # Fit the scaler on the new record and transform it
-        new_record = self.scaler.fit_transform([new_record])
-        # Incrementally train the model
-        self.model.partial_fit(new_record, [new_label], classes=np.unique([0, 1]))
-        # Save the model after learning
+    def train(self, directory):
+        records = []
+        labels = []
+        for filename in os.listdir(directory):
+            if filename.endswith(".jpg"):
+                try:
+                    # Extract record information from the filename
+                    parts = filename.split('_')
+                    if len(parts) == 4:
+                        date_str, time_str, milli_str, class_str = parts
+                        date_obj = datetime.strptime(date_str, "%Y%m%d")
+                        day_of_week = date_obj.weekday()  # Monday is 0 and Sunday is 6
+                        hour = int(time_str[:2])
+                        minute = int(time_str[2:4])
+                        time_of_day = hour * 60 + minute
+                        classname, counts = class_str.split('x')
+                        maxcount, avgcount = counts.split('(')
+                        avgcount, ext = avgcount.split(')')
+                        direction = 90
+                        record = [day_of_week, time_of_day, int(maxcount), float(avgcount), int(direction)]
+                        label = classname
+                        records.append(record)
+                        labels.append(label)
+                        print(f"Added file: {filename} ({record}, {label})")
+                    else:
+                        pass
+                        # print(f"Ignored file: {filename} (incorrect format)")
+                except Exception as e:
+                    pass
+                    # print(f"Error parsing file: {filename} ({e}), file ignored")
+        
+        # Encode labels
+        encoded_labels = self.label_encoder.fit_transform(labels)
+        
+        # Convert records to DataFrame for easier manipulation
+        df = pd.DataFrame(records, columns=['day_of_week', 'time_of_day', 'maxcount', 'avgcount', 'direction'])
+        
+        # Scale the features
+        scaled_features = self.scaler.fit_transform(df)
+        
+        # Train the model
+        self.model.partial_fit(scaled_features, encoded_labels, classes=np.unique(encoded_labels))
+        
+        # Save the model
         self.save_model()
-  
-    def predict_probability(self, new_record, label):
-        # Transform the new record using the scaler
-        new_record = self.scaler.transform([new_record])
-        try:
-            # Predict the probabilities
-            probabilities = self.model.predict_proba(new_record)
-            # Get the index of the label
-            label_index = self.model.classes_.tolist().index(label)
-            # Get the probability of the given label
-            probability = probabilities[0][label_index]
-        except NotImplementedError:
-            raise ValueError("The model is not trained with a loss function that supports probability prediction.")
+
+    def predict(self, record, label):
+        # Convert record to DataFrame
+        df = pd.DataFrame([record], columns=['day_of_week', 'time_of_day', 'maxcount', 'avgcount', 'direction'])
+        
+        # Scale the features
+        scaled_features = self.scaler.transform(df)
+        
+        # Encode the label
+        encoded_label = self.label_encoder.transform([label])[0]
+        
+        # Predict the probability
+        probabilities = self.model.predict_proba(scaled_features)
+        label_index = np.where(self.model.classes_ == encoded_label)[0][0]
+        probability = probabilities[0][label_index]
+        
         return probability
 
     def save_model(self):
-        # Save the model and scaler to disk
-        joblib.dump((self.model, self.scaler), self.model_filename)
+        # Save the model, scaler, and label encoder to disk
+        joblib.dump((self.model, self.scaler, self.label_encoder), self.model_filename)
 
     def load_model(self):
-        # Load the model and scaler from disk if the file exists
+        # Load the model, scaler, and label encoder from disk if the file exists
         try:
-            self.model, self.scaler = joblib.load(self.model_filename)
+            self.model, self.scaler, self.label_encoder = joblib.load(self.model_filename)
         except FileNotFoundError:
             pass
 
@@ -54,20 +98,13 @@ if __name__ == "__main__":
     # Create an instance of the Predictor class
     predictor = Predictor()
 
-    # Generate random data for testing
-    np.random.seed(42)
-    for _ in range(100):
-        record = [
-            np.random.randint(1, 8),  # daynum
-            np.random.uniform(0, 24),  # time_of_day
-            np.random.uniform(0, 360),  # direction
-            np.random.uniform(0, 10),  # avg_instance_count
-            np.random.uniform(0, 10)  # max_instance_count
-        ]
-        label = np.random.choice([0, 1])
-        predictor.learn(record, label)
+    # Train the model with data from a directory
+    predictor.train('images/dog')
 
     # Example record for prediction
-    test_record = [3, 12.5, 45.0, 3.2, 5]
-    probability = predictor.predict_probability(test_record, 1)
-    print(f"Probability of the record matching the label '1': {probability:.2f}")
+    test_record = [2, 1145, 2, 1.18, 90]  # 0 is Monday, 870 minutes after midnight is 14:30
+    label = 'dog'
+    probability = predictor.predict(test_record, label)
+    print(f"Probability of the record matching the label '{label}': {probability:.2f}")
+
+
