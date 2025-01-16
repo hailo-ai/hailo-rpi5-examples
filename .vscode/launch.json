@@ -18,7 +18,7 @@
             //"program": "${workspaceFolder}/basic_pipelines/predicter.py",
             "console": "integratedTerminal",
             "args": ["--input", "rpi"],
-            //"args": ["--input", "videos/dog/output2.mp4"],
+            // "args": ["--input", "videos/dog/output1.mp4"],
             // "args": ["--hide-overlay"]
         }
     ]

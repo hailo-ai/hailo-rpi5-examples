@@ -51,7 +51,8 @@ class Point2D:
         return (self.x**2 + self.y**2)**0.5
 
     def direction(self):
-        return math.degrees(math.atan2(self.y, self.x))
+        angle = math.degrees(math.atan2(self.y, self.x))
+        return angle if angle >= 0 else angle + 360
 
 # Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
@@ -160,26 +161,32 @@ class user_app_callback_class(app_callback_class):
                 self.save_frame = self.detection_frame
 
     def stop_active_tracking(self):
+        
         self.is_active_tracking = False
         self.end_centroid = self.object_centroid
         self.end_area = self.object_area
 
-        direction = self.end_centroid.subtract(self.start_centroid).direction()
+        if self.start_centroid is not None:
+            direction = self.end_centroid.subtract(self.start_centroid).direction()
+        else:
+            direction = None
         avg_detection_count = self.get_average_detection_instance_count()
-        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, area: {self.end_area:.3f}, direction: {direction:.1f} degrees, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}")
+        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, area: {self.end_area:.3f}, direction: {direction:.0f} degrees, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}")
 
         # Stop any video recording and rename the file to include the average count
-        final_filename = f"videos/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}x{self.max_instances}({avg_detection_count:.2f}).mp4"
+        final_filename = f"videos/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{direction:.0f}).mp4"
         self.stop_video_recording(final_filename)
 
         # Save the frame with the most instances if SAVE_DETECTION_IMAGES is True
         if self.save_frame is not None and SAVE_DETECTION_IMAGES:
-            self.image_filename = f"images/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}x{self.max_instances}({avg_detection_count:.2f}).jpg"
+            self.image_filename = f"images/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{direction:.0f}.jpg"
             cv2.imwrite(self.image_filename, self.save_frame)
             print(f"Image saved as {self.image_filename}")
 
         self.max_instances = 0
         self.save_frame = None
+        self.object_centroid = None
+        self.object_area = None
 
     def get_avg_centroid(self, class_detections):
         """
