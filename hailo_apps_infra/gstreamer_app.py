@@ -90,6 +90,7 @@ class GStreamerApp:
         self.pipeline = None
         self.loop = None
         self.threads = []
+        self.error_occurred = False
 
         # Set Hailo parameters; these parameters should be set based on the model used
         self.batch_size = 1
@@ -120,8 +121,7 @@ class GStreamerApp:
         try:
             self.pipeline = Gst.parse_launch(pipeline_string)
         except Exception as e:
-            print(e)
-            print(pipeline_string)
+            print(f"Error creating pipeline: {e}", file=sys.stderr)
             sys.exit(1)
 
         # Connect to hailo_display fps-measurements
@@ -139,7 +139,8 @@ class GStreamerApp:
             self.on_eos()
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
-            print(f"Error: {err}, {debug}")
+            print(f"Error: {err}, {debug}", file=sys.stderr)
+            self.error_occurred = True
             self.shutdown()
         # QOS
         elif t == Gst.MessageType.QOS:
@@ -156,7 +157,7 @@ class GStreamerApp:
             if success:
                 print("Video rewound successfully. Restarting playback...")
             else:
-                print("Error rewinding the video.")
+                print("Error rewinding the video.", file=sys.stderr)
         else:
             self.shutdown()
 
@@ -213,6 +214,7 @@ class GStreamerApp:
             picam_thread = threading.Thread(target=picamera_thread, args=(self.pipeline, self.video_width, self.video_height, self.video_format))
             self.threads.append(picam_thread)
             picam_thread.start()
+
         # Set pipeline to PLAYING state
         self.pipeline.set_state(Gst.State.PLAYING)
 
@@ -224,13 +226,23 @@ class GStreamerApp:
         self.loop.run()
 
         # Clean up
-        self.user_data.running = False
-        self.pipeline.set_state(Gst.State.NULL)
-        if self.options_menu.use_frame:
-            display_process.terminate()
-            display_process.join()
-        for t in self.threads:
-            t.join()
+        try:
+            self.user_data.running = False
+            self.pipeline.set_state(Gst.State.NULL)
+            if self.options_menu.use_frame:
+                display_process.terminate()
+                display_process.join()
+            for t in self.threads:
+                t.join()
+        except Exception as e:
+            print(f"Error during cleanup: {e}", file=sys.stderr)
+        finally:
+            if self.error_occurred:
+                print("Exiting with error...", file=sys.stderr)
+                sys.exit(1)
+            else:
+                print("Exiting...")
+                sys.exit(0)
 
 def picamera_thread(pipeline, video_width, video_height, video_format, picamera_config=None):
     appsrc = pipeline.get_by_name("app_source")

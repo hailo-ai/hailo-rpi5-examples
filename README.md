@@ -1,3 +1,4 @@
+![](doc/images/github_applications_infrastructure.png)
 # Hailo Applications Infrastructure
 
 This repository provides the core infrastructure and pipelines required to run Hailo application examples.

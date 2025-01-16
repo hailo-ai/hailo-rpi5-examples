@@ -205,6 +205,25 @@ def INFERENCE_PIPELINE_WRAPPER(inner_pipeline, bypass_max_size_buffers=20, name=
 
     return inference_wrapper_pipeline
 
+def OVERLAY_PIPELINE(name='hailo_overlay'):
+    """
+    Creates a GStreamer pipeline string for the hailooverlay element.
+    This pipeline is used to draw bounding boxes and labels on the video.
+
+    Args:
+        name (str, optional): The prefix name for the pipeline elements. Defaults to 'hailo_overlay'.
+
+    Returns:
+        str: A string representing the GStreamer pipeline for the hailooverlay element.
+    """
+    # Construct the overlay pipeline string
+    overlay_pipeline = (
+        f'{QUEUE(name=f"{name}_q")} ! '
+        f'hailooverlay name={name} '
+    )
+
+    return overlay_pipeline
+
 def DISPLAY_PIPELINE(video_sink='autovideosink', sync='true', show_fps='false', name='hailo_display'):
     """
     Creates a GStreamer pipeline string for displaying the video.
@@ -221,8 +240,7 @@ def DISPLAY_PIPELINE(video_sink='autovideosink', sync='true', show_fps='false', 
     """
     # Construct the display pipeline string
     display_pipeline = (
-        f'{QUEUE(name=f"{name}_hailooverlay_q")} ! '
-        f'hailooverlay name={name}_hailooverlay ! '
+        f'{OVERLAY_PIPELINE(name=f"{name}_overlay")} ! '
         f'{QUEUE(name=f"{name}_videoconvert_q")} ! '
         f'videoconvert name={name}_videoconvert n-threads=2 qos=false ! '
         f'{QUEUE(name=f"{name}_q")} ! '
@@ -230,6 +248,32 @@ def DISPLAY_PIPELINE(video_sink='autovideosink', sync='true', show_fps='false', 
     )
 
     return display_pipeline
+
+def FILE_SINK_PIPELINE(output_file='output.mkv', name='file_sink', bitrate=5000):
+    """
+    Creates a GStreamer pipeline string for saving the video to a file in .mkv format.
+    It it recommended run ffmpeg to fix the file header after recording.
+    example: ffmpeg -i output.mkv -c copy fixed_output.mkv
+    Note: If your source is a file, looping will not work with this pipeline.
+    Args:
+        output_file (str): The path to the output file.
+        name (str, optional): The prefix name for the pipeline elements. Defaults to 'file_sink'.
+        bitrate (int, optional): The bitrate for the encoder. Defaults to 5000.
+
+    Returns:
+        str: A string representing the GStreamer pipeline for saving the video to a file.
+    """
+    # Construct the file sink pipeline string
+    file_sink_pipeline = (
+        f'{QUEUE(name=f"{name}_videoconvert_q")} ! '
+        f'videoconvert name={name}_videoconvert n-threads=2 qos=false ! '
+        f'{QUEUE(name=f"{name}_encoder_q")} ! '
+        f'x264enc tune=zerolatency bitrate={bitrate} ! '
+        f'matroskamux ! '
+        f'filesink location={output_file} '
+    )
+
+    return file_sink_pipeline
 
 def USER_CALLBACK_PIPELINE(name='identity_callback'):
     """
@@ -309,7 +353,7 @@ def CROPPER_PIPELINE(
         str: A pipeline string representing hailocropper + aggregator around the inner_pipeline.
     """
     return (
-        f'queue name={name}_input_q ! '
+        f'{QUEUE(name=f"{name}_input_q")} ! '
         f'hailocropper name={name}_cropper '
         f'so-path={so_path} '
         f'function-name={function_name} '
@@ -319,9 +363,10 @@ def CROPPER_PIPELINE(
         f'resize-method={resize_method} '
         f'hailoaggregator name={name}_agg '
         # bypass
-        f'{name}_cropper. ! queue name={name}_bypass_q max-size-buffers={bypass_max_size_buffers} ! {name}_agg.sink_0 '
+        f'{name}_cropper. ! '
+        f'{QUEUE(name=f"{name}_bypass_q", max_size_buffers=bypass_max_size_buffers)} ! {name}_agg.sink_0 '
         # pipeline for the actual inference
         f'{name}_cropper. ! {inner_pipeline} ! {name}_agg.sink_1 '
         # aggregator output
-        f'{name}_agg. ! queue name={name}_output_q '
+        f'{name}_agg. ! {QUEUE(name=f"{name}_output_q")} '
     )

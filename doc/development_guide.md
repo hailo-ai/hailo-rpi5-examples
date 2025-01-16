@@ -159,6 +159,29 @@ Use the `CROPPER_PIPELINE` function to add a cropper stage to your pipeline, ena
 
 **For more details, refer to the [`CROPPER_PIPELINE` function in `gstreamer_helper_pipelines.py`](hailo_apps_infra/gstreamer_helper_pipelines.py).**
 
+### `FILE_SINK_PIPELINE`
+
+**Description:**
+Creates a GStreamer pipeline string for saving video output to a file in `.mkv` format. This function is useful for recording the processed video stream to a file for later analysis or playback.
+Note: If your source is a file, looping will not work with this pipeline.
+
+**Key Features:**
+- **Video Conversion:** Converts the video to a suitable format for encoding.
+- **Encoding:** Encodes the video using the `x264enc` encoder with a specified bitrate.
+- **Muxing:** Muxes the encoded video into a Matroska (`.mkv`) container.
+- **File Output:** Saves the muxed video to a specified file location.
+
+**Usage:**
+To use the `FILE_SINK_PIPELINE` function, integrate it into your GStreamer pipeline. Below is an example of how to use this function in a custom GStreamer application.
+
+**Post-Processing:**
+After recording the video, it is recommended to run `ffmpeg` to fix the file header. This step ensures that the recorded video file is properly formatted and playable.
+```bash
+ffmpeg -i output.mkv -c copy fixed_output.mkv
+```
+
+**For more details, refer to the [`FILE_SINK_PIPELINE` function in `gstreamer_helper_pipelines.py`](hailo_apps_infra/gstreamer_helper_pipelines.py).**
+
 
 ## Running with Different Input Sources
 By default, pipelines will use an example video source. You can change the input source using the `--input` flag.
