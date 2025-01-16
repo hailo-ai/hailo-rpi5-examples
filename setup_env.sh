@@ -24,8 +24,14 @@ is_sourced() {
 if is_sourced; then
     echo "Setting up the environment..."
 
-    # Check if we are working with hailo_tappas or hailo-tappas-core
-    if pkg-config --exists hailo_tappas; then
+    # Check if we are working with hailo-tappas-core or hailo_tappas
+    if pkg-config --exists hailo-tappas-core; then
+        TAPPAS_CORE=1
+        VENV_NAME=$CORE_VENV_NAME
+        REQUIRED_VERSION=("${CORE_REQUIRED_VERSION[@]}")
+        echo "Setting up the environment for hailo-tappas-core..."
+        TAPPAS_VERSION=$(pkg-config --modversion hailo-tappas-core)
+    else
         TAPPAS_CORE=0
         REQUIRED_VERSION=("${TAPPAS_REQUIRED_VERSION[@]}")
         echo "Setting up the environment for hailo_tappas..."
@@ -38,12 +44,6 @@ if is_sourced; then
         else
             VENV_NAME=$TAPPAS_VENV_NAME
         fi
-    else
-        TAPPAS_CORE=1
-        VENV_NAME=$CORE_VENV_NAME
-        REQUIRED_VERSION=("${CORE_REQUIRED_VERSION[@]}")
-        echo "Setting up the environment for hailo-tappas-core..."
-        TAPPAS_VERSION=$(pkg-config --modversion hailo-tappas-core)
     fi
 
     # Check if TAPPAS_VERSION is in REQUIRED_VERSION
