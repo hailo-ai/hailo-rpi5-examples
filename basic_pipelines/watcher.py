@@ -74,6 +74,9 @@ class user_app_callback_class(app_callback_class):
         self.total_detection_instances = 0
         self.active_detection_count = 0
 
+        # Variables for computing moving average of velocity
+        self.centroid_history = []
+
         # Setup speech file
         # make request to google to get synthesis
         tts = gtts.gTTS(f"Its a {CLASS_TO_TRACK.upper()}")
@@ -123,6 +126,7 @@ class user_app_callback_class(app_callback_class):
     def start_active_tracking(self, class_detections):
         self.is_active_tracking = True
         self.max_instances = len(class_detections)
+        self.centroid_history = []
         self.start_centroid = self.object_centroid
         self.start_area = self.object_area
         self.save_frame = self.current_frame
@@ -160,26 +164,28 @@ class user_app_callback_class(app_callback_class):
                 self.max_instances = detection_instance_count
                 self.save_frame = self.detection_frame
 
+        # Update centroid history for velocity calculation
+        if self.object_centroid is not None:
+            self.centroid_history.append(self.object_centroid)
+
     def stop_active_tracking(self):
         
         self.is_active_tracking = False
         self.end_centroid = self.object_centroid
         self.end_area = self.object_area
 
-        if self.start_centroid is not None:
-            direction = self.end_centroid.subtract(self.start_centroid).direction()
-        else:
-            direction = None
         avg_detection_count = self.get_average_detection_instance_count()
-        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, area: {self.end_area:.3f}, direction: {direction:.0f} degrees, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}")
+        avg_velocity = self.get_average_velocity()
+        avg_velocity_direction = avg_velocity.direction()
+        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, area: {self.end_area:.3f}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction:.0f}")
 
         # Stop any video recording and rename the file to include the average count
-        final_filename = f"videos/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{direction:.0f}).mp4"
+        final_filename = f"videos/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{avg_velocity_direction:.0f}).mp4"
         self.stop_video_recording(final_filename)
 
         # Save the frame with the most instances if SAVE_DETECTION_IMAGES is True
         if self.save_frame is not None and SAVE_DETECTION_IMAGES:
-            self.image_filename = f"images/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{direction:.0f}.jpg"
+            self.image_filename = f"images/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{avg_velocity_direction:.0f}.jpg"
             cv2.imwrite(self.image_filename, self.save_frame)
             print(f"Image saved as {self.image_filename}")
 
@@ -187,6 +193,7 @@ class user_app_callback_class(app_callback_class):
         self.save_frame = None
         self.object_centroid = None
         self.object_area = None
+        self.centroid_history = []
 
     def get_avg_centroid(self, class_detections):
         """
@@ -226,6 +233,25 @@ class user_app_callback_class(app_callback_class):
             height = bbox.ymax() - bbox.ymin()
             total_area += width * height
         return total_area
+
+    def get_average_velocity(self):
+        """
+        Calculate the moving average of the velocity of the object centroids.
+        Returns:
+            Point2D: The average velocity of the object centroids as a 2D vector.
+        """
+        if len(self.centroid_history) < 2:
+            return Point2D(0.0, 0.0)
+
+        velocities = []
+        for i in range(1, len(self.centroid_history)):
+            delta = self.centroid_history[i].subtract(self.centroid_history[i-1])
+            velocities.append(delta)
+
+        avg_velocity_x = sum(velocity.x for velocity in velocities) / len(velocities)
+        avg_velocity_y = sum(velocity.y for velocity in velocities) / len(velocities)
+
+        return Point2D(avg_velocity_x, avg_velocity_y)
 
 
 def app_callback(pad, info, user_data):

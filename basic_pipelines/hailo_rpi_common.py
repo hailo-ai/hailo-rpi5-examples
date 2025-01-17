@@ -215,8 +215,8 @@ def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_hei
         f'videoscale name={name}_videoscale n-threads=2 ! '
         f'{QUEUE(name=f"{name}_convert_q")} ! '
         f'videoconvert n-threads=3 name={name}_convert qos=false ! '
-        f'video/x-raw, format={video_format}, pixel-aspect-ratio=1/1 ! '
-        # f'video/x-raw, format={video_format}, width={video_width}, height={video_height} ! '
+        f'video/x-raw, format={video_format}, pixel-aspect-ratio=1/1, width={video_width}, height={video_height} ! '
+        # f'videorate ! video/x-raw, framerate=2/1 ! '
     )
 
     return source_pipeline
