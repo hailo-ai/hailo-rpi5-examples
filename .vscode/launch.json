@@ -15,7 +15,6 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/basic_pipelines/watcher.py",
-            //"program": "${workspaceFolder}/basic_pipelines/predicter.py",
             "console": "integratedTerminal",
             "args": ["--input", "rpi"],
             // "args": ["--input", "videos/dog/output1.mp4"],

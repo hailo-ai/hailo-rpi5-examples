@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import SGDClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import joblib
 import os
@@ -20,7 +20,7 @@ class Predictor:
 
     def _create_model(self):
         # Initialize the model
-        return SGDClassifier(loss='log_loss')
+        return DecisionTreeClassifier()
 
     def load_data_from_directory(self, directory):
         leaf_directory = os.path.basename(os.path.normpath(directory))
@@ -63,7 +63,7 @@ class Predictor:
         scaled_features = self.scaler.fit_transform(df)
         
         # Train the model
-        self.model.partial_fit(scaled_features, encoded_labels, classes=np.unique(encoded_labels))
+        self.model.fit(scaled_features, encoded_labels)
         
         # Save the model
         self.save_model()
