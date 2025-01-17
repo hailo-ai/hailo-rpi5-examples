@@ -75,7 +75,8 @@ class user_app_callback_class(app_callback_class):
         self.active_detection_count = 0
 
         # Variables for computing moving average of velocity
-        self.centroid_history = []
+        self.avg_velocity = Point2D(0.0, 0.0)
+        self.previous_centroid = None
 
         # Setup speech file
         # make request to google to get synthesis
@@ -126,9 +127,7 @@ class user_app_callback_class(app_callback_class):
     def start_active_tracking(self, class_detections):
         self.is_active_tracking = True
         self.max_instances = len(class_detections)
-        self.centroid_history = []
         self.start_centroid = self.object_centroid
-        self.start_area = self.object_area
         self.save_frame = self.current_frame
         self.active_timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
 
@@ -164,20 +163,23 @@ class user_app_callback_class(app_callback_class):
                 self.max_instances = detection_instance_count
                 self.save_frame = self.detection_frame
 
-        # Update centroid history for velocity calculation
-        if self.object_centroid is not None:
-            self.centroid_history.append(self.object_centroid)
+        # Update moving average of velocity
+        if self.object_centroid is not None and self.previous_centroid is not None:
+            delta = self.object_centroid.subtract(self.previous_centroid)
+            self.avg_velocity = Point2D(
+                (self.avg_velocity.x * (self.active_detection_count - 1) + delta.x) / self.active_detection_count,
+                (self.avg_velocity.y * (self.active_detection_count - 1) + delta.y) / self.active_detection_count
+            )
+        self.previous_centroid = self.object_centroid
 
     def stop_active_tracking(self):
         
         self.is_active_tracking = False
         self.end_centroid = self.object_centroid
-        self.end_area = self.object_area
 
         avg_detection_count = self.get_average_detection_instance_count()
-        avg_velocity = self.get_average_velocity()
-        avg_velocity_direction = avg_velocity.direction()
-        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, area: {self.end_area:.3f}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction:.0f}")
+        avg_velocity_direction = self.avg_velocity.direction()
+        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction:.0f}")
 
         # Stop any video recording and rename the file to include the average count
         final_filename = f"videos/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{avg_velocity_direction:.0f}).mp4"
@@ -192,8 +194,8 @@ class user_app_callback_class(app_callback_class):
         self.max_instances = 0
         self.save_frame = None
         self.object_centroid = None
-        self.object_area = None
-        self.centroid_history = []
+        self.avg_velocity = Point2D(0.0, 0.0)
+        self.previous_centroid = None
 
     def get_avg_centroid(self, class_detections):
         """
@@ -233,25 +235,6 @@ class user_app_callback_class(app_callback_class):
             height = bbox.ymax() - bbox.ymin()
             total_area += width * height
         return total_area
-
-    def get_average_velocity(self):
-        """
-        Calculate the moving average of the velocity of the object centroids.
-        Returns:
-            Point2D: The average velocity of the object centroids as a 2D vector.
-        """
-        if len(self.centroid_history) < 2:
-            return Point2D(0.0, 0.0)
-
-        velocities = []
-        for i in range(1, len(self.centroid_history)):
-            delta = self.centroid_history[i].subtract(self.centroid_history[i-1])
-            velocities.append(delta)
-
-        avg_velocity_x = sum(velocity.x for velocity in velocities) / len(velocities)
-        avg_velocity_y = sum(velocity.y for velocity in velocities) / len(velocities)
-
-        return Point2D(avg_velocity_x, avg_velocity_y)
 
 
 def app_callback(pad, info, user_data):
@@ -305,7 +288,6 @@ def app_callback(pad, info, user_data):
     if detection_instance_count > 0:
         object_detected = True
         user_data.object_centroid = user_data.get_avg_centroid(class_detections).round()
-        user_data.object_area = user_data.get_total_bbox_area(class_detections)
         user_data.detection_frame = user_data.current_frame
 
     # Debouncing logic to start/stop active tracking
