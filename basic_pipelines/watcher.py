@@ -142,7 +142,8 @@ class user_app_callback_class(app_callback_class):
             self.draw_detection_boxes(class_detections, self.width, self.height)
 
         # Ensure output directory exists
-        video_dir = f"{OUTPUT_DIRECTORY}"
+        date_subdir = datetime.datetime.now().strftime("%Y%m%d")
+        video_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
         os.makedirs(video_dir, exist_ok=True)
 
         # Start recording video if SAVE_DETECTION_VIDEO and self.video_writer is None and frame is not None:
@@ -194,9 +195,10 @@ class user_app_callback_class(app_callback_class):
         root_filename = f"{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}_{avg_velocity_direction}"
 
         # Ensure output directories exist
-        video_dir = f"{OUTPUT_DIRECTORY}"
-        image_dir = f"{OUTPUT_DIRECTORY}"
-        meta_dir = f"{OUTPUT_DIRECTORY}"
+        date_subdir = datetime.datetime.now().strftime("%Y%m%d")
+        video_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
+        image_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
+        meta_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
         os.makedirs(video_dir, exist_ok=True)
         os.makedirs(image_dir, exist_ok=True)
         os.makedirs(meta_dir, exist_ok=True)

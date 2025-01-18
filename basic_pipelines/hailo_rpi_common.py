@@ -221,6 +221,8 @@ def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_hei
         f'{source_element} '
         f'{QUEUE(name=f"{name}_scale_q")} ! '
         f'videoscale name={name}_videoscale n-threads=2 ! '
+        # f'{QUEUE(name=f"{name}_crop_q")} ! '
+        # f'videocrop top=0 left=0 right=320 bottom=320 ! '
         f'{QUEUE(name=f"{name}_convert_q")} ! '
         f'videoconvert n-threads=3 name={name}_convert qos=false ! '
         f'video/x-raw, format={video_format}, pixel-aspect-ratio=1/1, width={video_width}, height={video_height} ! '
