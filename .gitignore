@@ -170,8 +170,7 @@ alert.mp3
 gstshark*
 
 # Temporary images and videos
-images/
-videos/
+output/
 
 # Temporary models
 default.mdl

@@ -33,6 +33,7 @@ SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
 SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
 FRAME_RATE = config.get('FRAME_RATE', 20)
+OUTPUT_DIRECTORY = config.get('OUTPUT_DIRECTORY', 'output')
 
 class Point2D:
     def __init__(self, x, y):
@@ -95,6 +96,10 @@ class user_app_callback_class(app_callback_class):
         self.width = None
         self.height = None
 
+    def on_eos(self):
+        if self.is_active_tracking:
+            self.stop_active_tracking()
+
     def start_video_recording(self, width, height, video_filename):
         self.video_filename = video_filename
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -136,10 +141,12 @@ class user_app_callback_class(app_callback_class):
         if self.current_frame is not None and SHOW_DETECTION_BOXES:
             self.draw_detection_boxes(class_detections, self.width, self.height)
 
+        # Ensure output directory exists
+        video_dir = f"{OUTPUT_DIRECTORY}"
+        os.makedirs(video_dir, exist_ok=True)
+
         # Start recording video if SAVE_DETECTION_VIDEO and self.video_writer is None and frame is not None:
         if SAVE_DETECTION_VIDEO and self.video_writer is None and self.current_frame is not None:
-            video_dir = f"videos/{CLASS_TO_TRACK}"
-            os.makedirs(video_dir, exist_ok=True)
             video_filename = f"{video_dir}/{self.active_timestamp}_{CLASS_TO_TRACK}.mp4"
             self.start_video_recording(self.width, self.height, video_filename)
 
@@ -162,7 +169,7 @@ class user_app_callback_class(app_callback_class):
             self.active_detection_count += 1
             if detection_instance_count > self.max_instances:
                 self.max_instances = detection_instance_count
-                self.save_frame = self.detection_frame
+                self.save_frame = self.current_frame
 
         # Update moving average of velocity
         if self.object_centroid is not None and self.previous_centroid is not None:
@@ -179,19 +186,48 @@ class user_app_callback_class(app_callback_class):
         self.end_centroid = self.object_centroid
 
         avg_detection_count = self.get_average_detection_instance_count()
-        avg_velocity_direction = self.avg_velocity.direction()
+        avg_velocity_direction = int(self.avg_velocity.direction())
 
-        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction:.0f}")
+        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction}")
+
+        # Create root filename
+        root_filename = f"{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}_{avg_velocity_direction}"
+
+        # Ensure output directories exist
+        video_dir = f"{OUTPUT_DIRECTORY}"
+        image_dir = f"{OUTPUT_DIRECTORY}"
+        meta_dir = f"{OUTPUT_DIRECTORY}"
+        os.makedirs(video_dir, exist_ok=True)
+        os.makedirs(image_dir, exist_ok=True)
+        os.makedirs(meta_dir, exist_ok=True)
 
         # Stop any video recording and rename the file to include the average count
-        final_filename = f"videos/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{avg_velocity_direction:.0f}).mp4"
-        self.stop_video_recording(final_filename)
+        final_video_filename = f"{video_dir}/{root_filename}.mp4"
+        self.stop_video_recording(final_video_filename)
 
         # Save the frame with the most instances if SAVE_DETECTION_IMAGES is True
         if self.save_frame is not None and SAVE_DETECTION_IMAGES:
-            self.image_filename = f"images/{CLASS_TO_TRACK}/{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}({avg_detection_count:.2f})_{avg_velocity_direction:.0f}.jpg"
+            self.image_filename = f"{image_dir}/{root_filename}.jpg"
             cv2.imwrite(self.image_filename, self.save_frame)
             print(f"Image saved as {self.image_filename}")
+
+        # Create metadata dictionary
+        metadata = {
+            "filename": root_filename,
+            "class": CLASS_TO_TRACK,
+            "timestamp": self.active_timestamp,
+            "max_instances": self.max_instances,
+            "average_instances": round(avg_detection_count, 2),
+            "direction": avg_velocity_direction,
+            "label": None
+        }
+        print(f"Metadata: {metadata}")
+
+        # Save metadata as JSON file
+        metadata_filename = f"{meta_dir}/{root_filename}.json"
+        with open(metadata_filename, 'w') as metadata_file:
+            json.dump(metadata, metadata_file)
+        print(f"Metadata saved as {metadata_filename}")
 
         self.max_instances = 0
         self.save_frame = None
@@ -313,6 +349,13 @@ def app_callback(pad, info, user_data):
         user_data.active_tracking(class_detections)
 
     return Gst.PadProbeReturn.OK
+
+class GStreamerApp:
+    def __init__(self, args, user_data: app_callback_class):
+        # ...existing code...
+        self.user_data = user_data
+        # ...existing code...
+
 
 if __name__ == "__main__":
 

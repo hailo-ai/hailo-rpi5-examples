@@ -90,6 +90,10 @@ class GStreamerDetectionApp(GStreamerApp):
         self.create_pipeline()
         user_data.pipeline = self.pipeline
 
+    def on_eos(self):
+        self.user_data.on_eos()
+        self.shutdown()
+
     def get_pipeline_string(self):
         source_pipeline = SOURCE_PIPELINE(self.video_source)
         detection_pipeline = INFERENCE_PIPELINE(

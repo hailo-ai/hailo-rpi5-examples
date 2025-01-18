@@ -17,7 +17,7 @@
             "program": "${workspaceFolder}/basic_pipelines/watcher.py",
             "console": "integratedTerminal",
             "args": ["--input", "rpi"],
-            // "args": ["--input", "videos/dog/output1.mp4"],
+            // "args": ["--input", "output/videos/dog/output1.mp4"],
             // "args": ["--hide-overlay"]
         }
     ]
