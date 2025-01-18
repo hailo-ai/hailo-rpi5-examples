@@ -11,12 +11,19 @@ import cv2
 import time
 import signal
 import subprocess
+import json
 
 # Try to import hailo python module
 try:
     import hailo
 except ImportError:
     sys.exit("Failed to import hailo python module. Make sure you are in hailo virtual environment.")
+
+# Load configuration from config.json
+with open('/home/bower/hailo-rpi5-examples/config.json', 'r') as config_file:
+    config = json.load(config_file)
+
+FRAME_RATE = config.get('FRAME_RATE', 20)
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
@@ -177,7 +184,7 @@ def QUEUE(name, max_size_buffers=3, max_size_bytes=0, max_size_time=0, leaky='no
     q_string = f'queue name={name} leaky={leaky} max-size-buffers={max_size_buffers} max-size-bytes={max_size_bytes} max-size-time={max_size_time} '
     return q_string
 
-def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_height=640, name='source'):
+def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_height=640, video_fps=FRAME_RATE, name='source'):
     """
     Creates a GStreamer pipeline string for the video source.
 
@@ -186,6 +193,7 @@ def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_hei
         video_format (str, optional): The video format. Defaults to 'RGB'.
         video_width (int, optional): The width of the video. Defaults to 640.
         video_height (int, optional): The height of the video. Defaults to 640.
+        video_fps (int, optional): The frames per second of the video. Defaults to 20.
         name (str, optional): The prefix name for the pipeline elements. Defaults to 'source'.
 
     Returns:
@@ -216,7 +224,7 @@ def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_hei
         f'{QUEUE(name=f"{name}_convert_q")} ! '
         f'videoconvert n-threads=3 name={name}_convert qos=false ! '
         f'video/x-raw, format={video_format}, pixel-aspect-ratio=1/1, width={video_width}, height={video_height} ! '
-        # f'videorate ! video/x-raw, framerate=2/1 ! '
+        f'videorate ! video/x-raw, framerate={video_fps}/1 ! '
     )
 
     return source_pipeline
@@ -410,7 +418,7 @@ class GStreamerApp:
 
     def bus_call(self, bus, message, loop):
         t = message.type
-        if t == Gst.MessageType.EOS:
+        if (t == Gst.MessageType.EOS):
             print("End-of-stream")
             self.on_eos()
         elif t == Gst.MessageType.ERROR:

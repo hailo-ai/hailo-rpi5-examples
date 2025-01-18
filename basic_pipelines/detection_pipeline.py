@@ -88,6 +88,7 @@ class GStreamerDetectionApp(GStreamerApp):
         setproctitle.setproctitle("Hailo Detection App")
 
         self.create_pipeline()
+        user_data.pipeline = self.pipeline
 
     def get_pipeline_string(self):
         source_pipeline = SOURCE_PIPELINE(self.video_source)

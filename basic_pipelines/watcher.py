@@ -25,13 +25,14 @@ with open('config.json', 'r') as config_file:
 
 # Load CLASS_* options from config
 CLASS_DETECTED_COUNT = config.get('CLASS_DETECTED_COUNT', 4)
-CLASS_GONE_COUNT = config.get('CLASS_GONE_COUNT', 12)
+CLASS_GONE_SECONDS = config.get('CLASS_GONE_SECONDS', 2)
 CLASS_MATCH_CONFIDENCE = config.get('CLASS_MATCH_CONFIDENCE', 0.4)
 CLASS_TO_TRACK = config.get('CLASS_TO_TRACK', 'dog')
 ALIAS_CLASSES_TO_ALLOW = config.get('ALIAS_CLASSES_TO_ALLOW', [])
 SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
 SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
+FRAME_RATE = config.get('FRAME_RATE', 20)
 
 class Point2D:
     def __init__(self, x, y):
@@ -97,7 +98,7 @@ class user_app_callback_class(app_callback_class):
     def start_video_recording(self, width, height, video_filename):
         self.video_filename = video_filename
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.video_writer = cv2.VideoWriter(video_filename, fourcc, 20.0, (width, height))
+        self.video_writer = cv2.VideoWriter(video_filename, fourcc, FRAME_RATE, (width, height))
 
     def write_video_frame(self, frame):
         if self.video_writer is not None and self.current_frame is not None:
@@ -179,6 +180,7 @@ class user_app_callback_class(app_callback_class):
 
         avg_detection_count = self.get_average_detection_instance_count()
         avg_velocity_direction = self.avg_velocity.direction()
+
         print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction:.0f}")
 
         # Stop any video recording and rename the file to include the average count
@@ -302,8 +304,8 @@ def app_callback(pad, info, user_data):
         user_data.no_detection_counter += 1
         user_data.detection_counter = 0
         
-        # Only deactivate after CLASS_GONE_COUNT consecutive frames without detections
-        if user_data.no_detection_counter >= CLASS_GONE_COUNT and user_data.is_active_tracking:
+        # Only deactivate after CLASS_GONE_SECONDS without detections
+        if user_data.no_detection_counter >= (CLASS_GONE_SECONDS * FRAME_RATE) and user_data.is_active_tracking:
             user_data.stop_active_tracking()
 
     # Active tracking
