@@ -100,10 +100,10 @@ class user_app_callback_class(app_callback_class):
         if self.is_active_tracking:
             self.stop_active_tracking()
 
-    def start_video_recording(self, width, height, video_filename):
+    def start_video_recording(self, width, height, video_filename, format, fps):
         self.video_filename = video_filename
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.video_writer = cv2.VideoWriter(video_filename, fourcc, FRAME_RATE, (width, height))
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Ensure the codec is set for MP4 format
+        self.video_writer = cv2.VideoWriter(video_filename, fourcc, fps, (width, height))
 
     def write_video_frame(self, frame):
         if self.video_writer is not None and self.current_frame is not None:
@@ -143,13 +143,13 @@ class user_app_callback_class(app_callback_class):
 
         # Ensure output directory exists
         date_subdir = datetime.datetime.now().strftime("%Y%m%d")
-        video_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
-        os.makedirs(video_dir, exist_ok=True)
+        output_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
+        os.makedirs(output_dir, exist_ok=True)
 
         # Start recording video if SAVE_DETECTION_VIDEO and self.video_writer is None and frame is not None:
         if SAVE_DETECTION_VIDEO and self.video_writer is None and self.current_frame is not None:
-            video_filename = f"{video_dir}/{self.active_timestamp}_{CLASS_TO_TRACK}.mp4"
-            self.start_video_recording(self.width, self.height, video_filename)
+            video_filename = f"{output_dir}/{self.active_timestamp}_{CLASS_TO_TRACK}.mp4"
+            self.start_video_recording(self.width, self.height, video_filename, self.format, FRAME_RATE)
 
         phrase = f"{CLASS_TO_TRACK.upper()} DETECTED"
         print(f"{phrase} {self.start_centroid} at: {datetime.datetime.now()}")
@@ -196,20 +196,16 @@ class user_app_callback_class(app_callback_class):
 
         # Ensure output directories exist
         date_subdir = datetime.datetime.now().strftime("%Y%m%d")
-        video_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
-        image_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
-        meta_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
-        os.makedirs(video_dir, exist_ok=True)
-        os.makedirs(image_dir, exist_ok=True)
-        os.makedirs(meta_dir, exist_ok=True)
+        output_dir = f"{OUTPUT_DIRECTORY}/{date_subdir}"
+        os.makedirs(output_dir, exist_ok=True)
 
         # Stop any video recording and rename the file to include the average count
-        final_video_filename = f"{video_dir}/{root_filename}.mp4"
+        final_video_filename = f"{output_dir}/{root_filename}.mp4"
         self.stop_video_recording(final_video_filename)
 
         # Save the frame with the most instances if SAVE_DETECTION_IMAGES is True
         if self.save_frame is not None and SAVE_DETECTION_IMAGES:
-            self.image_filename = f"{image_dir}/{root_filename}.jpg"
+            self.image_filename = f"{output_dir}/{root_filename}.jpg"
             cv2.imwrite(self.image_filename, self.save_frame)
             print(f"Image saved as {self.image_filename}")
 
@@ -226,7 +222,7 @@ class user_app_callback_class(app_callback_class):
         print(f"Metadata: {metadata}")
 
         # Save metadata as JSON file
-        metadata_filename = f"{meta_dir}/{root_filename}.json"
+        metadata_filename = f"{output_dir}/{root_filename}.json"
         with open(metadata_filename, 'w') as metadata_file:
             json.dump(metadata, metadata_file)
         print(f"Metadata saved as {metadata_filename}")
