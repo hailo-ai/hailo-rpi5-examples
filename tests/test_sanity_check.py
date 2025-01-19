@@ -17,7 +17,7 @@ def test_check_hailo_runtime_installed():
 def test_check_required_files():
     """Test if required files exist."""
     required_files = [
-        'setup_env.sh',
+        'setup.py',
         'download_resources.sh',
         'requirements.txt',
         'basic_pipelines/detection.py',
@@ -59,7 +59,7 @@ def test_gstreamer_installation():
 
 def test_setup_env():
     """Test setup_env.sh script."""
-    result = subprocess.run(['bash', '-c', 'source setup_env.sh && env'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(['bash', '-c', 'pip install -v -e .'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout_str = result.stdout
     stderr_str = result.stderr
 
