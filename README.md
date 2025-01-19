@@ -106,7 +106,7 @@ Check out our [Community Projects](community_projects/community_projects.md) for
 
 # Additional Examples and Resources
 
-![Hailo Examples Code Structure](./doc/images/hailo_examples_code_structure.svg)
+![Hailo Examples Code Structure](doc/images/hailo_examples_code_structure.svg)
 
 ## Hailo Apps Infra
 Hailo RPi5 Examples are using the [Hailo Apps Infra Repository](https://github.com/hailo-ai/hailo-apps-infra) as a dependency. The Hailo Apps Infra repository contains the infrastructure of Hailo applications and pipelines.

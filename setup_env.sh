@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e  # Exit immediately if a command exits with a non-zero status
+
 # TAPPAS CORE Definitions
 CORE_VENV_NAME="venv_hailo_rpi5_examples"
 CORE_REQUIRED_VERSION=("3.30.0" "3.31.0")
