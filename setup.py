@@ -13,7 +13,7 @@ def check_hailo_package():
     try:
         import hailo
     except ImportError:
-        logger.error("Hailo package not found. Please activate the virtual environment and try again.")
+        logger.error("Hailo python package not found. Please make sure you're in the Hailo virtual environment. Run 'source setup_env.sh' and try again.")
         sys.exit(1)
 
 def read_requirements():
