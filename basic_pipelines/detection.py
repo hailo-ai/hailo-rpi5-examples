@@ -9,6 +9,7 @@ from hailo_rpi_common import (
     get_caps_from_pad,
     get_numpy_from_buffer,
     app_callback_class,
+    SOURCE_PIPELINE,
 )
 from detection_pipeline import GStreamerDetectionApp
 
@@ -80,4 +81,19 @@ if __name__ == "__main__":
     # Create an instance of the user app callback class
     user_data = user_app_callback_class()
     app = GStreamerDetectionApp(app_callback, user_data)
+    
+    # Get the rtsp parameters from the command line arguments
+    rtsp_latency = app.options_menu.rtsp_latency
+    rtsp_protocols = app.options_menu.rtsp_protocols
+    
+    # Update the pipeline with the rtsp parameters
+    app.source_pipeline = SOURCE_PIPELINE(
+        app.video_source, 
+        app.network_format, 
+        app.network_width, 
+        app.network_height,
+        rtsp_latency=rtsp_latency,
+        rtsp_protocols=rtsp_protocols
+    )
+    
     app.run()

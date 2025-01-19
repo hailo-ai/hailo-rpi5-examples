@@ -120,9 +120,18 @@ def get_default_parser():
     default_video_source = os.path.join(current_path, '../resources/detection0.mp4')
     parser.add_argument(
         "--input", "-i", type=str, default=default_video_source,
-        help="Input source. Can be a file, USB or RPi camera (CSI camera module). \
-        For RPi camera use '-i rpi' (Still in Beta). \
-        Defaults to example video resources/detection0.mp4"
+        help="Input source. Can be: \n"
+             "1. File path (e.g., video.mp4)\n"
+             "2. USB camera (e.g., /dev/video0)\n"
+             "3. RPi camera: use '-i rpi' (Beta)\n"
+             "4. RTSP stream: use 'rtsp://username:password@ip:port/path'\n"
+             "Defaults to example video resources/detection0.mp4"
+    )
+    parser.add_argument(
+        "--rtsp-latency", 
+        type=int, 
+        default=100,
+        help="Latency (ms) for RTSP stream. Lower values reduce delay but may cause stuttering. Default: 100"
     )
     parser.add_argument("--use-frame", "-u", action="store_true", help="Use frame from the callback function")
     parser.add_argument("--show-fps", "-f", action="store_true", help="Print FPS on sink")
@@ -142,6 +151,12 @@ def get_default_parser():
         help="Disables display sink sync, will run as fast as possible. Relevant when using file source."
     )
     parser.add_argument("--dump-dot", action="store_true", help="Dump the pipeline graph to a dot file pipeline.dot")
+    parser.add_argument(
+        "--rtsp-protocols",
+        choices=['tcp', 'udp', 'udp-mcast', 'http'],
+        default='tcp',
+        help="RTSP transport protocol to use. Default: tcp"
+    )
     return parser
 
 #---------------------------------------------------------
@@ -150,9 +165,11 @@ def get_default_parser():
 
 def get_source_type(input_source):
     # This function will return the source type based on the input source
-    # return values can be "file", "mipi" or "usb"
+    # return values can be "file", "mipi", "usb", or "rtsp"
     if input_source.startswith("/dev/video"):
         return 'usb'
+    elif input_source.lower().startswith("rtsp://"):
+        return 'rtsp'
     else:
         if input_source.startswith("rpi"):
             return 'rpi'
@@ -176,16 +193,20 @@ def QUEUE(name, max_size_buffers=3, max_size_bytes=0, max_size_time=0, leaky='no
     q_string = f'queue name={name} leaky={leaky} max-size-buffers={max_size_buffers} max-size-bytes={max_size_bytes} max-size-time={max_size_time} '
     return q_string
 
-def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_height=640, name='source'):
+def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_height=640, name='source', 
+                   rtsp_latency=100, rtsp_protocols='tcp'):
     """
     Creates a GStreamer pipeline string for the video source.
 
     Args:
         video_source (str): The path or device name of the video source.
+                           For RTSP, use format: rtsp://username:password@ip:port/path
         video_format (str, optional): The video format. Defaults to 'RGB'.
         video_width (int, optional): The width of the video. Defaults to 640.
         video_height (int, optional): The height of the video. Defaults to 640.
         name (str, optional): The prefix name for the pipeline elements. Defaults to 'source'.
+        rtsp_latency (int, optional): Latency in milliseconds for RTSP stream. Defaults to 100.
+        rtsp_protocols (str, optional): RTSP transport protocol to use. Defaults to 'tcp'.
 
     Returns:
         str: A string representing the GStreamer pipeline for the video source.
@@ -202,12 +223,30 @@ def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_hei
             f'v4l2src device={video_source} name={name} ! '
             'video/x-raw, width=640, height=480 ! '
         )
+    elif source_type == 'rtsp':
+        source_element = (
+            f'rtspsrc location="{video_source}" name={name} '
+            f'latency={rtsp_latency} buffer-mode=auto protocols={rtsp_protocols} '
+            f'retry=5 timeout=5000000 tcp-timeout=5000000 '
+            f'drop-on-latency=true do-retransmission=false ! '
+            f'{QUEUE(name=f"{name}_queue_rtsp", leaky="downstream", max_size_buffers=30)} ! '
+            'capsfilter caps="application/x-rtp,media=video" ! '
+            'rtpbin ! '
+            f'{QUEUE(name=f"{name}_queue_dec", leaky="downstream", max_size_buffers=30)} ! '
+            'parsebin ! '
+            'decodebin3 ! '
+            f'{QUEUE(name=f"{name}_queue_raw", leaky="downstream", max_size_buffers=30)} ! '
+            'videoconvert n-threads=2 ! '
+            'video/x-raw,format=I420 ! '
+        )
     else:
+        # For file sources, use decodebin to automatically detect and decode various formats
         source_element = (
             f'filesrc location="{video_source}" name={name} ! '
-            f'{QUEUE(name=f"{name}_queue_dec264")} ! '
-            'qtdemux ! h264parse ! avdec_h264 max-threads=2 ! '
+            f'{QUEUE(name=f"{name}_queue_dec")} ! '
+            'decodebin ! '
         )
+
     source_pipeline = (
         f'{source_element} '
         f'{QUEUE(name=f"{name}_scale_q")} ! '
@@ -215,7 +254,6 @@ def SOURCE_PIPELINE(video_source, video_format='RGB', video_width=640, video_hei
         f'{QUEUE(name=f"{name}_convert_q")} ! '
         f'videoconvert n-threads=3 name={name}_convert qos=false ! '
         f'video/x-raw, format={video_format}, pixel-aspect-ratio=1/1 ! '
-        # f'video/x-raw, format={video_format}, width={video_width}, height={video_height} ! '
     )
 
     return source_pipeline
