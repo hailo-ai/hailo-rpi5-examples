@@ -36,7 +36,7 @@ For detailed instructions on how to install the M.2 module, follow [Raspberry Pi
 ### Raspberry Pi AI HAT
 The Raspberry Pi AI HAT is a standalone board that includes the Hailo-8L AI accelerator. It is a plug-and-play solution that can be used with the Raspberry Pi 5.
 When using the AI HAT, make sure to have proper ventilation to avoid overheating. If required, add a heat sink to the Hailo-8 module.
-[Raspberry Pi's official AI HAT Guide](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html#ai-hat-plus).
+[Raspberry Pi's official AI HAT Guide](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html#ai-hat-plus)
 ![Raspberry Pi AI HAT](./images/ai-hat-plus.jpg)
 
 ### Raspberry Pi Camera
@@ -45,51 +45,30 @@ See the [Raspberry Pi Camera Guide](https://www.raspberrypi.com/documentation/ac
 ## Software
 
 ### Install Raspberry Pi OS
-Download and install the latest Raspberry Pi Imager for your OS (Windows, macOS, or Ubuntu) from [here](https://www.raspberrypi.com/software/).
+Download and install the latest Raspberry Pi Imager for your OS (Windows, macOS, or Ubuntu) from [Raspberry Pi OS](https://www.raspberrypi.com/software/)
 
-Select the Raspberry Pi 5.
+### Install your Raspberry Pi AI Kit or AI HAT
+For AI Kit follow [Raspberry Pi's official AI Kit Guide](https://www.raspberrypi.com/documentation/accessories/ai-kit.html#ai-kit)
 
-![Raspberry Pi Imager Select Device](./images/RPI_select_device.png)
-
-Select Raspberry Pi OS (64-bit).
-
-![Raspberry Pi Imager Select OS](./images/RPI_select_os.png)
-
-### Update System
-Boot up your Raspberry Pi 5 to a graphical environment and update your base software. To do this, open a terminal window and run:
-```bash
-sudo apt update
-sudo apt full-upgrade
-```
-This will update your system to the latest Raspberry Pi kernel, which includes Hailo driver support.
-If you get errors from the `apt full-upgrade` command try running this and retry.
-```bash
-sudo apt --fix-broken install
-```
-
-### Set PCIe to Gen3
-To achieve optimal performance from the Hailo device, it is necessary to set PCIe to Gen3. While using Gen2 is an option, it will result in lower performance.
-
-Open the Raspberry Pi configuration tool:
-```bash
-sudo raspi-config
-```
-Select option "6 Advanced Options", then select option "A8 PCIe Speed". Choose "Yes" to enable PCIe Gen 3 mode. Click "Finish" to exit.
-##### Reboot your Raspberry Pi.
-```bash
-sudo reboot
-```
+For AI HAT follow [Raspberry Pi's official AI HAT Guide](https://www.raspberrypi.com/documentation/accessories/ai-hat-plus.html#ai-hat-plus)
 
 ### Install Hailo Software
-Install all the necessary software to get the Raspberry Pi AI Kit working. To do this, run the following command from a terminal window:
-```bash
-sudo apt install hailo-all
-```
+Follow the instructions on [Raspberry Pi's official AI Software Guide](https://www.raspberrypi.com/documentation/computers/ai.html#getting-started)
+
 This will install the following software components:
 - Hailo firmware
 - HailoRT runtime software. See [HailoRT GitHub Repo](https://github.com/hailo-ai/hailort) for more information.
 - Hailo TAPPAS Core package: A derivative of the TAPPAS repository, this core package includes GStreamer elements, post-processing functions, and additional tools used by this repository. It is essential for developing applications on the Pi but does not include standalone applications. See [Hailo TAPPAS GitHub](https://github.com/hailo-ai/tappas) for more information and documentation.
 - The `rpicam-apps` Hailo post-processing software demo stages. See [Raspberry Pi Official Examples](../README.md#raspberry-pi-official-examples) for more information.
+
+### Set PCIe to Gen3
+To achieve optimal performance from the Hailo device, it is necessary to set PCIe to Gen3. While using Gen2 is an option, it will result in lower performance.
+The Hailo AI HAT is auto detected as Gen3, but if you are using the M.2 HAT, you will need to set it manually.
+Open the Raspberry Pi configuration tool:
+```bash
+sudo raspi-config
+```
+Select option "6 Advanced Options", then select option "A8 PCIe Speed". Choose "Yes" to enable PCIe Gen 3 mode. Click "Finish" to exit.
 
 ##### Reboot your Raspberry Pi.
 ```bash
@@ -110,10 +89,12 @@ Firmware Version: 4.17.0 (release,app,extended context switch buffer)
 Logger Version: 0
 Board Name: Hailo-8
 Device Architecture: HAILO8L
-Serial Number: HLDDLBB234500128
-Part Number: HM21LB1C2LAE
-Product Name: HAILO-8L AI ACC M.2 B+M KEY MODULE EXT TMP
+Serial Number: N/A
+Part Number: N/A
+Product Name: N/A
 ```
+Getting N/A for Serial Number, Part Number, and Product Name is normal for the AI HAT.
+
 If you don't see this output, check the [PCIe troubleshooting](#pcie-troubleshooting) section.
 
 #### Test TAPPAS Core installation by running the following commands:
@@ -177,25 +158,12 @@ rm ~/.cache/gstreamer-1.0/registry.aarch64.bin
 ```
 ##### If everything is OK you can continue installing the [hailo_rpi5_examples.](../README.md#configure-environment)
 
-## Upgrade or Downgrade Hailo Software
-To upgrade to the latest version of the Hailo software package, run the following commands:
-```bash
-sudo apt update
-sudo apt full-upgrade
-sudo apt install hailo-all
-sudo reboot
-```
 Don't forget to update our GitHub repository to the latest version to get the latest examples and resources.
 ```bash
 cd [your-path]/hailo-rpi5-examples
 git pull
 ```
 
-To downgrade to a previous version (TAPPAS 3.28.2), run the following commands:
-```bash
-sudo apt install hailort=4.17.0 hailo-tappas-core-3.28.2 hailofw=4.17.0-2 hailo-dkms=4.17.0-1
-sudo reboot
-```
 
 ## Troubleshooting
 Got a question? Join the discussion on [Hailo Community Forum](https://community.hailo.ai/).

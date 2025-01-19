@@ -5,7 +5,7 @@ import subprocess
 import time
 import os
 import signal
-from tests.test_hailo_rpi5_examples import get_device_architecture, get_detection_compatible_hefs
+from test_hailo_rpi5_examples import get_device_architecture, get_detection_compatible_hefs
 
 # Register custom marks
 def pytest_configure(config):
@@ -43,13 +43,13 @@ def run_download_resources():
     except subprocess.CalledProcessError as e:
         print(f"Error running download_resources.sh: {e}")
         print("Script output:", e.output)
-        return False
+        return Falseupstream
 
 @pytest.mark.performance
 def test_inference_speed():
     models = ['detection.py', 'pose_estimation.py', 'instance_segmentation.py']
     for model in models:
-        stdout, _ = run_pipeline(model, 'resources/detection0.mp4', duration=60)
+        stdout, _ = run_pipeline(model, 'resources/example.mp4', duration=60, additional_args=['--show-fps'])
         fps_lines = [line for line in stdout.split('\n') if 'FPS' in line or 'fps' in line]
 
         if not fps_lines:
@@ -67,7 +67,7 @@ def test_inference_speed():
 
 @pytest.mark.stress
 def test_long_running():
-    stdout, stderr = run_pipeline('detection.py', 'resources/detection0.mp4', duration=360)
+    stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=360)
     assert "Error" not in stderr, f"Errors encountered during long-running test: {stderr}"
 
 @pytest.mark.camera
@@ -95,7 +95,7 @@ def test_detection_pipeline_all_hefs():
 
     for hef_path in detection_hefs:
         print(f"Testing detection pipeline with HEF: {hef_path}")
-        stdout, stderr = run_pipeline('detection.py', 'resources/detection0.mp4', duration=30, additional_args=['--hef-path', hef_path])
+        stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=30, additional_args=['--hef-path', hef_path])
 
         assert "Traceback" not in stderr, f"Exception occurred with HEF {hef_path}: {stderr}"
         assert "Error" not in stderr, f"Error occurred with HEF {hef_path}: {stderr}"

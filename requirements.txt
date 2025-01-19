@@ -1,3 +1,4 @@
 numpy<2.0.0
 setproctitle
 opencv-python
+git+https://github.com/hailo-ai/hailo-apps-infra.git
