@@ -1,12 +1,14 @@
 #!/bin/bash
 
+set -e  # Exit immediately if a command exits with a non-zero status
+
 # TAPPAS CORE Definitions
 CORE_VENV_NAME="venv_hailo_rpi5_examples"
-CORE_REQUIRED_VERSION=("3.29.1" "3.30.0")
+CORE_REQUIRED_VERSION=("3.30.0" "3.31.0")
 
 # TAPPAS Definitions
 TAPPAS_VENV_NAME="hailo_tappas_venv"
-TAPPAS_REQUIRED_VERSION=("3.29.0" "3.29.1" "3.30.0")
+TAPPAS_REQUIRED_VERSION=("3.30.0" "3.31.0")
 
 # Function to check if the script is being sourced
 is_sourced() {
@@ -24,8 +26,14 @@ is_sourced() {
 if is_sourced; then
     echo "Setting up the environment..."
 
-    # Check if we are working with hailo_tappas or hailo-tappas-core
-    if pkg-config --exists hailo_tappas; then
+    # Check if we are working with hailo-tappas-core or hailo_tappas
+    if pkg-config --exists hailo-tappas-core; then
+        TAPPAS_CORE=1
+        VENV_NAME=$CORE_VENV_NAME
+        REQUIRED_VERSION=("${CORE_REQUIRED_VERSION[@]}")
+        echo "Setting up the environment for hailo-tappas-core..."
+        TAPPAS_VERSION=$(pkg-config --modversion hailo-tappas-core)
+    else
         TAPPAS_CORE=0
         REQUIRED_VERSION=("${TAPPAS_REQUIRED_VERSION[@]}")
         echo "Setting up the environment for hailo_tappas..."
@@ -38,12 +46,6 @@ if is_sourced; then
         else
             VENV_NAME=$TAPPAS_VENV_NAME
         fi
-    else
-        TAPPAS_CORE=1
-        VENV_NAME=$CORE_VENV_NAME
-        REQUIRED_VERSION=("${CORE_REQUIRED_VERSION[@]}")
-        echo "Setting up the environment for hailo-tappas-core..."
-        TAPPAS_VERSION=$(pkg-config --modversion hailo-tappas-core)
     fi
 
     # Check if TAPPAS_VERSION is in REQUIRED_VERSION

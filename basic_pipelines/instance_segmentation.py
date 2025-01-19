@@ -5,12 +5,13 @@ import os
 import numpy as np
 import cv2
 import hailo
-from hailo_rpi_common import (
+
+from hailo_apps_infra.hailo_rpi_common import (
     get_caps_from_pad,
     get_numpy_from_buffer,
     app_callback_class,
 )
-from instance_segmentation_pipeline import GStreamerInstanceSegmentationApp
+from hailo_apps_infra.instance_segmentation_pipeline import GStreamerInstanceSegmentationApp
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
@@ -19,6 +20,21 @@ from instance_segmentation_pipeline import GStreamerInstanceSegmentationApp
 class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
+        self.frame_skip = 2  # Process every 2nd frame to reduce compute
+
+# Predefined colors (BGR format)
+COLORS = [
+    (255, 0, 0),    # Red
+    (0, 255, 0),    # Green
+    (0, 0, 255),    # Blue
+    (255, 255, 0),  # Cyan
+    (255, 0, 255),  # Magenta
+    (0, 255, 255),  # Yellow
+    (128, 0, 128),  # Purple
+    (255, 165, 0),  # Orange
+    (0, 128, 128),  # Teal
+    (128, 128, 0)   # Olive
+]
 
 # -----------------------------------------------------------------------------------------------
 # User-defined callback function
@@ -36,14 +52,23 @@ def app_callback(pad, info, user_data):
     user_data.increment()
     string_to_print = f"Frame count: {user_data.get_count()}\n"
 
+    # Skip frames to reduce compute
+    if user_data.get_count() % user_data.frame_skip != 0:
+        return Gst.PadProbeReturn.OK
+
     # Get the caps from the pad
     format, width, height = get_caps_from_pad(pad)
 
+    # Reduce the resolution by a factor of 4
+    reduced_width = width // 4
+    reduced_height = height // 4
+
     # If the user_data.use_frame is set to True, we can get the video frame from the buffer
-    frame = None
+    reduced_frame = None
     if user_data.use_frame and format is not None and width is not None and height is not None:
         # Get video frame
         frame = get_numpy_from_buffer(buffer, format, width, height)
+        reduced_frame = cv2.resize(frame, (reduced_width, reduced_height), interpolation=cv2.INTER_AREA)
 
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
@@ -55,9 +80,15 @@ def app_callback(pad, info, user_data):
         bbox = detection.get_bbox()
         confidence = detection.get_confidence()
         if label == "person":
-            string_to_print += (f"Detection: {label} {confidence:.2f}\n")
+            # Get track ID
+            track_id = 0
+            track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
+            if len(track) == 1:
+                track_id = track[0].get_id()
+
+            string_to_print += (f"Detection: ID: {track_id} Label: {label} Confidence: {confidence:.2f}\n")
+            # Instance segmentation mask from detection (if available)
             if user_data.use_frame:
-                # Instance segmentation mask from detection (if available)
                 masks = detection.get_objects_typed(hailo.HAILO_CONF_CLASS_MASK)
                 if len(masks) != 0:
                     mask = masks[0]
@@ -66,27 +97,35 @@ def app_callback(pad, info, user_data):
                     mask_width = mask.get_width()
                     data = np.array(mask.get_data())
                     data = data.reshape((mask_height, mask_width))
-                    # data should be enlarged x4
-                    mask_width = mask_width * 4
-                    mask_height = mask_height * 4
-                    data = cv2.resize(data, (mask_width, mask_height), interpolation=cv2.INTER_NEAREST)
-                    string_to_print += f"Mask shape: {data.shape}, "
-                    string_to_print += f"Base coordinates ({int(bbox.xmin() * width)},{int(bbox.ymin() * height)})\n"
+                    # Resize the mask to the ROI size
+                    roi_width = int(bbox.width() * reduced_width)
+                    roi_height = int(bbox.height() * reduced_height)
+                    resized_mask_data = cv2.resize(data, (roi_width, roi_height), interpolation=cv2.INTER_LINEAR)
 
-                    # This code is on remark due to performance issues
-                    # # Add mask overlay to the frame
-                    # mask_overlay = np.zeros_like(frame)
-                    # x_min, y_min = int(bbox.xmin() * width), int(bbox.ymin() * height)
-                    # x_max, y_max = x_min + mask_width, y_min + mask_height
-                    # mask_overlay[y_min:y_max, x_min:x_max, 2] = (data > 0.5) * 255  # Red channel
-                    # frame = cv2.addWeighted(frame, 1, mask_overlay, 0.5, 0)
+                    # Calculate the ROI coordinates
+                    x_min, y_min = int(bbox.xmin() * reduced_width), int(bbox.ymin() * reduced_height)
+                    x_max, y_max = x_min + roi_width, y_min + roi_height
+
+                    # Ensure the ROI dimensions are within the frame boundaries and handle negative values
+                    y_min = max(y_min, 0)
+                    x_min = max(x_min, 0)
+                    y_max = min(y_max, reduced_frame.shape[0])
+                    x_max = min(x_max, reduced_frame.shape[1])
+
+                    # Ensure ROI dimensions are valid
+                    if x_max > x_min and y_max > y_min:
+                        # Add mask overlay to the frame
+                        mask_overlay = np.zeros_like(reduced_frame)
+                        color = COLORS[track_id % len(COLORS)]  # Get color based on track_id
+                        mask_overlay[y_min:y_max, x_min:x_max] = (resized_mask_data[:y_max-y_min, :x_max-x_min, np.newaxis] > 0.5) * color
+                        reduced_frame = cv2.addWeighted(reduced_frame, 1, mask_overlay, 0.5, 0)
 
     print(string_to_print)
 
     if user_data.use_frame:
         # Convert the frame to BGR
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        user_data.set_frame(frame)
+        reduced_frame = cv2.cvtColor(reduced_frame, cv2.COLOR_RGB2BGR)
+        user_data.set_frame(reduced_frame)
 
     return Gst.PadProbeReturn.OK
 

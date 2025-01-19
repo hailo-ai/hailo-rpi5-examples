@@ -1,4 +1,0 @@
-# Include everything inside the repo
-recursive-include resources *
-include README.md
-include requirements.txt
