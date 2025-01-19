@@ -39,4 +39,5 @@ Yolov5segParams *init(const std::string config_path, const std::string function_
 void yolov5seg(HailoROIPtr roi, void *params_void_ptr);
 void free_resources(void *params_void_ptr);
 void filter(HailoROIPtr roi, void *params_void_ptr);
+void filter_letterbox(HailoROIPtr roi, void *params_void_ptr);
 __END_DECLS
