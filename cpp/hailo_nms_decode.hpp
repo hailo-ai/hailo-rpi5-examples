@@ -52,7 +52,7 @@ private:
             _objects.push_back(HailoDetection(HailoBBox(dequant_bbox.x_min, dequant_bbox.y_min, w, h), class_index, labels_dict[class_index], confidence));
         }
     }
-    
+
     std::pair<float, float> get_shape(auto *bbox_struct)
     {
         float32_t w = bbox_struct->x_max - bbox_struct->x_min;
@@ -65,7 +65,7 @@ public:
         : _nms_output_tensor(tensor), labels_dict(labels_dict), _detection_thr(detection_thr), _max_boxes(max_boxes), _filter_by_score(filter_by_score), _vstream_info(tensor->vstream_info())
     {
         // making sure that the network's output is indeed an NMS type, by checking the order type value included in the metadata
-        if (HAILO_FORMAT_ORDER_HAILO_NMS != _vstream_info.format.order)
+        if ((HAILO_FORMAT_ORDER_HAILO_NMS != _vstream_info.format.order) && (HAILO_FORMAT_ORDER_HAILO_NMS_BY_CLASS != _vstream_info.format.order))
             throw std::invalid_argument("Output tensor " + _nms_output_tensor->name() + " is not an NMS type");
     };
 
