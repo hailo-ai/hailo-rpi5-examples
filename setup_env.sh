@@ -4,11 +4,11 @@ set -e  # Exit immediately if a command exits with a non-zero status
 
 # TAPPAS CORE Definitions
 CORE_VENV_NAME="venv_hailo_rpi5_examples"
-CORE_REQUIRED_VERSION=("3.30.0" "3.31.0")
+CORE_REQUIRED_VERSION=("3.30.0" "3.31.0" "3.32.0")
 
 # TAPPAS Definitions
 TAPPAS_VENV_NAME="hailo_tappas_venv"
-TAPPAS_REQUIRED_VERSION=("3.30.0" "3.31.0")
+TAPPAS_REQUIRED_VERSION=("3.30.0" "3.31.0" "3.32.0")
 
 # Function to check if the script is being sourced
 is_sourced() {
