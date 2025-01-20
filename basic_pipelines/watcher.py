@@ -15,11 +15,8 @@ from detection_pipeline import GStreamerDetectionApp
 import gtts
 from playsound import playsound
 import datetime
-import argparse
 import math
 import json
-import statistics
-from collections import deque
 
 # Load configuration from config.json
 with open('config.json', 'r') as config_file:
