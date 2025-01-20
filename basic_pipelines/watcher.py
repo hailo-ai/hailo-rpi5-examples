@@ -18,6 +18,8 @@ import datetime
 import argparse
 import math
 import json
+import statistics
+from collections import deque
 
 # Load configuration from config.json
 with open('config.json', 'r') as config_file:
@@ -28,7 +30,6 @@ CLASS_DETECTED_COUNT = config.get('CLASS_DETECTED_COUNT', 4)
 CLASS_GONE_SECONDS = config.get('CLASS_GONE_SECONDS', 2)
 CLASS_MATCH_CONFIDENCE = config.get('CLASS_MATCH_CONFIDENCE', 0.4)
 CLASS_TO_TRACK = config.get('CLASS_TO_TRACK', 'dog')
-ALIAS_CLASSES_TO_ALLOW = config.get('ALIAS_CLASSES_TO_ALLOW', [])
 SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
 SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
@@ -75,6 +76,8 @@ class user_app_callback_class(app_callback_class):
         # Variables for computing average detection instance count
         self.total_detection_instances = 0
         self.active_detection_count = 0
+        self.detection_counts = []
+        self.max_mean_detection_count = 0
 
         # Variables for computing moving average of velocity
         self.avg_velocity = Point2D(0.0, 0.0)
@@ -126,9 +129,15 @@ class user_app_callback_class(app_callback_class):
             print(f"Video saved as {final_filename}")
      
     def get_average_detection_instance_count(self):
-        if self.active_detection_count == 0:
+        if not self.detection_counts:
             return 0
-        return self.total_detection_instances / self.active_detection_count
+        detection_counts_np = np.array(self.detection_counts)
+        window_size = FRAME_RATE
+        if len(detection_counts_np) >= window_size:
+            moving_averages = np.convolve(detection_counts_np, np.ones(window_size)/window_size, mode='valid')
+            return moving_averages.max()
+        else:
+            return np.mean(detection_counts_np)
 
     def start_active_tracking(self, class_detections):
         self.is_active_tracking = True
@@ -168,6 +177,7 @@ class user_app_callback_class(app_callback_class):
                 self.draw_detection_boxes(class_detections, self.width, self.height)
             self.total_detection_instances += detection_instance_count
             self.active_detection_count += 1
+            self.detection_counts.append(detection_instance_count)
             if detection_instance_count > self.max_instances:
                 self.max_instances = detection_instance_count
                 self.save_frame = self.current_frame
@@ -215,7 +225,7 @@ class user_app_callback_class(app_callback_class):
             "class": CLASS_TO_TRACK,
             "timestamp": self.active_timestamp,
             "max_instances": self.max_instances,
-            "average_instances": round(avg_detection_count, 2),
+            "average_instances": avg_detection_count,
             "direction": avg_velocity_direction,
             "label": None
         }
@@ -232,6 +242,8 @@ class user_app_callback_class(app_callback_class):
         self.object_centroid = None
         self.avg_velocity = Point2D(0.0, 0.0)
         self.previous_centroid = None
+        self.detection_counts.clear()
+        self.max_mean_detection_count = 0
 
     def get_avg_centroid(self, class_detections):
         """
@@ -313,12 +325,12 @@ def app_callback(pad, info, user_data):
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
 
-    # Filter detections that match CLASS_TO_TRACK or ALIAS_CLASSES_TO_ALLOW and have confidence greater than CLASS_MATCH_CONFIDENCE
+    # Filter detections that match CLASS_TO_TRACK and have confidence greater than CLASS_MATCH_CONFIDENCE
     class_detections = [
-        detection for detection in detections if (detection.get_label() == CLASS_TO_TRACK or detection.get_label() in ALIAS_CLASSES_TO_ALLOW) and detection.get_confidence() > CLASS_MATCH_CONFIDENCE
+        detection for detection in detections if (detection.get_label() == CLASS_TO_TRACK) and detection.get_confidence() > CLASS_MATCH_CONFIDENCE
     ]
 
-    # Count the number of detections that match CLASS_TO_TRACK or ALIAS_CLASSES_TO_ALLOW and have confidence greater than CLASS_MATCH_CONFIDENCE
+    # Count the number of detections that match CLASS_TO_TRACK and have confidence greater than CLASS_MATCH_CONFIDENCE
     detection_instance_count = len(class_detections)
     object_detected = False
     if detection_instance_count > 0:
