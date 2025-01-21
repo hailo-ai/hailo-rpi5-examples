@@ -9,6 +9,8 @@ import setproctitle
 import cv2
 import time
 import hailo
+from logger_config import logger
+
 from hailo_rpi_common import (
     get_default_parser,
     QUEUE,
@@ -55,9 +57,10 @@ class GStreamerDetectionApp(GStreamerApp):
         if args.arch is None:
             detected_arch = detect_hailo_arch()
             if detected_arch is None:
+                logger.error("Could not auto-detect Hailo architecture. Please specify --arch manually.")
                 raise ValueError("Could not auto-detect Hailo architecture. Please specify --arch manually.")
             self.arch = detected_arch
-            print(f"Auto-detected Hailo architecture: {self.arch}")
+            logger.info(f"Auto-detected Hailo architecture: {self.arch}")
         else:
             self.arch = args.arch
 
@@ -110,7 +113,7 @@ class GStreamerDetectionApp(GStreamerApp):
             f'{user_callback_pipeline} ! '
             f'{display_pipeline}'
         )
-        print(pipeline_string)
+        logger.info(pipeline_string)
         return pipeline_string
 
 if __name__ == "__main__":

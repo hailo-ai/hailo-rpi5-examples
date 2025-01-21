@@ -17,6 +17,7 @@ from playsound import playsound
 import datetime
 import math
 import json
+from logger_config import logger
 
 # Load configuration from config.json
 with open('config.json', 'r') as config_file:
@@ -32,6 +33,10 @@ SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
 FRAME_RATE = config.get('FRAME_RATE', 20)
 OUTPUT_DIRECTORY = config.get('OUTPUT_DIRECTORY', 'output')
+
+DOG_ALERT = "alert.mp3"
+HELEN_OUT_ALERT = "helenout.mp3"
+HELEN_BACK_ALERT = "helenback.mp3"
 
 class Point2D:
     def __init__(self, x, y):
@@ -80,13 +85,16 @@ class user_app_callback_class(app_callback_class):
         self.avg_velocity = Point2D(0.0, 0.0)
         self.previous_centroid = None
 
-        # Setup speech file
+        # Setup speech files
         # make request to google to get synthesis
         tts = gtts.gTTS(f"Its a {CLASS_TO_TRACK.upper()}")
-        # save the audio file
-        tts.save("alert.mp3")
+        tts.save(DOG_ALERT)
+        tts = gtts.gTTS(f"Helen is going out")
+        tts.save(HELEN_OUT_ALERT)
+        tts = gtts.gTTS(f"Helen is back")
+        tts.save(HELEN_BACK_ALERT)
 
-        print(f"Looking for {CLASS_TO_TRACK.upper()}")
+        logger.info(f"Looking for {CLASS_TO_TRACK.upper()}")
 
         # Initialize video writer
         self.video_writer = None
@@ -123,7 +131,7 @@ class user_app_callback_class(app_callback_class):
             self.video_writer.release()
             self.video_writer = None
             os.rename(self.video_filename, final_filename)
-            print(f"Video saved as {final_filename}")
+            logger.info(f"Video saved as {final_filename}")
      
     def get_average_detection_instance_count(self):
         if not self.detection_counts:
@@ -158,8 +166,8 @@ class user_app_callback_class(app_callback_class):
             self.start_video_recording(self.width, self.height, video_filename, self.format, FRAME_RATE)
 
         phrase = f"{CLASS_TO_TRACK.upper()} DETECTED"
-        print(f"{phrase} {self.start_centroid} at: {datetime.datetime.now()}")
-        playsound("alert.mp3", 0)
+        logger.info(f"{phrase} {self.start_centroid} at: {datetime.datetime.now()}")
+        playsound(DOG_ALERT, 0)
 
     def active_tracking(self, class_detections):
         # If a frame is available, write the frame to the video
@@ -196,7 +204,7 @@ class user_app_callback_class(app_callback_class):
         avg_detection_count = self.get_average_detection_instance_count()
         avg_velocity_direction = int(self.avg_velocity.direction())
 
-        print(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction}")
+        logger.info(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction}")
 
         # Create root filename
         root_filename = f"{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}_{avg_velocity_direction}"
@@ -214,7 +222,7 @@ class user_app_callback_class(app_callback_class):
         if self.save_frame is not None and SAVE_DETECTION_IMAGES:
             self.image_filename = f"{output_dir}/{root_filename}.jpg"
             cv2.imwrite(self.image_filename, self.save_frame)
-            print(f"Image saved as {self.image_filename}")
+            logger.info(f"Image saved as {self.image_filename}")
 
         # Create metadata dictionary
         metadata = {
@@ -226,13 +234,12 @@ class user_app_callback_class(app_callback_class):
             "direction": avg_velocity_direction,
             "label": None
         }
-        print(f"Metadata: {metadata}")
 
         # Save metadata as JSON file
         metadata_filename = f"{output_dir}/{root_filename}.json"
         with open(metadata_filename, 'w') as metadata_file:
             json.dump(metadata, metadata_file)
-        print(f"Metadata saved as {metadata_filename}")
+        logger.info(f"Metadata saved as {metadata_filename}")
 
         self.max_instances = 0
         self.save_frame = None

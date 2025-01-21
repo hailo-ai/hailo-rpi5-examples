@@ -169,8 +169,11 @@ alert.mp3
 # GstShark
 gstshark*
 
-# Temporary images and videos
+# Temporary images and videos, and logs
 output/
+logs/
 
 # Temporary models
 default.mdl
+helenback.mp3
+helenout.mp3

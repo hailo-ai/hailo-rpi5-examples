@@ -12,6 +12,7 @@ import time
 import signal
 import subprocess
 import json
+from logger_config import logger
 
 # Try to import hailo python module
 try:
@@ -81,7 +82,7 @@ def detect_hailo_arch():
 
         # Check if the command was successful
         if result.returncode != 0:
-            print(f"Error running hailortcli: {result.stderr}")
+            logger.error(f"Error running hailortcli: {result.stderr}")
             return None
 
         # Search for the "Device Architecture" line in the output
@@ -92,10 +93,10 @@ def detect_hailo_arch():
                 elif "HAILO8" in line:
                     return "hailo8"
 
-        print("Could not determine Hailo architecture from device information.")
+        logger.warning("Could not determine Hailo architecture from device information.")
         return None
     except Exception as e:
-        print(f"An error occurred while detecting Hailo architecture: {e}")
+        logger.error(f"An error occurred while detecting Hailo architecture: {e}")
         return None
 
 def get_caps_from_pad(pad: Gst.Pad):
@@ -366,7 +367,7 @@ class GStreamerApp:
         # Initialize variables
         tappas_post_process_dir = os.environ.get('TAPPAS_POST_PROC_DIR', '')
         if tappas_post_process_dir == '':
-            print("TAPPAS_POST_PROC_DIR environment variable is not set. Please set it to by sourcing setup_env.sh")
+            logger.error("TAPPAS_POST_PROC_DIR environment variable is not set. Please set it to by sourcing setup_env.sh")
             exit(1)
         self.current_path = os.path.dirname(os.path.abspath(__file__))
         self.postprocess_dir = tappas_post_process_dir
@@ -395,7 +396,7 @@ class GStreamerApp:
             os.environ["GST_DEBUG_DUMP_DOT_DIR"] = self.current_path
 
     def on_fps_measurement(self, sink, fps, droprate, avgfps):
-        print(f"FPS: {fps:.2f}, Droprate: {droprate:.2f}, Avg FPS: {avgfps:.2f}")
+        logger.info(f"FPS: {fps:.2f}, Droprate: {droprate:.2f}, Avg FPS: {avgfps:.2f}")
         return True
 
     def create_pipeline(self):
@@ -406,13 +407,13 @@ class GStreamerApp:
         try:
             self.pipeline = Gst.parse_launch(pipeline_string)
         except Exception as e:
-            print(e)
-            print(pipeline_string)
+            logger.error(e)
+            logger.error(pipeline_string)
             sys.exit(1)
 
         # Connect to hailo_display fps-measurements
         if self.show_fps:
-            print("Showing FPS")
+            logger.info("Showing FPS")
             self.pipeline.get_by_name("hailo_display").connect("fps-measurements", self.on_fps_measurement)
 
         # Create a GLib Main Loop
@@ -421,17 +422,17 @@ class GStreamerApp:
     def bus_call(self, bus, message, loop):
         t = message.type
         if (t == Gst.MessageType.EOS):
-            print("End-of-stream")
+            logger.info("End-of-stream")
             self.on_eos()
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
-            print(f"Error: {err}, {debug}")
+            logger.error(f"Error: {err}, {debug}")
             self.shutdown()
         # QOS
         elif t == Gst.MessageType.QOS:
             # Handle QoS message here
             qos_element = message.src.get_name()
-            print(f"QoS message received from {qos_element}")
+            logger.info(f"QoS message received from {qos_element}")
         return True
 
 
@@ -440,7 +441,7 @@ class GStreamerApp:
              # Seek to the start (position 0) in nanoseconds
             success = self.pipeline.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0)
             if success:
-                print("Video rewound successfully. Restarting playback...")
+                logger.info("Video rewound successfully. Restarting playback...")
             else:
                 print("Error rewinding the video.")
         else:
@@ -448,7 +449,7 @@ class GStreamerApp:
 
 
     def shutdown(self, signum=None, frame=None):
-        print("Shutting down... Hit Ctrl-C again to force quit.")
+        logger.info("Shutting down... Hit Ctrl-C again to force quit.")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.pipeline.set_state(Gst.State.PAUSED)
         GLib.usleep(100000)  # 0.1 second delay
@@ -465,7 +466,7 @@ class GStreamerApp:
         return ""
 
     def dump_dot_file(self):
-        print("Dumping dot file...")
+        logger.info("Dumping dot file...")
         Gst.debug_bin_to_dot_file(self.pipeline, Gst.DebugGraphDetails.ALL, "pipeline")
         return False
 
@@ -478,14 +479,14 @@ class GStreamerApp:
         # Connect pad probe to the identity element
         identity = self.pipeline.get_by_name("identity_callback")
         if identity is None:
-            print("Warning: identity_callback element not found, add <identity name=identity_callback> in your pipeline where you want the callback to be called.")
+            logger.warning("Warning: identity_callback element not found, add <identity name=identity_callback> in your pipeline where you want the callback to be called.")
         else:
             identity_pad = identity.get_static_pad("src")
             identity_pad.add_probe(Gst.PadProbeType.BUFFER, self.app_callback, self.user_data)
 
         hailo_display = self.pipeline.get_by_name("hailo_display")
         if hailo_display is None:
-            print("Warning: hailo_display element not found, add <fpsdisplaysink name=hailo_display> to your pipeline to support fps display.")
+            logger.warning("Warning: hailo_display element not found, add <fpsdisplaysink name=hailo_display> to your pipeline to support fps display.")
         else:
             xvimagesink = hailo_display.get_by_name("xvimagesink0")
             if xvimagesink is not None:
@@ -581,7 +582,7 @@ def disable_qos(pipeline):
     """
     # Ensure the pipeline is a Gst.Pipeline instance
     if not isinstance(pipeline, Gst.Pipeline):
-        print("The provided object is not a GStreamer Pipeline")
+        logger.error("The provided object is not a GStreamer Pipeline")
         return
 
     # Iterate through all elements in the pipeline
@@ -595,4 +596,4 @@ def disable_qos(pipeline):
         if 'qos' in GObject.list_properties(element):
             # Set the 'qos' property to False
             element.set_property('qos', False)
-            print(f"Set qos to False for {element.get_name()}")
+            logger.info(f"Set qos to False for {element.get_name()}")
