@@ -17,12 +17,12 @@
             "program": "${workspaceFolder}/basic_pipelines/watcher.py",
             "console": "integratedTerminal",
             "args": ["--input", "rpi"],
-            "args": ["--input", "output/20250120/20250120_100755_013_dog_x5_28_converted.mp4"],
+            //"args": ["--input", "output/20250120/20250120_100755_013_dog_x5_28_converted.mp4"],
             //"args": ["--input", "output/20250118/20250118_115526_612_dog_x3_15_converted.mp4"],
             //"args": ["--input", "output/20250118/20250118_104320_177_dog_x3_74_converted.mp4"],
-            //"args": ["--input", "output/20250118/20250118_100659_469_dog_x3_12_converted.mp4"],
+            //"args": ["--input", "output/20250118/20250118_030348_031_dog_x3_12_converted.mp4"],
 
-            // "args": ["--hide-overlay"]
+            //"args": ["--hide-overlay"]
         }
     ]
 }

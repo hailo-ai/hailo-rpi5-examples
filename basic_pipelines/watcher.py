@@ -31,10 +31,11 @@ CLASS_TO_TRACK = config.get('CLASS_TO_TRACK', 'dog')
 SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
 SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
-FRAME_RATE = config.get('FRAME_RATE', 20)
+FRAME_RATE = config.get('FRAME_RATE', 30)
+HELEN_DOGS_THRESHOLD = config.get('HELEN_DOGS_THRESHOLD', 3)
 OUTPUT_DIRECTORY = config.get('OUTPUT_DIRECTORY', 'output')
 
-DOG_ALERT = "alert.mp3"
+DOG_ALERT = "dogalert.mp3"
 HELEN_OUT_ALERT = "helenout.mp3"
 HELEN_BACK_ALERT = "helenback.mp3"
 
@@ -203,8 +204,10 @@ class user_app_callback_class(app_callback_class):
 
         avg_detection_count = self.get_average_detection_instance_count()
         avg_velocity_direction = int(self.avg_velocity.direction())
+        named_direction = self.get_named_direction(avg_velocity_direction)
+        estimated_label = self.estimate_label(avg_velocity_direction, self.max_instances, avg_detection_count)
 
-        logger.info(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction}")
+        logger.info(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction}, named direction: {named_direction}, label: {estimated_label}")
 
         # Create root filename
         root_filename = f"{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}_{avg_velocity_direction}"
@@ -232,14 +235,21 @@ class user_app_callback_class(app_callback_class):
             "max_instances": self.max_instances,
             "average_instances": avg_detection_count,
             "direction": avg_velocity_direction,
-            "label": None
+            "named_direction": named_direction,
+            "label": estimated_label
         }
 
         # Save metadata as JSON file
         metadata_filename = f"{output_dir}/{root_filename}.json"
         with open(metadata_filename, 'w') as metadata_file:
             json.dump(metadata, metadata_file)
-        logger.info(f"Metadata saved as {metadata_filename}")
+        logger.info(f"Metadata saved: {metadata}")
+
+        # Play the appropriate alert based on the estimated label
+        if estimated_label == "HELEN_OUT":
+            playsound(HELEN_OUT_ALERT, 0)
+        elif estimated_label == "HELEN_BACK":
+            playsound(HELEN_BACK_ALERT, 0)
 
         self.max_instances = 0
         self.save_frame = None
@@ -287,7 +297,39 @@ class user_app_callback_class(app_callback_class):
             height = bbox.ymax() - bbox.ymin()
             total_area += width * height
         return total_area
-
+    
+    def get_named_direction(self, direction):
+        """
+        Get the named direction from a given angle.
+        Args:
+            direction (int): The angle in degrees.
+        Returns:
+            str: The named direction.
+        """
+        if direction < 70 or direction >= 10:
+            return "OUT"
+        if direction < 260 or direction >= 190:
+            return "BACK"
+        return "OTHER"
+    
+    def estimate_label(self, direction, max_instances, avg_detection_count):
+        """
+        Estimate the label based on the given direction, max instances, and average detection count.
+        Args:
+            direction (int): The angle in degrees.
+            max_instances (int): The maximum number of instances detected in a frame.
+            avg_detection_count (float): The average number of instances detected in a frame.
+        Returns:
+            str: The estimated label.
+        """
+        number_of_dogs = round(avg_detection_count)
+        if number_of_dogs >= HELEN_DOGS_THRESHOLD:
+            named_direction = self.get_named_direction(direction)
+            if named_direction == "OUT":
+                return "HELEN_OUT"
+            if named_direction == "BACK":
+                return "HELEN_BACK"
+        return None
 
 def app_callback(pad, info, user_data):
     """

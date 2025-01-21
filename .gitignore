@@ -162,10 +162,6 @@ resources/*.mp4
 resources/*.hef
 resources/*.onnx
 resources/*.so
-
-# Watcher temps
-alert.mp3
-
 # GstShark
 gstshark*
 
@@ -173,7 +169,8 @@ gstshark*
 output/
 logs/
 
-# Temporary models
+# Temporary files   
 default.mdl
 helenback.mp3
 helenout.mp3
+dogalert.mp3
