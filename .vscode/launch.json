@@ -23,6 +23,13 @@
             //"args": ["--input", "output/20250118/20250118_030348_031_dog_x3_12_converted.mp4"],
 
             //"args": ["--hide-overlay"]
+        },
+        {
+            "name": "Python: Run Relabeller",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/basic_pipelines/relabel.py",
+            "console": "integratedTerminal",
         }
     ]
 }
