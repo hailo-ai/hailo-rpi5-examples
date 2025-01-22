@@ -6,7 +6,7 @@ See our Development Guide for more information on how to use the pipelines to cr
 ## Installation
 See the [Installation Guide](../README.md#installation) in the main README for detailed instructions on setting up your environment.
 
-# Development Guide
+# Overview
 
 This guide provides an overview of how to develop custom applications using the basic pipelines provided in this repository. The examples demonstrate object detection, human pose estimation, and instance segmentation using Hailo's H8 and H8L accelerators.
 
@@ -24,11 +24,7 @@ The callback function is blocking and cannot take too long to execute; otherwise
 
 ## Available Pipelines
 
-The basic pipelines examples use the
-
-hailo-apps-infra
-
- package, which provides common utilities and the actual pipelines. You can import and use these pipelines in your applications. Below are some of the available pipelines:
+The basic pipelines examples use the `hailo-apps-infra` package, which provides common utilities and the actual pipelines. You can import and use these pipelines in your applications. Below are some of the available pipelines:
 
 
 # Detection Example
@@ -43,7 +39,7 @@ All "persons" are tracked.
 An example of a custom callback class that sends user-defined data to the callback function. Inherits from `app_callback_class` and can be extended with custom variables and functions. This example adds a variable and a function used when the `--use-frame` flag is active, displaying these values on the user frame.
 
 ### Application Callback Function
-Demonstrates parsing `HAILO_DETECTION` metadata. Each GStreamer buffer contains a `HAILO_ROI` object, serving as the root for all Hailo metadata attached to the buffer. The function extracts the label, bounding box, confidence and tracking ID for each 'Person' detection. It counts and prints the number of persons detected. With the `--use-frame` flag, it also displays the frame with the number of detected persons and user-defined data.Most detection networks
+Demonstrates parsing `HAILO_DETECTION` metadata. Each GStreamer buffer contains a `HAILO_ROI` object, serving as the root for all Hailo metadata attached to the buffer. The function extracts the label, bounding box, confidence and tracking ID for each 'Person' detection. It counts and prints the number of persons detected. With the `--use-frame` flag, it also displays the frame with the number of detected persons and user-defined data. Most detection networks
 
 ### Additional Features
 Shows how to add more command-line options using the `argparse` library. For instance, the added flag in this example allows changing the model used.
@@ -77,6 +73,9 @@ The `get_keypoints` function provides a dictionary mapping keypoint names to the
 ### Frame Processing
 If the `--use-frame` flag is set, the callback function retrieves the video frame from the buffer and processes it to draw the detected keypoints (left and right eyes) on the frame. The processed frame is then displayed.
 
+# Instance Segmentation Example
+![Banner](images/instance_segmentation.gif)
+
 ## What’s in This Example:
 
 ### Instance Segmentation Callback Class
@@ -95,7 +94,7 @@ The callback function processes instance segmentation metadata from the network 
 - **Customize Callbacks**: Modify the `app_callback` function within each script to handle the pipeline output according to your specific requirements.
 - **Incremental Complexity**: Gradually move to more complex pipelines as you gain confidence and require more advanced features.
 - **Leverage Documentation**: Refer to the [TAPPAS Documentation](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/docs/TAPPAS_architecture.rst) and [Hailo Objects API](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/docs/write_your_own_application/hailo-objects-api.rst#L4) for deeper insights and advanced customization options.
-- **Hailo Apps Infra Package** - The pipelines used in the basic pipelines examples are using the hailo-app-infra package. This package provides common utilities and the actual pipelines. For more information see [Hailo apps infra Repo](https://github.com/hailo-ai/hailo-apps-infra/blob/master/doc/development_guide.md).
+- **hailo-apps-infra package** - The pipelines used in the basic pipelines examples are using the hailo-app-infra package. This package provides common utilities and the actual pipelines. For more information see [Hailo apps infra Repo](https://github.com/hailo-ai/hailo-apps-infra/blob/master/doc/development_guide.md).
 
 By following this guide, makers can efficiently utilize the `basic_pipelines` package to build and customize their computer vision applications without getting overwhelmed by complexity.
 
@@ -118,13 +117,16 @@ pip install ipdb
 ```
 #### Choppy Video Playback
 
-If you experience choppy video playback, it might be caused due to too long processing time in the callback function or in another place in the pipeline.
+If you experience choppy video playback, it might be caused due to too long processing time in the pipeline. This will casue frames to be dropped.
+This can be cause by heavy compute in the callback function or in another place in the pipeline.
 In the callback function, ensure that the processing time is minimal to avoid blocking the pipeline. If you need to perform heavy processing, consider sending the data to another process for processing in the background.
+You can disable the callback function using the `--disable-callback` flag.
+Another CPU intense consumer is video operations which are not accelerated on the RPi5. Consider using lower resolution or lower frame rate videos.
 Run the `htop` command in a terminal to monitor the CPU and memory usage.
-If the CPU usage is close to 100%, it might be the bottleneck.
-
-The bottleneck could also be the model running on Hailo.
+If the CPU usage is close to 100%, it might be the colprit.
+If the CPU usage is low, the bottleneck could be the Hailo model.
 In this case, consider using a smaller model or using larger batch size.
+See the [Hailo Monitor](#hailo-monitor) section for more information on how to monitor the Hailo model.
 
 #### Hailo monitor
 To run the Hailo monitor, run the following command in a different terminal:
@@ -136,7 +138,7 @@ In the terminal you run your code set the `HAILO_MONITOR` environment variable t
 export HAILO_MONITOR=1
 ```
 #### Pipeline debugging
-See Hailo Apps Infra Developer Guide for more information on how to debug the pipeline.
+See [Hailo Apps Infra Developer Guide](https://github.com/hailo-ai/hailo-apps-infra/blob/main/doc/development_guide.md) for more information on how to debug the pipeline.
 
 
 # Scripts Overview
@@ -163,4 +165,4 @@ Download the required resources by running:
 ```bash
 ./download_resources.sh
 ```
-To download all models , You should use the `--all` with the ./download_resources.sh
+To download all models, you should use the `--all` option with the `./download_resources.sh` script.
