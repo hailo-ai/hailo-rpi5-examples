@@ -53,9 +53,10 @@ Supports using retrained detection models compiled with HailoRT NMS Post Process
 
 The `download_resources.sh` script downloads the network trained in the [Retraining Example](retraining-example.md#using-yolov8-retraining-docker), which can be used as a reference.
 
-To download all models , You should use the `--all` with the ./download_resources.sh
-
-**Example:**These scripts are importing the application code from the 'pipelines' scripts.
+#### To run the example with a custom model:
+```bash
+python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef-path resources/yolov8s-hailo8l-barcode.hef --input resources/barcode.mp4
+```
 
 **Example Output:**
 ![Barcode Detection Example](images/barcode-example.png)
