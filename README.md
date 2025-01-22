@@ -35,9 +35,7 @@ Run the following script to automate the installation process:
 ```
 
 ### Documentation
-For additional information and documentation see the [Basic Pipelines Documentation](doc/basic-pipelines.md#installation).
-
-See our [Developement Guide](doc/basic-pipelines.md#development-guide) for more information on how to use the pipelines to create your own custom pipelines.
+For additional information and documentation on how to use the pipelines to create your own custom pipelines, see the [Basic Pipelines Documentation](doc/basic-pipelines.md).
 
 ### Running The Examples
 When opening a new terminal session, ensure you have sourced the environment setup script:

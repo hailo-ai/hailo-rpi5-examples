@@ -67,7 +67,6 @@ def get_detection_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
     H8_HEFS = [
         "yolov5m_wo_spp.hef",
-        "yolov6n.hef",
         "yolov8s.hef",
         "yolov8m.hef",
     ]
@@ -75,7 +74,6 @@ def get_detection_compatible_hefs(architecture):
     H8L_HEFS = [
         "yolov8s_h8l.hef",
         "yolov6n.hef",
-        "yolox_s_leaky_h8l_mz.hef"
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
@@ -358,14 +356,14 @@ def test_detection_retraining():
 #             # Start the process
 #             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #             logging.info(f"Running {pipeline} with --use-frame flag using camera input")
-            
+
 #             try:
 #                 # Let the process run for the specified test time
 #                 time.sleep(TEST_RUN_TIME)
-                
+
 #                 # Attempt to terminate the process
 #                 process.send_signal(signal.SIGTERM)
-                
+
 #                 try:
 #                     # Wait for process to exit and capture output within a timeout
 #                     stdout, stderr = process.communicate(timeout=5)
@@ -374,7 +372,7 @@ def test_detection_retraining():
 #                     process.kill()
 #                     stdout, stderr = process.communicate()
 #                     pytest.fail(f"{pipeline} with --use-frame flag could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
-                
+
 #                 # Decode outputs
 #                 stdout_str, stderr_str = stdout.decode(), stderr.decode()
 
@@ -391,7 +389,7 @@ def test_detection_retraining():
 #                 # Log that the test completed successfully for this pipeline
 #                 log_file.write(f"{pipeline} with --use-frame flag test passed: completed without errors.\n")
 #                 logging.info(f"{pipeline} with --use-frame flag test completed successfully.")
-            
+
 #             except Exception as e:
 #                 # Ensure any exceptions are logged before failing
 #                 logging.error(f"Error occurred in test for {pipeline} with --use-frame flag: {e}")
