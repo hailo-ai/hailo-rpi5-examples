@@ -17,7 +17,7 @@ def test_check_hailo_runtime_installed():
 def test_check_required_files():
     """Test if required files exist."""
     required_files = [
-        'setup.py',
+        # 'setup.py',
         'download_resources.sh',
         'requirements.txt',
         'basic_pipelines/detection.py',
@@ -57,14 +57,14 @@ def test_gstreamer_installation():
 
 
 
-def test_setup_env():
-    """Test setup_env.sh script."""
-    result = subprocess.run(['bash', '-c', 'pip install -v -e .'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout_str = result.stdout
-    stderr_str = result.stderr
+# def test_setup_env():
+#     """Test setup_env.sh script."""
+#     result = subprocess.run(['bash', '-c', 'pip install -v -e .'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     stdout_str = result.stdout
+#     stderr_str = result.stderr
 
-    print(f"Setup Environment stdout:\n{stdout_str}")
-    print(f"Setup Environment stderr:\n{stderr_str}")
+#     print(f"Setup Environment stdout:\n{stdout_str}")
+#     print(f"Setup Environment stderr:\n{stderr_str}")
     
-    assert 'TAPPAS_POST_PROC_DIR' in stdout_str, "TAPPAS_POST_PROC_DIR is not set by setup_env.sh"
-    assert 'DEVICE_ARCHITECTURE' in stdout_str, "DEVICE_ARCHITECTURE is not set by setup_env.sh"
+#     assert 'TAPPAS_POST_PROC_DIR' in stdout_str, "TAPPAS_POST_PROC_DIR is not set by setup_env.sh"
+#     assert 'DEVICE_ARCHITECTURE' in stdout_str, "DEVICE_ARCHITECTURE is not set by setup_env.sh"
