@@ -36,15 +36,13 @@ def get_detection_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
     H8_HEFS = [
         "yolov5m_wo_spp.hef",
-        "yolov6n.hef",
         "yolov8s.hef",
         "yolov8m.hef",
     ]
 
     H8L_HEFS = [
         "yolov8s_h8l.hef",
-        "yolov6n.hef",
-        "yolox_s_leaky_h8l_mz.hef"
+        "yolov6n.hef"
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
