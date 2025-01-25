@@ -34,6 +34,8 @@ SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
 FRAME_RATE = config.get('FRAME_RATE', 30)
 HELEN_DOGS_THRESHOLD = config.get('HELEN_DOGS_THRESHOLD', 3)
 OUTPUT_DIRECTORY = config.get('OUTPUT_DIRECTORY', 'output')
+FANSHIM_START_THRESHOLD = config.get('FANSHIM_START_THRESHOLD', None)
+FANSHIM_HYSTERESIS = config.get('FANSHIM_HYSTERESIS', 10) 
 
 DOG_ALERT = "dogalert.mp3"
 HELEN_OUT_ALERT = "helenout.mp3"
@@ -404,7 +406,27 @@ def app_callback(pad, info, user_data):
     if user_data.is_active_tracking:
         user_data.active_tracking(class_detections)
 
+    # Monitor CPU temperature and control the fan
+    if FANSHIM_START_THRESHOLD is not None:
+        cpu_temp = get_cpu_temperature()
+
+        from fanshim import FanShim
+        if cpu_temp > FANSHIM_START_THRESHOLD:
+            FanShim().set_fan(True)
+        elif cpu_temp < (FANSHIM_START_THRESHOLD - FANSHIM_HYSTERESIS):
+            FanShim().set_fan(False)
+
     return Gst.PadProbeReturn.OK
+
+def get_cpu_temperature():
+    """
+    Get the current CPU temperature.
+    Returns:
+        float: The CPU temperature in degrees Celsius.
+    """
+    with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+        temp_str = f.read().strip()
+    return float(temp_str) / 1000.0
 
 class GStreamerApp:
     def __init__(self, args, user_data: app_callback_class):
