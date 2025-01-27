@@ -7,13 +7,6 @@ import os
 import signal
 from test_hailo_rpi5_examples import get_device_architecture, get_detection_compatible_hefs
 
-# Register custom marks
-def pytest_configure(config):
-    config.addinivalue_line("markers", "performance: mark a test as a performance test.")
-    config.addinivalue_line("markers", "stress: mark a test as a stress test.")
-    config.addinivalue_line("markers", "camera: mark a test as requiring a camera.")
-    config.addinivalue_line("markers", "detection: mark a test as a detection test.")
-
 def run_pipeline(script, input_source, duration=30, additional_args=None):
     cmd = ['python', f'basic_pipelines/{script}', '--input', input_source]
     if additional_args:
@@ -45,7 +38,6 @@ def run_download_resources():
         print("Script output:", e.output)
         return Falseupstream
 
-@pytest.mark.performance
 def test_inference_speed():
     models = ['detection.py', 'pose_estimation.py', 'instance_segmentation.py']
     for model in models:
@@ -65,12 +57,10 @@ def test_inference_speed():
         avg_fps = sum(fps_values) / len(fps_values) if fps_values else 0
         assert avg_fps > 10, f"Average FPS for {model} is below 10 FPS: {avg_fps}"
 
-@pytest.mark.stress
 def test_long_running():
     stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=360)
     assert "Error" not in stderr, f"Errors encountered during long-running test: {stderr}"
 
-@pytest.mark.camera
 def test_pi_camera_running():
     if not os.path.exists('/dev/video0'):
         pytest.skip("No camera detected at /dev/video0")
@@ -79,7 +69,6 @@ def test_pi_camera_running():
     assert "error" not in stderr.lower(), f"Unexpected error when accessing Pi camera: {stderr}"
     # We're not checking the return code here as it might be -15 due to SIGTERM
 
-@pytest.mark.detection
 def test_detection_pipeline_all_hefs():
     assert run_download_resources(), "Failed to download resources"
 
