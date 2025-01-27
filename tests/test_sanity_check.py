@@ -60,8 +60,8 @@ def test_setup_env():
     stdout_str = result.stdout
     stderr_str = result.stderr
 
-#     print(f"Setup Environment stdout:\n{stdout_str}")
-#     print(f"Setup Environment stderr:\n{stderr_str}")
+    print(f"Setup Environment stdout:\n{stdout_str}")
+    print(f"Setup Environment stderr:\n{stderr_str}")
     
-#     assert 'TAPPAS_POST_PROC_DIR' in stdout_str, "TAPPAS_POST_PROC_DIR is not set by setup_env.sh"
-#     assert 'DEVICE_ARCHITECTURE' in stdout_str, "DEVICE_ARCHITECTURE is not set by setup_env.sh"
+    assert 'TAPPAS_POST_PROC_DIR' in stdout_str, "TAPPAS_POST_PROC_DIR is not set by setup_env.sh"
+    assert 'DEVICE_ARCHITECTURE' in stdout_str, "DEVICE_ARCHITECTURE is not set by setup_env.sh"
