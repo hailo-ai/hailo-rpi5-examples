@@ -13,6 +13,7 @@ import signal
 import subprocess
 import json
 from logger_config import logger
+from screeninfo import get_monitors
 
 # Try to import hailo python module
 try:
@@ -307,6 +308,12 @@ def INFERENCE_PIPELINE_WRAPPER(inner_pipeline, bypass_max_size_buffers=20, name=
 
     return inference_wrapper_pipeline
 
+def get_screen_resolution():
+    monitor = get_monitors()[0]
+    width = monitor.width
+    height = monitor.height
+    return width, height
+
 def DISPLAY_PIPELINE(video_sink='xvimagesink', sync='true', show_fps='false', name='hailo_display'):
     """
     Creates a GStreamer pipeline string for displaying the video.
@@ -321,10 +328,15 @@ def DISPLAY_PIPELINE(video_sink='xvimagesink', sync='true', show_fps='false', na
     Returns:
         str: A string representing the GStreamer pipeline for displaying the video.
     """
+    screen_width, screen_height = min(get_screen_resolution(), (1024, 1024))
+
     # Construct the display pipeline string
     display_pipeline = (
         f'{QUEUE(name=f"{name}_hailooverlay_q")} ! '
         f'hailooverlay name={name}_hailooverlay ! '
+        f'{QUEUE(name=f"{name}_videoscale_q")} ! '
+        f'videoscale ! '
+        f'video/x-raw, width={screen_width}, height={screen_height}, pixel-aspect-ratio=1/1 ! '
         f'{QUEUE(name=f"{name}_videoconvert_q")} ! '
         f'videoconvert name={name}_videoconvert n-threads=2 qos=false ! '
         f'{QUEUE(name=f"{name}_q")} ! '
