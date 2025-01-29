@@ -22,6 +22,7 @@ from logger_config import logger
 # Load configuration from config.json
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
+    logger.info(f"Loaded config: {config}")
 
 # Load CLASS_* options from config
 CLASS_DETECTED_COUNT = config.get('CLASS_DETECTED_COUNT', 4)
@@ -32,7 +33,7 @@ SAVE_DETECTION_IMAGES = config.get('SAVE_DETECTION_IMAGES', True)
 SHOW_DETECTION_BOXES = config.get('SHOW_DETECTION_BOXES', True)
 SAVE_DETECTION_VIDEO = config.get('SAVE_DETECTION_VIDEO', False)
 FRAME_RATE = config.get('FRAME_RATE', 30)
-HELEN_DOGS_THRESHOLD = config.get('HELEN_DOGS_THRESHOLD', 3)
+HELEN_DOGS_THRESHOLD = config.get('HELEN_DOGS_THRESHOLD', 2)
 OUTPUT_DIRECTORY = config.get('OUTPUT_DIRECTORY', 'output')
 FANSHIM_START_THRESHOLD = config.get('FANSHIM_START_THRESHOLD', None)
 FANSHIM_HYSTERESIS = config.get('FANSHIM_HYSTERESIS', 10) 
@@ -368,6 +369,9 @@ def app_callback(pad, info, user_data):
     if user_data.use_frame and user_data.format is not None and user_data.width is not None and user_data.height is not None:
         user_data.current_frame = get_numpy_from_buffer(buffer, user_data.format, user_data.width, user_data.height)
         user_data.current_frame = cv2.cvtColor(user_data.current_frame, cv2.COLOR_RGB2BGR)
+
+    # Use this to create a new user frame window
+    # user_data.set_frame(user_data.current_frame)
     
     # Get the detections from the buffer
     roi = hailo.get_roi_from_buffer(buffer)
