@@ -41,6 +41,7 @@ FANSHIM_HYSTERESIS = config.get('FANSHIM_HYSTERESIS', 10)
 DOG_ALERT = "dogalert.mp3"
 HELEN_OUT_ALERT = "helenout.mp3"
 HELEN_BACK_ALERT = "helenback.mp3"
+HELLO = "hello.mp3"
 
 class Point2D:
     def __init__(self, x, y):
@@ -91,6 +92,9 @@ class user_app_callback_class(app_callback_class):
 
         # Setup speech files
         # make request to google to get synthesis
+
+        tts = gtts.gTTS(f"Hello Helen Oh Matic")
+        tts.save(HELLO)        
         tts = gtts.gTTS(f"Its a {CLASS_TO_TRACK.upper()}")
         tts.save(DOG_ALERT)
         tts = gtts.gTTS(f"Helen is going out")
@@ -206,6 +210,7 @@ class user_app_callback_class(app_callback_class):
         self.end_centroid = self.object_centroid
 
         avg_detection_count = self.get_average_detection_instance_count()
+        avg_detection_count_rounded = round(avg_detection_count)
         avg_velocity_direction = int(self.avg_velocity.direction())
         named_direction = self.get_named_direction(avg_velocity_direction)
         estimated_label = self.estimate_label(avg_velocity_direction, self.max_instances, avg_detection_count)
@@ -213,7 +218,7 @@ class user_app_callback_class(app_callback_class):
         logger.info(f"{CLASS_TO_TRACK.upper()} GONE at: {self.end_centroid} time: {datetime.datetime.now()}, avg count: {avg_detection_count:.2f}, max count: {self.max_instances}, direction: {avg_velocity_direction}, named direction: {named_direction}, label: {estimated_label}")
 
         # Create root filename
-        root_filename = f"{self.active_timestamp}_{CLASS_TO_TRACK}_x{self.max_instances}_{avg_velocity_direction}"
+        root_filename = f"{self.active_timestamp}_{CLASS_TO_TRACK}_x{avg_detection_count_rounded}_{avg_velocity_direction}"
 
         # Ensure output directories exist
         date_subdir = datetime.datetime.now().strftime("%Y%m%d")
@@ -442,6 +447,7 @@ class GStreamerApp:
 if __name__ == "__main__":
 
     # Create an instance of the user app callback class
+    playsound(HELLO, 0)
     user_data = user_app_callback_class()
     app = GStreamerDetectionApp(app_callback, user_data)
     app.run()
