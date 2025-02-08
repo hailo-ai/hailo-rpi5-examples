@@ -92,9 +92,7 @@ class user_app_callback_class(app_callback_class):
 
         # Setup speech files
         # make request to google to get synthesis
-
-        tts = gtts.gTTS(f"Hello Helen Oh Matic")
-        tts.save(HELLO)        
+       
         tts = gtts.gTTS(f"Its a {CLASS_TO_TRACK.upper()}")
         tts.save(DOG_ALERT)
         tts = gtts.gTTS(f"Helen is going out")
@@ -443,10 +441,11 @@ class GStreamerApp:
         self.user_data = user_data
         # ...existing code...
 
-
 if __name__ == "__main__":
 
     # Create an instance of the user app callback class
+    tts = gtts.gTTS(f"Hello Helen Oh Matic")
+    tts.save(HELLO) 
     playsound(HELLO, 0)
     user_data = user_app_callback_class()
     app = GStreamerDetectionApp(app_callback, user_data)
