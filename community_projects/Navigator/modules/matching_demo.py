@@ -59,7 +59,8 @@ class MatchingDemo:
         self.line_thickness = 3
 
         self.window_name = "Real-time matching"
-
+        self.prev_compute = None
+        
         # Removes toolbar and status bar
         cv2.namedWindow(self.window_name, flags=cv2.WINDOW_GUI_NORMAL)
         # Set the window size
@@ -302,7 +303,7 @@ class MatchingDemo:
 
             t0 = time()
             self.process()
-
+            # self.match_and_draw_visual_flow(self.current_frame)
             key = cv2.waitKey(1)
             if key == ord('q'):
                 break
@@ -327,6 +328,38 @@ class MatchingDemo:
         cv2.destroyAllWindows()
         if self.args.run_with_car:
             mclumk.stop_robot()
+    
+    def draw_lines(image, all_matchs, thickness=3):
+        for match in all_matchs:
+            points1 = match[0]
+            points2 = match[1]
+            # import ipdb; ipdb.set_trace()
+            sum_distance = 0
+            avrg_distance = 0
+            num_points = 0
+            for point1, point2 in zip(points1, points2):
+                euclidea_distance_2d = np.linalg.norm(np.array(point1) - np.array(point2))
+                if num_points < 10 or 3*avrg_distance > euclidea_distance_2d:
+                    image = cv2.line(image, (int(point1[0]),int(point1[1])), (int(point2[0]),int(point2[1])), (int(np.clip(50+euclidea_distance_2d*3, 0,255)), int(50+euclidea_distance_2d), int(np.clip(euclidea_distance_2d*3, 0,255))), thickness)
+                    sum_distance += euclidea_distance_2d
+                    num_points += 1
+                    avrg_distance = sum_distance/num_points
+        return image
+    
+    def match_and_draw_visual_flow(self, current_frame):
+        start = time()
+        if self.prev_compute is None:
+            points_flow1 ,points_flow2, self.prev_compute, _null =self.method.descriptor.mtd.match_xfeat_star(np.copy(current_frame), self.frame_grabber.get_last_frame()) 
+        else:
+            points_flow1 ,points_flow2, self.prev_compute =self.method.descriptor.mtd.match_xfeat_star_bootstrap(self.prev_compute, np.copy(current_frame))
+        
+        print("Time to match: ", time()-start)
+        start = time()
+        self.matchs_cash.add_match([points_flow1, points_flow2])
+        image = draw_lines(np.copy(current_frame), self.matchs_cash.get_matchs())
+        print("Time to draw: ", time()-start)
+        cv2.imshow("matches", image)
+        cv2.waitKey(1)
 
 def init_method(max_kpts, width, height):
     return Method(descriptor=CVWrapper(XFeat(top_k = max_kpts, width=width, height=height, device='hailo')), matcher=XFeat(width=width, height=height, device='hailo'))

@@ -15,7 +15,6 @@ def argparser():
     parser.add_argument('--max_kpts', type=int, default=3_000, help='Maximum number of keypoints.')
     parser.add_argument('--cam', type=int, default=0, help='Webcam device number.')
     parser.add_argument('--video', type=str, default="", help='video path.')
-    parser.add_argument('--hef', type=str, help='hef path.')
     parser.add_argument('--navigate', action="store_true")
     parser.add_argument('--record', action="store_true")
     parser.add_argument('--retreat', action="store_true")

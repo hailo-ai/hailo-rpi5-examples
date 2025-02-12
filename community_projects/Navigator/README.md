@@ -26,16 +26,12 @@ To get started with NavigAItor, follow these steps:
     ```bash
     git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
     ./install.sh
+    . setup_env.sh
     cd community_projects/Navigaitor/
-    ```
-4. Set up the environment:
-    ```bash
-    # Create and activate the virtual environment
-    . ../../setup_env.sh
     pip install -r requirements.txt
     ```
 
-6. Connect to your Raspbot:
+4. Connect to your Raspbot:
     - Get the Raspbot’s IP address from the display.
     - Open a browser and navigate to the Raspbot server: `http://<ip_addr>:8000`.
 
