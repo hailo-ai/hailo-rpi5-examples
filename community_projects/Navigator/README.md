@@ -43,7 +43,7 @@ To get started with NavigAItor, follow these steps:
 
 ![AI Frames Match](resources/frame_compare.png)
 
-## Usage
+## Usage - with Server
 
 1. **Record a Path**:  
    - Start recording mode and guide the robot along the desired path.
@@ -53,7 +53,7 @@ To get started with NavigAItor, follow these steps:
    - Use the navigation buttons to bring the robot back to the starting point.
    - Activate "retreat mode" and watch the robot retrace its recorded path.
 
-## Usage without getting a Raspbot V2 AI Vision Robot Car
+## Usage - without Server
 
 1. **Record a Path**:
     ```bash
@@ -63,6 +63,8 @@ To get started with NavigAItor, follow these steps:
     ```bash
     python navigator.py --navigate --retreat
     ```
+
+    For using the car, add -run-with-car flag
 ## Future Enhancements
 - **Path Library**: Store and retrieve multiple paths of interest.
 - **Reverse Path Navigation**: Retrace any recorded path in the reverse direction.

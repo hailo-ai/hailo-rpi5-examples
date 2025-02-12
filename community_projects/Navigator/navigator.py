@@ -9,9 +9,6 @@ import cv2
 import argparse, sys
 from modules.matching_demo import MatchingDemo
 
-
-
-
 def argparser():
     parser = argparse.ArgumentParser(description="Configurations for the real-time matching demo.")
     parser.add_argument('--small-model', action="store_true", help='Use small model for better performance.')
