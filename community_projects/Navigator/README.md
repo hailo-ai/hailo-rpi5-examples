@@ -30,8 +30,13 @@ To get started with NavigAItor, follow these steps:
     cd community_projects/Navigaitor/
     pip install -r requirements.txt
     ```
+4. Enable i2c:
+`   ``bash
+    sudo raspi-config
+    ```
+    Choose 3 Interface-Options -> I5 I2C
 
-4. Connect to your Raspbot:
+5. Connect to your Raspbot:
     - Get the Raspbot’s IP address from the display.
     - Open a browser and navigate to the Raspbot server: `http://<ip_addr>:8000`.
 
@@ -50,17 +55,31 @@ To get started with NavigAItor, follow these steps:
    - Activate "retreat mode" and watch the robot retrace its recorded path.
 
 ## Usage - without Server
-
-1. **Record a Path**:
+1. **Simple example**
+    Run the script to visualize the camera feed and see the rectangle move as you adjust the camera:
     ```bash
-    python navigator.py --navigate --record
+    python navigator.py
     ```
-2. **Navigate and Retrace**:  
-    ```bash
-    python navigator.py --navigate --retreat
-    ```
+    Move the camera slightly and observe the rectangle's movement on screen.
 
-    For using the car, add -run-with-car flag
+
+2. **Record a Path**:
+    To record a path while controlling the camera, use the following command:
+    ```bash
+    python navigator.py --navigate --record --cam 0
+    ```
+    As the camera moves, the robot will record the path, simulating movement like a driving car.
+
+3. **Navigate and Retrace**:  
+    After you have recorded the path, you can retrace it by using the following command. This should start from the exact point where you began the recording:
+    ```bash
+    python navigator.py --navigate --retreat --cam 0
+    ```
+    The robot will retrace the recorded path from the point where the recording began and move back to the starting point.
+    
+
+To control the actual robot (car) in real-time while navigating and recording, add the -run-with-car flag
+
 ## Future Enhancements
 - **Path Library**: Store and retrieve multiple paths of interest.
 - **Reverse Path Navigation**: Retrace any recorded path in the reverse direction.

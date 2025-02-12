@@ -6,6 +6,8 @@ from time import sleep, time
 from modules.xfeat import XFeat
 from modules.method import Method, CVWrapper
 import os
+import server.external.McLumk_Wheel_Sports as mclumk
+
 
 class MatchingDemo:
     def __init__(self, args):
@@ -19,8 +21,6 @@ class MatchingDemo:
         if args.small_model:
             self.width = 320
             self.height = 224
-        if args.run_with_car:
-            import server.external.McLumk_Wheel_Sports as mclumk
         self.ref_frame = None
         self.ref_precomp = [[],[]]
         self.corners = [[50, 50], [self.width-50, 50], [self.width-50, self.height-50], [50, self.height-50]]

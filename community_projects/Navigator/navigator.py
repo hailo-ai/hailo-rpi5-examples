@@ -8,6 +8,7 @@ import sys
 import cv2
 import argparse, sys
 from modules.matching_demo import MatchingDemo
+import server.external.McLumk_Wheel_Sports as mclumk
 
 def argparser():
     parser = argparse.ArgumentParser(description="Configurations for the real-time matching demo.")
@@ -15,17 +16,16 @@ def argparser():
     parser.add_argument('--max_kpts', type=int, default=3_000, help='Maximum number of keypoints.')
     parser.add_argument('--cam', type=int, default=0, help='Webcam device number.')
     parser.add_argument('--video', type=str, default="", help='video path.')
-    parser.add_argument('--navigate', action="store_true")
-    parser.add_argument('--record', action="store_true")
-    parser.add_argument('--retreat', action="store_true")
-    parser.add_argument('--run-with-car', action="store_true")
+    parser.add_argument('--navigate', action="store_true", help='For navigator application, Use this flag.')
+    parser.add_argument('--record', action="store_true", help='Record a new route')
+    parser.add_argument('--retreat', action="store_true", help='Retrace recorded path')
+    parser.add_argument('--run-with-car', action="store_true", help='Ad this flag only if you want to run with a car')
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = argparser()
     if args.navigate:
         if args.run_with_car:
-            import server.external.McLumk_Wheel_Sports as mclumk
             mclumk.stop_robot()
         if args.record and args.retreat:
             print("Choose only one mode")
