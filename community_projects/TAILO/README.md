@@ -62,7 +62,7 @@ GPIO 18 - PWM to trigger the treat launching with the SG90 servo.
 ### Installation
 ### Navigate to the repository directory:
 ```bash
-cd hailo-rpi5-puppy
+cd hailo-rpi5-examples
 ```
 
 ### Environment Configuration  (Required for Each New Terminal Session)
