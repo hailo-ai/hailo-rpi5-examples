@@ -33,7 +33,7 @@ class MatchingDemo:
         self.frame_grabber.start()
 
         #recorder
-        if args.app:
+        if args.navigate:
             self.recorder = ImageRecorder(frame_grabber=self.frame_grabber, storage_dir="resources/recorded_images")
             self.recorder.start()
 
@@ -193,10 +193,10 @@ class MatchingDemo:
         bottom_frame = self.match_and_draw(self.ref_frame, self.current_frame)
         # Draw warped corners
         if self.H is not None and len(self.corners) > 1:
-            if self.args.app:
+            if self.args.navigate:
                 self.print_directions(self.warp_points(self.corners, self.H, self.width), self.corners)
             self.draw_quad(top_frame_canvas, self.warp_points(self.corners, self.H, self.width))
-        elif self.args.app:
+        elif self.args.navigate:
             if self.args.run_with_car:
                 mclumk.stop_robot()
             print("No box!!!!")
@@ -210,7 +210,7 @@ class MatchingDemo:
 
     def match_and_draw(self, ref_frame, current_frame):
         bad_threshold = 10
-        if self.args.app:
+        if self.args.navigate:
             bad_threshold = 60
         matches, good_matches = [], []
         kp1, kp2 = [], []
@@ -246,7 +246,7 @@ class MatchingDemo:
             
         else:
             matched_frame = np.hstack([ref_frame, current_frame])
-            if self.args.app:
+            if self.args.navigate:
                 return None
 
         color = (240, 89, 169)

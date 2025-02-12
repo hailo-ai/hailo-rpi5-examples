@@ -24,32 +24,24 @@ To get started with NavigAItor, follow these steps:
 
 3. Clone the repository:
     ```bash
-    git clone https://github.com/eilonpo/navigaitor/
+    git clone https://github.com/hailo-ai/hailo-rpi5-examples.git
+    ./install.sh
     cd community_projects/Navigaitor/
     ```
-4. Install dependencies:
-    - Ensure you have **pipx** and **poetry** for managing dependencies:
-    ```bash
-    sudo apt install pipx
-    pipx install poetry
-    export PATH="$HOME/.local/bin:$PATH"  # Add poetry's bin dir to PATH
-    poetry install  # This will create a virtual environment and install dependencies
-    ```
-
-5. Set up the environment:
+4. Set up the environment:
     ```bash
     # Create and activate the virtual environment
     . ../../setup_env.sh
-    pip install torch opencv-python onnxruntime tqdm
+    pip install -r requirements.txt
     ```
 
 6. Connect to your Raspbot:
     - Get the Raspbot’s IP address from the display.
     - Open a browser and navigate to the Raspbot server: `http://<ip_addr>:8000`.
 
-![Application GUI](readme_assets/gui.png)
+![Application GUI](resources/gui.png)
 
-![AI Frames Match](readme_assets/frame_compare.png)
+![AI Frames Match](resources/frame_compare.png)
 
 ## Usage
 
@@ -61,6 +53,16 @@ To get started with NavigAItor, follow these steps:
    - Use the navigation buttons to bring the robot back to the starting point.
    - Activate "retreat mode" and watch the robot retrace its recorded path.
 
+## Usage without getting a Raspbot V2 AI Vision Robot Car
+
+1. **Record a Path**:
+    ```bash
+    python navigator.py --navigate --record
+    ```
+2. **Navigate and Retrace**:  
+    ```bash
+    python navigator.py --navigate --retreat
+    ```
 ## Future Enhancements
 - **Path Library**: Store and retrieve multiple paths of interest.
 - **Reverse Path Navigation**: Retrace any recorded path in the reverse direction.
