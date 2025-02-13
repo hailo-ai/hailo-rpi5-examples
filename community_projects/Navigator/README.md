@@ -1,3 +1,5 @@
+![](../../resources/Hackathon-banner-2024.png)
+
 # NavigAItor: The AI-Powered Autonomous Path Navigator
 
 ## Overview
@@ -31,7 +33,7 @@ To get started with NavigAItor, follow these steps:
     pip install -r requirements.txt
     ```
 4. Enable i2c:
-`   ``bash
+    ```bash
     sudo raspi-config
     ```
     Choose 3 Interface-Options -> I5 I2C

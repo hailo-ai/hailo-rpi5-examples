@@ -1,0 +1,4 @@
+transformers
+onnxruntime
+torch==2.5.1
+git+https://github.com/openai/CLIP.git
