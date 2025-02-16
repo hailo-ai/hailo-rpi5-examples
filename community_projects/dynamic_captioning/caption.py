@@ -8,20 +8,27 @@ from hailo_platform import VDevice, FormatType, HailoSchedulingAlgorithm
 import clip
 import torch
 from picamera2 import Picamera2
+import argparse
 
 
-CAPTION_EMBEDDING = "embeddings/caption_embedding.npy"
-WORD_EMBEDDING = "embeddings/word_embedding.npy"
-ENCODER_PATH = "models/florence2_transformer_encoder.hef"
-DECODER_PATH = "models/florence2_transformer_decoder.hef"
-VISION_ENCODER_PATH = "models/vision_encoder.onnx"
+CAPTION_EMBEDDING = "resources/embeddings/caption_embedding.npy"
+WORD_EMBEDDING = "resources/embeddings/word_embedding.npy"
+ENCODER_PATH = "resources/models/florence2_transformer_encoder.hef"
+DECODER_PATH = "resources/models/florence2_transformer_decoder.hef"
+VISION_ENCODER_PATH = "resources/models/vision_encoder.onnx"
 DECODER_INPUT_SHAPE = (1, 1, 32, 768)
-ENCODER_OUTPUT_KEY = "transformer_decoder/input_layer1"
-DECODER_INPUT_KEY = "transformer_decoder/input_layer2"
-TOKENIZER_PATH = "tokenizer/tokenizer.json"
+ENCODER_OUTPUT_KEY = "resources/transformer_decoder/input_layer1"
+DECODER_INPUT_KEY = "resources/transformer_decoder/input_layer2"
+TOKENIZER_PATH = "resources/tokenizer/tokenizer.json"
 START_TOKEN = 2
 TIMEOUT_MS = 1000
 COSINE_SIMILARITY_THRESHOLD = 0.7
+
+def argparser():
+    parser = argparse.ArgumentParser(description="Configurations for Flourence.")
+    parser.add_argument('--no-speaker', action="store_true", help='Use this flag in case you did not connected a speaker')
+
+    return parser.parse_args()
 
 def match_texts(model, text1, text2):
     # Load the CLIP model and preprocess function
@@ -124,20 +131,22 @@ def picam_capture(picam2, capture_config, preview_config):
     picam2.switch_mode(preview_config)
     return array
 
-def caption_loop(picam2, capture_config, preview_config, processor, davit_session, encoder, decoder, tokenizer, clip_model):
+def caption_loop(picam2, capture_config, preview_config, processor, davit_session, encoder, decoder, tokenizer, clip_model, no_speaker):
     last_caption = None
     while True:
         start = time.time()
         caption = infer_florence2(picam_capture(picam2, capture_config, preview_config), processor, davit_session, encoder, decoder, tokenizer)
         if last_caption is None or match_texts(clip_model, last_caption, caption) < COSINE_SIMILARITY_THRESHOLD:
             print(f"NEW EVENT ALERT!!!!! - {caption}")
-            os.system(f'espeak "{caption}" -s 130')
+            if not no_speaker:
+                os.system(f'espeak "{caption}" -s 130')
         end = time.time()
         #print("took %s seconds" % (end - start))
         last_caption = caption
 
 def main():
     print("Initializing...")
+    args = argparser()
     processor = create_processor()
     davit_session = ort.InferenceSession(VISION_ENCODER_PATH)
     tokenizer = TokenizerFast.from_file(TOKENIZER_PATH)
@@ -156,7 +165,7 @@ def main():
             with decoder_infer_model.configure() as decoder:
                 picam2, preview_config, capture_config = picam_init()
                 print("Initialized succesfully")
-                caption_loop(picam2, capture_config, preview_config, processor, davit_session, encoder, decoder, tokenizer, clip_model)
+                caption_loop(picam2, capture_config, preview_config, processor, davit_session, encoder, decoder, tokenizer, clip_model, args.no_speaker)
                     
 
 if __name__=="__main__":

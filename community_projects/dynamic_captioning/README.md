@@ -14,11 +14,10 @@
 - Python 3.7 or higher
 - TensorFlow
 - Internet connection for downloading models and updates
+- Speaker with bluetooth connection
 
 
 ## Installation
-- Download the netwrok files (hef files):
-    [https://drive.google.com/file/d/1LwLOrzULS-vFsSL0t594If9X2u8ti9Uy/view?usp=sharing](https://drive.google.com/file/d/1mSsYDghBCSIuLYJRrWTW8p1HavO7UPWW/view?usp=sharing)
 
 - Install espeak:
   ```bash
@@ -28,9 +27,19 @@
     ```bash
     pip install -r requirements.txt
     ```
+- Download resources:
+    ```bash
+    ./download_resources.sh
+    ```
+
 - Run app:
     ```bash
-    python caption.py
+    python caption.py 
+    ```
+
+- Run app without a speaker:
+    ```bash
+    python caption.py --no-speaker 
     ```
 
     
