@@ -52,7 +52,7 @@ For more information see [ChessMate Example Documentation.](RoboChess/README.md)
 
 A "Red Light, Green Light" game based on Pose Estimation.
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/TxlH3vfFT-g?si=21905bCQhv52vQm4/0.jpg)](https://youtube.com/shorts/TxlH3vfFT-g?si=21905bCQhv52vQm4)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/TxlH3vfFT-g/hqdefault.jpg)](https://youtube.com/shorts/TxlH3vfFT-g?si=21905bCQhv52vQm4)
 
 For more information see [HailoGames Example Documentation.](sailted_fish/README.md)
 
