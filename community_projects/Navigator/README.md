@@ -12,8 +12,6 @@ By capturing images and creating a video-based map, NavigAItor constructs a "pat
 - **Snapshot Capture**: Automatically take snapshots along the drive path for documentation.
 - **AI-Powered Path Repetition**: Allow the robot to retrace its recorded path using only camera input, with no manual control.
 
-## Watch our cool project!
-https://drive.google.com/file/d/1TwxavvJ6AJmL3meYYoIhOH8NWmOuuthr/view?usp=sharing
 
 ## Installation
 
