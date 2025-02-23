@@ -1,3 +1,5 @@
+![](../../resources/Hackathon-banner-2024.png)
+
 # NavigAItor: The AI-Powered Autonomous Path Navigator
 
 ## Overview
@@ -10,8 +12,6 @@ By capturing images and creating a video-based map, NavigAItor constructs a "pat
 - **Snapshot Capture**: Automatically take snapshots along the drive path for documentation.
 - **AI-Powered Path Repetition**: Allow the robot to retrace its recorded path using only camera input, with no manual control.
 
-## Watch our cool project!
-https://drive.google.com/file/d/1TwxavvJ6AJmL3meYYoIhOH8NWmOuuthr/view?usp=sharing
 
 ## Installation
 
@@ -31,7 +31,7 @@ To get started with NavigAItor, follow these steps:
     pip install -r requirements.txt
     ```
 4. Enable i2c:
-`   ``bash
+    ```bash
     sudo raspi-config
     ```
     Choose 3 Interface-Options -> I5 I2C
@@ -40,9 +40,9 @@ To get started with NavigAItor, follow these steps:
     - Get the Raspbot’s IP address from the display.
     - Open a browser and navigate to the Raspbot server: `http://<ip_addr>:8000`.
 
-![Application GUI](resources/gui.png)
+![Application GUI](resources/gui.jpg)
 
-![AI Frames Match](resources/frame_compare.png)
+![AI Frames Match](resources/frame_compare.jpg)
 
 ## Usage - with Server
 

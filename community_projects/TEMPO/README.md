@@ -1,3 +1,5 @@
+![](../../resources/Hackathon-banner-2024.png)
+
 # TEMPO
 
 Song generation based on heart rate. The code generates music according to your heart rate.

@@ -7,11 +7,11 @@
 
 # Array of file URLs to download
 FILE_URLS=(
-    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/warn_pet1.mp3"
-    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/warn_pet2.mp3"
-    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/warn_pet3.mp3"
-    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/treat_pet1.mp3"
-    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/brandy_on_couch.mp4"
+    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/tailo/warn_pet1.mp3"
+    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/tailo/warn_pet2.mp3"
+    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/tailo/warn_pet3.mp3"
+    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/tailo/treat_pet1.mp3"
+    "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hackathon/tailo/brandy_on_couch.mp4"
 
 )
 
