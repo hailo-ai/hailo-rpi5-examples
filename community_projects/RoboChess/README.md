@@ -12,6 +12,7 @@ The hackathon journey is presented in the following link:
 
 ## Disclaimer
 **This example is for reference only and requires a customized version of PyHailort to run. It will not work with the standard release.**
+**If you are interested in this project, add a comment in the community and we will help bringing it up.**
 
 
 ## The Build

@@ -40,9 +40,9 @@ To get started with NavigAItor, follow these steps:
     - Get the Raspbot’s IP address from the display.
     - Open a browser and navigate to the Raspbot server: `http://<ip_addr>:8000`.
 
-![Application GUI](resources/gui.png)
+![Application GUI](resources/gui.jpg)
 
-![AI Frames Match](resources/frame_compare.png)
+![AI Frames Match](resources/frame_compare.jpg)
 
 ## Usage - with Server
 

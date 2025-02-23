@@ -57,6 +57,24 @@ A "Red Light, Green Light" game based on Pose Estimation.
 For more information see [HailoGames Example Documentation.](sailted_fish/README.md)
 
 
-## More Projects
-You can explore more community projects in our hailo-rpi5-examples repository -  
+# CLIP Based Projects
+You can explore more community projects in our hailo-CLIP repository -  
 [hailo-CLIP community projects](https://github.com/hailo-ai/hailo-CLIP/blob/main/community_projects/community_projects.md)
+
+## Ad Genie
+A system that personalizes ads by matching outfits to individual styles in real time.
+
+[![Watch the demo on YouTube](https://img.youtube.com/vi/_PN4cdiFKmw/0.jpg)](<https://youtu.be/_PN4cdiFKmw>)
+
+For more information see [Ad Genie Example Documentation.](https://github.com/hailo-ai/hailo-CLIP/blob/main/community_projects/ad_genie/README.md)
+
+
+## BAIby Monitor
+
+A smart baby monitor detecting cries and activity with real-time alerts.
+
+[![VIDEO](https://img.youtube.com/vi/sXgL5g_A-u0/0.jpg)](https://youtu.be/sXgL5g_A-u0)
+
+For more information see [BAIby Monitor Example Documentation.](https://github.com/hailo-ai/hailo-CLIP/blob/main/community_projects/baiby_monitor/README.md)
+
+
