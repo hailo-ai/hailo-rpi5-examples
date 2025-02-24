@@ -60,8 +60,10 @@ The tape should be strong enough to not fall from the finger but not too tight f
 
 1. Run the web application (not using heart monitor):
     - Run `python app_hailo.py --port 8080 --batch 1`
-    - After the web UI opens, click "generate". This will load the HEF file, which is located in a Google Drive folder.
-    - In this version, you can control all the sliders.
+    - Open the web browser and go to `http://localhost:8080`
+    - After the web UI opens, click "Load Model". This will load the HEF file.
+    - Configure your preferences and click "Generate".
+    - In this version, you can control all the sliders and options.
 
 2. Run using heart monitor:
     - Run `python app_heart_bit.py`
