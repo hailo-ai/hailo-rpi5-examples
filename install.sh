@@ -8,7 +8,7 @@ source setup_env.sh
 
 # Install additional system dependencies (if needed)
 echo "Installing additional system dependencies..."
-sudo apt install -y rapidjson-dev
+sudo apt install -y rapidjson-dev meson
 
 # Initialize variables
 DOWNLOAD_RESOURCES_FLAG=""
