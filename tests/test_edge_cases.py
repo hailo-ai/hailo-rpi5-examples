@@ -27,10 +27,18 @@ def test_unsupported_format():
     else:
         assert False, "The pipeline did not report an error for unsupported input format."
 
-@pytest.mark.parametrize("script", ["detection.py", "pose_estimation.py", "instance_segmentation.py"])
+@pytest.mark.parametrize("script", ["detection.py", "pose_estimation.py", "instance_segmentation.py", "depth.py"])
 def test_invalid_command_arguments(script):
     """Test how pipelines handle invalid command-line arguments."""
     process = subprocess.run(['python', f'basic_pipelines/{script}', '--unknown_arg'],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     assert "error: unrecognized arguments:" in process.stderr or "usage:" in process.stderr, \
+        "Pipeline did not handle invalid command-line arguments correctly."
+
+@pytest.mark.parametrize("script", ["depth.py"])
+def test_invalid_command_argument_value(script):
+    """Test how pipelines handle invalid command-line argument value."""
+    process = subprocess.run(['python', f'basic_pipelines/{script}', '--algo', 'dummy_algo'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    assert "error: unrecognized argument value for:" in process.stderr or "usage:" in process.stderr, \
         "Pipeline did not handle invalid command-line arguments correctly."

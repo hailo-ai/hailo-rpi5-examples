@@ -82,6 +82,23 @@ def get_seg_compatible_hefs(architecture):
 
     return [os.path.join("resources", hef) for hef in hef_list]
 
+def get_depth_compatible_hefs(architecture):
+    """Get a list of compatible HEF files based on the device architecture."""
+    H8_HEFS = [
+        "fast_depth.hef",
+        "scdepthv3.hef"
+    ]
+
+    H8L_HEFS = [
+        "fast_depth_h8l.hef",
+        "scdepthv3_h8l.hef"
+    ]
+    hef_list = H8L_HEFS
+    if architecture == 'hailo8':
+        hef_list = hef_list + H8_HEFS
+
+    return [os.path.join("resources", hef) for hef in hef_list]
+
 def test_detection_hefs():
     """Test detection pipeline with all compatible HEFs."""
     log_dir = "logs"
@@ -228,6 +245,62 @@ def test_segmentation_hefs():
                     process.kill()
                     process.wait()
 
+def test_depth_hefs():
+    """Test depth pipeline with all compatible HEFs."""
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+
+    architecture = get_device_architecture()
+    compatible_hefs = get_depth_compatible_hefs(architecture)
+    for hef in compatible_hefs:
+        hef_name = os.path.basename(hef)
+
+        log_file_path = os.path.join(log_dir, f"depth_{hef_name}_video_test.log")
+        logging.info(f"Running depth with {hef_name} (video input)")
+        with open(log_file_path, "w") as log_file:
+            if "fast_depth" in hef_name:  # algo is fast_depth
+                process = subprocess.Popen(
+                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
+                    '--input', 'resources/example.mp4',
+                    '--algo', 'fast_depth',
+                    '--hef-path', hef,
+                    '--show-fps'])
+            else:  # algo is scdepthv3
+                process = subprocess.Popen(
+                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
+                    '--input', 'resources/example.mp4',
+                    '--algo', 'scdepthv3',
+                    '--hef-path', hef,
+                    '--show-fps']) 
+            try:
+                # Let it run
+                time.sleep(TEST_RUN_TIME)
+                
+                # Gracefully terminate
+                process.send_signal(signal.SIGTERM)
+                
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                
+                # Check return code
+                assert process.returncode == 0 or process.returncode == -15, \
+                    f"Process failed with return code {process.returncode}"
+                
+                # Write to log
+                log_file.write(f"Depth with {hef_name} completed successfully\n")
+                log_file.write(f"Return code: {process.returncode}\n")
+                
+            except Exception as e:
+                process.kill()
+                pytest.fail(f"Test failed: {str(e)}")
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                    process.wait()
+
 def test_rpi_camera():
     """Test all pipelines with RPI camera."""
     if not rpi_camera_available:
@@ -242,7 +315,8 @@ def test_rpi_camera():
     pipeline_configs = [
         ('detection_pipeline', get_detection_compatible_hefs(arch)),
         ('pose_estimation_pipeline', get_pose_compatible_hefs(arch)),
-        ('instance_segmentation_pipeline', get_seg_compatible_hefs(arch))
+        ('instance_segmentation_pipeline', get_seg_compatible_hefs(arch)),
+        ('depth_pipeline', get_depth_compatible_hefs(arch))
     ]
 
     for pipeline_name, hefs in pipeline_configs:
@@ -253,11 +327,26 @@ def test_rpi_camera():
         log_file_path = os.path.join(log_dir, f"{pipeline_name}_rpi_test.log")
         
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(
-                ['python', '-m', f'hailo_apps_infra.{pipeline_name}',
-                 '--input', 'rpi',
-                 '--hef-path', hef,
-                 '--show-fps'])
+            if "fast_depth" in hef:  # algo is fast_depth
+                process = subprocess.Popen(
+                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
+                    '--input', 'rpi',
+                    '--algo', 'fast_depth',
+                    '--hef-path', hef,
+                    '--show-fps'])
+            elif "scdepth" in hef:  # algo is scdepthv3
+                process = subprocess.Popen(
+                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
+                    '--input', 'rpi',
+                    '--algo', 'scdepthv3',
+                    '--hef-path', hef,
+                    '--show-fps']) 
+            else:  # all others
+                process = subprocess.Popen(
+                    ['python', '-m', f'hailo_apps_infra.{pipeline_name}',
+                    '--input', 'rpi',
+                    '--hef-path', hef,
+                    '--show-fps'])
             
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -282,7 +371,6 @@ def test_rpi_camera():
                 if process.poll() is None:
                     process.kill()
                     process.wait()
-
 
 from hailo_apps_infra.hailo_rpi_common import (
     detect_hailo_arch,

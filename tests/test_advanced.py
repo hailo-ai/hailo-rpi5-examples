@@ -39,7 +39,7 @@ def run_download_resources():
         return Falseupstream
 
 def test_inference_speed():
-    models = ['detection.py', 'pose_estimation.py', 'instance_segmentation.py']
+    models = ['detection.py', 'pose_estimation.py', 'instance_segmentation.py', 'depth.py']
     for model in models:
         stdout, _ = run_pipeline(model, 'resources/example.mp4', duration=60, additional_args=['--show-fps'])
         fps_lines = [line for line in stdout.split('\n') if 'FPS' in line or 'fps' in line]

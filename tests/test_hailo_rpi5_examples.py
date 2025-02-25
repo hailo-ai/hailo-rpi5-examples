@@ -61,7 +61,7 @@ def get_device_architecture():
 
 def get_pipelines_list():
     """Get a list of available pipeline scripts."""
-    return ["detection.py", "pose_estimation.py", "instance_segmentation.py"]
+    return ["detection.py", "pose_estimation.py", "instance_segmentation.py", "depth.py"]
 
 def get_detection_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
@@ -112,6 +112,23 @@ def get_seg_compatible_hefs(architecture):
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
         # check both HAILO8 and HAILO8L
+        hef_list = hef_list + H8_HEFS
+
+    return [os.path.join("resources", hef) for hef in hef_list]
+
+def get_depth_compatible_hefs(architecture):
+    """Get a list of compatible HEF files based on the device architecture."""
+    H8_HEFS = [
+        "fast_depth.hef",
+        "scdepthv3.hef"
+    ]
+
+    H8L_HEFS = [
+        "fast_depth_h8l.hef",
+        "scdepthv3_h8l.hef"
+    ]
+    hef_list = H8L_HEFS
+    if architecture == 'hailo8':
         hef_list = hef_list + H8_HEFS
 
     return [os.path.join("resources", hef) for hef in hef_list]
@@ -304,6 +321,43 @@ def test_seg_hefs():
             assert "Error" not in stderr.decode(), f"seg with {hef_name} (video input) encountered an error: {stderr.decode()}"
             assert "frame" in stdout.decode().lower(), f"seg with {hef_name} (video input) did not process any frames"
             assert "detection" in stdout.decode().lower(), f"seg with {hef_name} (video input) did not make any detections"
+
+def test_depth_hefs():
+    """
+    Combined test function for basic pipeline scripts with different HEFs and input sources.
+    """
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+
+    architecture = get_device_architecture()
+    compatible_hefs = get_depth_compatible_hefs(architecture)
+    for hef in compatible_hefs:
+        hef_name = os.path.basename(hef)
+
+        # Test with video input
+        log_file_path = os.path.join(log_dir, f"depth_{hef_name}_video_test.log")
+        logging.info(f"Running depth with {hef_name} (video input)")
+        with open(log_file_path, "w") as log_file:
+            if "fast_depth" in hef_name:
+                process = subprocess.Popen(['python', 'basic_pipelines/depth.py', '--input', 'resources/example.mp4', '--hef-path', hef, '--algo', 'fast_depth'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            else:  # algo is scdepthv3
+                process = subprocess.Popen(['python', 'basic_pipelines/depth.py', '--input', 'resources/example.mp4', '--hef-path', hef, '--algo', 'scdepthv3'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                time.sleep(TEST_RUN_TIME)
+                process.send_signal(signal.SIGTERM)
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                pytest.fail(f"depth with {hef_name} (video input) could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
+
+            stdout, stderr = process.communicate()
+            log_file.write(f"depth with {hef_name} (video input) stdout:\n{stdout.decode()}\n")
+            log_file.write(f"depth with {hef_name} (video input) stderr:\n{stderr.decode()}\n")
+
+            assert "Traceback" not in stderr.decode(), f"depth with {hef_name} (video input) encountered an exception: {stderr.decode()}"
+            assert "Error" not in stderr.decode(), f"depth with {hef_name} (video input) encountered an error: {stderr.decode()}"
+            assert "frame" in stdout.decode().lower(), f"depth with {hef_name} (video input) did not process any frames"
+            assert "detection" in stdout.decode().lower(), f"depth with {hef_name} (video input) did not make any detections"
 
 def test_detection_retraining():
     """
