@@ -418,5 +418,5 @@ if __name__ == "__main__":
         undo_btn.click(undo_continuation, [output_midi_seq, output_continuation_state],
                        [output_midi_seq, output_continuation_state, js_msg], queue=False)
     # load_javascript not work on ssr mode
-    app.launch(server_port=opt.port, inbrowser=True, share=opt.share, ssr_mode=False)
+    app.launch(server_port=opt.port, inbrowser=False, share=opt.share, ssr_mode=False)
     thread_pool.shutdown()
