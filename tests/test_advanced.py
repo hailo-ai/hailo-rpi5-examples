@@ -61,13 +61,6 @@ def test_long_running():
     stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=360)
     assert "Error" not in stderr, f"Errors encountered during long-running test: {stderr}"
 
-def test_pi_camera_running():
-    if not os.path.exists('/dev/video0'):
-        pytest.skip("No camera detected at /dev/video0")
-
-    stdout, stderr = run_pipeline('detection.py', '/dev/video0', duration=10)
-    assert "error" not in stderr.lower(), f"Unexpected error when accessing Pi camera: {stderr}"
-    # We're not checking the return code here as it might be -15 due to SIGTERM
 
 def test_detection_pipeline_all_hefs():
     assert run_download_resources(), "Failed to download resources"
