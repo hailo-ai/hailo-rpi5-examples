@@ -116,7 +116,7 @@ Note about frame sizing and rescaling: the scdepthv3 output frame size (depth ma
 ### User Application Callback Class
 This class includes various methods for manipulating the depth results. In this example, we filter out the highest 5% of the values (treating them as outliers) and then calculate the average depth value across the frame.
 
-## Development Recommendations
+# Development Recommendations
 
 - **Start Simple**: If you're new to the pipeline, begin with the basic scripts to familiarize yourself with the workflow.
 - **Minimal Setup**: Simply run the script and focus on editing the callback function to customize how the output is processed.
