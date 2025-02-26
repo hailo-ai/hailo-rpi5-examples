@@ -1,9 +1,10 @@
-from hailo_apps_infra.hailo_rpi_common import app_callback_class
-from hailo_apps_infra.depth_pipeline import GStreamerDepthApp
+import gi
+gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 import numpy as np
 import hailo
-import gi
+from hailo_apps_infra.hailo_rpi_common import app_callback_class
+from hailo_apps_infra.depth_pipeline import GStreamerDepthApp
 
 # User-defined class to be used in the callback function: Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
@@ -39,7 +40,6 @@ def app_callback(pad, info, user_data):
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
-    gi.require_version('Gst', '1.0')
     user_data = user_app_callback_class()
     app = GStreamerDepthApp(app_callback, user_data)
     app.run()

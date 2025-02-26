@@ -87,6 +87,31 @@ The callback function processes instance segmentation metadata from the network 
 - **Mask Overlay**: Resizes and overlays the segmentation masks on the frame.
 - **Boundary Handling**: Ensures the ROI dimensions are within the frame boundaries and handles negative values.
 
+# Depth Estimation Example
+![Banner](images/depth.gif)
+
+This example demonstrates depth estimation using the `scdepthv3` model for Hailo-8L (13 TOPS) and the `scdepthv3_h8l` model for Hailo-8 (26 TOPS).
+
+The result of depth estimation is essentially assigning each pixel in the image frame with an additional property - the distance from the camera.
+For example:
+Each pixel is represented by its position in the frame (x, y).
+The value of the pixel might be represented by a trio of (Red, Green, Blue) values.
+Depth estimation adds a fourth dimension to the pixel - the distance from the camera: (Red, Green, Blue, Distance).
+
+However, it's important to familiarize yourself with the meaning of depth values, such as the fact that the distances might be relative, normalized, and unitless.
+Specifically, the results might not represent real-world distances from the camera to objects in the image.
+Please refer to the original [scdepthv3](https://arxiv.org/abs/2211.03660) paper for more details and the [hailo-apps-infra C++ post-processing](https://github.com/hailo-ai/hailo-apps-infra/tree/main/cpp).
+
+## What’s in This Example:
+
+### Application Callback Function
+This function demonstrates parsing the `HAILO_DEPTH_MASK` depth matrix. Each GStreamer buffer contains a `HAILO_ROI` object, serving as the root for all Hailo metadata attached to the buffer. The function extracts the depth matrix for each frame buffer. The depth values are part of a separate matrix representing the frame with only depth values for each pixel (without the RGB values). For each depth matrix, using the User Application Callback Class, a logical calculation is performed and the result is printed to the terminal (CLI).
+
+Note about frame sizing and rescaling: the scdepthv3 output frame size (depth matrix) is 320x256 pixels, which is typically smaller than the camera's frame size (resolution). The Hailo 'INFERENCE_PIPELINE_WRAPPER' GStreamer pipeline element, which is part of the [depth GStreamer pipeline](https://github.com/hailo-ai/hailo-apps-infra/tree/main/hailo_apps_infra), rescales the depth matrix to the original frame size.
+
+### User Application Callback Class
+This class includes various methods for manipulating the depth results. In this example, we filter out the highest 5% of the values (treating them as outliers) and then calculate the average depth value across the frame.
+
 ## Development Recommendations
 
 - **Start Simple**: If you're new to the pipeline, begin with the basic scripts to familiarize yourself with the workflow.

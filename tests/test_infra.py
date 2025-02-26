@@ -85,12 +85,10 @@ def get_seg_compatible_hefs(architecture):
 def get_depth_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
     H8_HEFS = [
-        "fast_depth.hef",
         "scdepthv3.hef"
     ]
 
     H8L_HEFS = [
-        "fast_depth_h8l.hef",
         "scdepthv3_h8l.hef"
     ]
     hef_list = H8L_HEFS
@@ -258,20 +256,11 @@ def test_depth_hefs():
         log_file_path = os.path.join(log_dir, f"depth_{hef_name}_video_test.log")
         logging.info(f"Running depth with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            if "fast_depth" in hef_name:  # algo is fast_depth
-                process = subprocess.Popen(
-                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
-                    '--input', 'resources/example.mp4',
-                    '--algo', 'fast_depth',
-                    '--hef-path', hef,
-                    '--show-fps'])
-            else:  # algo is scdepthv3
-                process = subprocess.Popen(
-                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
-                    '--input', 'resources/example.mp4',
-                    '--algo', 'scdepthv3',
-                    '--hef-path', hef,
-                    '--show-fps']) 
+            process = subprocess.Popen(
+                ['python', '-m', 'hailo_apps_infra.depth_pipeline',
+                '--input', 'resources/example.mp4',
+                '--hef-path', hef,
+                '--show-fps']) 
             try:
                 # Let it run
                 time.sleep(TEST_RUN_TIME)
@@ -327,26 +316,11 @@ def test_rpi_camera():
         log_file_path = os.path.join(log_dir, f"{pipeline_name}_rpi_test.log")
         
         with open(log_file_path, "w") as log_file:
-            if "fast_depth" in hef:  # algo is fast_depth
-                process = subprocess.Popen(
-                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
-                    '--input', 'rpi',
-                    '--algo', 'fast_depth',
-                    '--hef-path', hef,
-                    '--show-fps'])
-            elif "scdepth" in hef:  # algo is scdepthv3
-                process = subprocess.Popen(
-                    ['python', '-m', 'hailo_apps_infra.depth_pipeline',
-                    '--input', 'rpi',
-                    '--algo', 'scdepthv3',
-                    '--hef-path', hef,
-                    '--show-fps']) 
-            else:  # all others
-                process = subprocess.Popen(
-                    ['python', '-m', f'hailo_apps_infra.{pipeline_name}',
-                    '--input', 'rpi',
-                    '--hef-path', hef,
-                    '--show-fps'])
+            process = subprocess.Popen(
+                ['python', '-m', f'hailo_apps_infra.{pipeline_name}',
+                '--input', 'rpi',
+                '--hef-path', hef,
+                '--show-fps'])
             
             try:
                 time.sleep(TEST_RUN_TIME)

@@ -97,6 +97,17 @@ python basic_pipelines/instance_segmentation.py
 To close the application, press `Ctrl+C`.
 See Detection Example above for additional input options examples.
 
+### Depth Estimation Example
+For more information see [Depth Estimation Example Documentation.](doc/basic-pipelines.md#depth-estimation-example)
+![Depth Estimation Example](doc/images/depth.gif)
+
+#### Run the depth estimation example:
+```bash
+python basic_pipelines/depth.py
+```
+To close the application, press `Ctrl+C`.
+See Detection Example above for additional input options examples.
+
 ### Community Projects
 
 Get involved and make your mark! Explore our Community Projects and start contributing today, because together, we build better things! 🚀

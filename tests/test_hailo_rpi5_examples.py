@@ -119,12 +119,10 @@ def get_seg_compatible_hefs(architecture):
 def get_depth_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
     H8_HEFS = [
-        "fast_depth.hef",
         "scdepthv3.hef"
     ]
 
     H8L_HEFS = [
-        "fast_depth_h8l.hef",
         "scdepthv3_h8l.hef"
     ]
     hef_list = H8L_HEFS
@@ -338,10 +336,7 @@ def test_depth_hefs():
         log_file_path = os.path.join(log_dir, f"depth_{hef_name}_video_test.log")
         logging.info(f"Running depth with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            if "fast_depth" in hef_name:
-                process = subprocess.Popen(['python', 'basic_pipelines/depth.py', '--input', 'resources/example.mp4', '--hef-path', hef, '--algo', 'fast_depth'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            else:  # algo is scdepthv3
-                process = subprocess.Popen(['python', 'basic_pipelines/depth.py', '--input', 'resources/example.mp4', '--hef-path', hef, '--algo', 'scdepthv3'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(['python', 'basic_pipelines/depth.py', '--input', 'resources/example.mp4', '--hef-path', hef], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
                 process.send_signal(signal.SIGTERM)
