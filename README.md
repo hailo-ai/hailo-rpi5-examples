@@ -58,6 +58,17 @@ python basic_pipelines/detection.py --input rpi
 ```
 
 #### Running with USB camera input (webcam):
+There are 2 ways:
+
+Specify the argument `--input` to `usb`:
+```bash
+python basic_pipelines/detection.py --input usb
+```
+
+This will automatically detect the available USB camera (if multiple are connected, it will use the first detected).
+
+Second way:
+
 Detect the available camera using this script:
 ```bash
 get-usb-camera
