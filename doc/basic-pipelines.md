@@ -148,6 +148,9 @@ Note that you need to install the `ipdb` package to use this debugger. You can i
 ```bash
 pip install ipdb
 ```
+#### Debugpy in VS Code
+There is another option for IDE native debugging when working with VS Code. Please refer to the [following guide in Hailo community forum](https://community.hailo.ai/t/debugging-raspberry-pi-python-code-using-vs-code/12595)
+
 #### Choppy Video Playback
 
 If you experience choppy video playback, it might be caused due to too long processing time in the pipeline. This will casue frames to be dropped.
