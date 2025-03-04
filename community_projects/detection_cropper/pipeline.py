@@ -1,37 +1,34 @@
-from hailo_apps_infra.gstreamer_helper_pipelines import CROPPER_PIPELINE, DISPLAY_PIPELINE, INFERENCE_PIPELINE, INFERENCE_PIPELINE_WRAPPER, SOURCE_PIPELINE, TRACKER_PIPELINE, USER_CALLBACK_PIPELINE
-from hailo_apps_infra.hailo_rpi_common import detect_hailo_arch, get_default_parser
-from hailo_apps_infra.gstreamer_app import GStreamerApp
-import setproctitle
-import os
 import gi
+gi.require_version('Gst', '1.0')
+import os
+import setproctitle
+from hailo_apps_infra.hailo_rpi_common import detect_hailo_arch, get_default_parser
+from hailo_apps_infra.gstreamer_helper_pipelines import CROPPER_PIPELINE, DISPLAY_PIPELINE, INFERENCE_PIPELINE, INFERENCE_PIPELINE_WRAPPER, SOURCE_PIPELINE, TRACKER_PIPELINE, USER_CALLBACK_PIPELINE
+from hailo_apps_infra.gstreamer_app import GStreamerApp
 
 # User Gstreamer Application: This class inherits from the hailo_rpi_common.GStreamerApp class
 class GStreamerDetectionCropperApp(GStreamerApp):
-    def __init__(self, app_callback, user_data, app_path):
-        gi.require_version('Gst', '1.0')
-        parser = get_default_parser()
+    def __init__(self, app_callback, user_data, app_path, parser=None):
+        if parser == None:
+            parser = get_default_parser()
         parser.add_argument('--apps_infra_path', default='None', help='Required argument. Path to the hailo-apps-infra folder.')
-        parser.add_argument('--algo', default='fast_depth', help='Optional argument. What neural network to use for depth estimations: "fast_depth" (default) or "scdepthv3"')
-        args = parser.parse_args()
-
+        super().__init__(parser, user_data)  # Call the parent class constructor
         # Determine the architecture if not specified
-        if args.arch is None:
+        if self.options_menu.arch is None:
             detected_arch = detect_hailo_arch()
             if detected_arch is None:
                 raise ValueError('Could not auto-detect Hailo architecture. Please specify --arch manually.')
             self.arch = detected_arch
         else:
-            self.arch = args.arch
+            self.arch = self.options_menu.arch
+            print(f'Using Hailo architecture: {self.arch}')
 
-        if args.algo not in ['fast_depth', 'scdepthv3']:
-            raise ValueError('Please specify the depth estimation algorithm with argument "--algo" to one of: "fast_depth" or "scdepthv3" or renove the argument (will default to "fast_depth")')
-
-        if args.apps_infra_path is None:
+        if self.options_menu.apps_infra_path is None:
             raise ValueError('Please specify path to the hailo-apps-infra folder')
-        elif not os.path.exists(args.apps_infra_path):
+        elif not os.path.exists(self.options_menu.apps_infra_path):
             raise ValueError('Please specify valid path to the hailo-apps-infra folder')
 
-        super().__init__(args, user_data)  # Call the parent class constructor
+        
         self.app_callback = app_callback
         setproctitle.setproctitle("Hailo Detection Cropper App")  # Set the process title
 
@@ -43,28 +40,19 @@ class GStreamerDetectionCropperApp(GStreamerApp):
             f"output-format-type=HAILO_FORMAT_TYPE_FLOAT32"
         )
 
-        # Set the HEF file path & depth post processing method name based on the arch and depth algo
+        # Set the HEF file path & depth post processing method name based on the arch
         if self.arch == "hailo8":
-            self.detection_hef_path = args.apps_infra_path + '/resources/yolov8m.hef'
-            if args.algo == "fast_depth":
-                self.depth_hef_path = args.apps_infra_path + '/resources/fast_depth.hef'
-                self.depth_post_function_name = "filter_fast_depth"
-            elif args.algo == "scdepthv3":
-                self.depth_hef_path = args.apps_infra_path + '/resources/scdepthv3.hef'
-                self.depth_post_function_name = "filter_scdepth"
+            self.detection_hef_path = self.options_menu.apps_infra_path + '/resources/yolov8m.hef'
+            self.depth_hef_path = self.options_menu.apps_infra_path + '/resources/scdepthv3.hef'
         else:  # hailo8l
-            self.detection_hef_path = args.apps_infra_path + '/resources/yolov8s_h8l.hef'
-            if args.algo == "fast_depth":
-                self.depth_hef_path = args.apps_infra_path + '/resources/fast_depth_h8l.hef'
-                self.depth_post_function_name = "filter_fast_depth"
-            elif args.algo == "scdepthv3":
-                self.depth_hef_path = args.apps_infra_path + '/resources/scdepthv3_h8l.hef'
-                self.depth_post_function_name = "filter_scdepth"
+            self.detection_hef_path = self.options_menu.apps_infra_path + '/resources/yolov8s_h8l.hef'
+            self.depth_hef_path = self.options_menu.apps_infra_path + '/resources/scdepthv3_h8l.hef'
+        self.depth_post_function_name = "filter_scdepth"
 
         # Set the post-processing shared object file
-        self.detection_post_process_so = args.apps_infra_path + '/resources/libyolo_hailortpp_postprocess.so'
+        self.detection_post_process_so = self.options_menu.apps_infra_path + '/resources/libyolo_hailortpp_postprocess.so'
         self.detection_post_function_name = "filter_letterbox"
-        self.depth_post_process_so = args.apps_infra_path + '/resources/libdepth_postprocess.so'
+        self.depth_post_process_so = self.options_menu.apps_infra_path + '/resources/libdepth_postprocess.so'
         self.post_process_so_cropper = os.path.join(app_path, 'resources/libdetections_cropper.so')
         self.cropper_post_function_name = "crop_detections"
 

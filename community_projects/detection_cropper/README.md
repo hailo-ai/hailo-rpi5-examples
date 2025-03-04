@@ -4,11 +4,9 @@ This application demonstrates a cascading TAPPAS pipeline using the Hailo croppe
 2. If a person is detected, the bounding box of the detected person is cropped.
 3. The cropped bounding box is sent to a depth estimation network.
 
-The depth estimation is relative, meaning the values indicate which points are closer or further away without units of measurement. The application supports two relative depth networks:
-1. [fast_depth](https://fastdepth.mit.edu/)
-2. [scdepthv3](https://arxiv.org/abs/2211.03660)
+The depth estimation is relative, meaning the values indicate which points are closer or further away without units of measurement. The application supports scdepthv3 relative depth network: [scdepthv3](https://arxiv.org/abs/2211.03660).
 
-Additionally, the application demonstrates modifying detection post-processing in C++. While the basic pipelines demonstrate Python post-processing, C++ post-processing is also provided. Users are required to compile the C++ code, thereby familiarizing themselves with the full cycle of post-processing options.
+Additionally, the application demonstrates modifying cropper script, used to control the way the hailocropper crop the detection in C++. Similar mechanism is typically used for native C++ post processing in pipelines. Users are required to compile the C++ code, thereby familiarizing themselves with the full cycle of post-processing options.
 
 ## Versions
 The application has been verified with the following versions:
@@ -43,9 +41,7 @@ The application has been verified with the following versions:
    ```
 
 ## Usage
-Examples of how to run the script:
-1. Run the application with the following command:
-   ```bash
-   python app.py --input rpi --apps_infra_path "<path_to_hailo_apps_infra>" --algo fast_depth
-   ```
-2. The application supports two depth networks that can be specified via the `--algo` argument (default is `fast_depth` if not specified): `fast_depth` or `scdepthv3`.
+Examples of how to run the script: Run the application with the following command:
+```bash
+python app.py --input rpi --apps_infra_path "<path_to_hailo_apps_infra>"
+```

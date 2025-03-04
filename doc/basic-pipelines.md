@@ -54,6 +54,10 @@ The `download_resources.sh` script downloads the network trained in the [Retrain
 python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef-path resources/yolov8s-hailo8l-barcode.hef --input resources/barcode.mp4
 ```
 
+By default, the package contains the following YOLO-based detection models: YOLOv6n, YOLOv8s, YOLOv8m, YOLOv11n, and YOLOv11s.
+The files located under the hailo-apps-infra directory installation, for example:
+`/.../hailo-apps-infra/resources/yolov6n.hef`
+
 **Example Output:**
 ![Barcode Detection Example](images/barcode-example.png)
 
@@ -90,7 +94,7 @@ The callback function processes instance segmentation metadata from the network 
 # Depth Estimation Example
 ![Banner](images/depth.gif)
 
-This example demonstrates depth estimation using the `scdepthv3` model for Hailo-8L (13 TOPS) and the `scdepthv3_h8l` model for Hailo-8 (26 TOPS).
+This example demonstrates depth estimation using the `scdepthv3` model.
 
 The result of depth estimation is essentially assigning each pixel in the image frame with an additional property - the distance from the camera.
 

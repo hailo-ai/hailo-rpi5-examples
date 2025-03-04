@@ -1,15 +1,17 @@
-from hailo_apps_infra.hailo_rpi_common import app_callback_class
-from gps_calculations import gps_task, latest_gps_data
-from get_usb_gps import get_usb_gps_devices
-from pipeline import GStreamerTsrApp
+import gi
+gi.require_version('Gst', '1.0')
 from gi.repository import Gst
+import os
 import threading
 import asyncio
 import pathlib
-import hailo
 import csv
-import gi
-import os
+import hailo
+from hailo_apps_infra.hailo_rpi_common import app_callback_class
+from hailo_apps_infra.detection_pipeline import GStreamerDetectionApp
+from get_usb_gps import get_usb_gps_devices
+from gps_calculations import gps_task, latest_gps_data
+
 
 # User-defined class to be used in the callback function: Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
@@ -59,7 +61,10 @@ def app_callback(pad, info, user_data):
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
-    gi.require_version('Gst', '1.0')
     user_data = user_app_callback_class()
-    app = GStreamerTsrApp(app_callback, user_data)
+    app = GStreamerDetectionApp(app_callback, user_data)
+    # get the hailo-tracker object from the pipeline
+    hailotracker = app.pipeline.get_by_name("hailo_tracker")
+    # set the tracker to track
+    hailotracker.set_property("class-id", 12)  # for what COCO class id (1 based) across frames will be tracked (12=stop sign)
     app.run()

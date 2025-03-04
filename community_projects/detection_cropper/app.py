@@ -1,10 +1,11 @@
-from hailo_apps_infra.hailo_rpi_common import app_callback_class
-from pipeline import GStreamerDetectionCropperApp
+import gi
+gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 import numpy as np
 import pathlib
 import hailo
-import gi
+from hailo_apps_infra.hailo_rpi_common import app_callback_class
+from pipeline import GStreamerDetectionCropperApp
 
 # User-defined class to be used in the callback function: Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
@@ -48,7 +49,6 @@ def app_callback(pad, info, user_data):
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
-    gi.require_version('Gst', '1.0')
     user_data = user_app_callback_class()
     app = GStreamerDetectionCropperApp(app_callback, user_data, pathlib.Path(__file__).parent.resolve())
     app.run()

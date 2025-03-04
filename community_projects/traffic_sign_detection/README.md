@@ -1,5 +1,5 @@
 ## Overview
-This application demonstrates a Traffic Sign Recognition (TSR) & mapping application with GPS coordinates. The application performs the following steps:
+This application demonstrates a Traffic Sign Detection & mapping application with GPS coordinates. The application performs the following steps:
 1. Object detection using the YOLO network.
 2. If a stop sign is detected, the GPS coordinates are recorded.
 * Currently, only stop signs are supported.
@@ -27,7 +27,7 @@ The application has been verified with the following versions:
    ```
 5. Navigate to the current project directory:
    ```bash
-   cd community_projects/tsr
+   cd community_projects/traffic_sign_detection
    ```
 6. Ensure the install.sh file is executable:
    ```bash
