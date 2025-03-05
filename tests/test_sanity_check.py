@@ -21,6 +21,7 @@ def test_check_required_files():
         'download_resources.sh',
         'requirements.txt',
         'basic_pipelines/detection.py',
+        'basic_pipelines/detection_simple.py',
         'basic_pipelines/pose_estimation.py',
         'basic_pipelines/instance_segmentation.py',
         'basic_pipelines/depth.py'

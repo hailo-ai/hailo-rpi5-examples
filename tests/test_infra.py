@@ -36,13 +36,20 @@ def get_detection_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
     H8_HEFS = [
         "yolov5m_wo_spp.hef",
+        "yolov6n.hef",
         "yolov8s.hef",
         "yolov8m.hef",
+        "yolov11n.hef",
+        "yolov11s.hef"
     ]
 
     H8L_HEFS = [
+        "yolov5m_wo_spp_h8l.hef",
+        "yolov6n_h8l.hef",
         "yolov8s_h8l.hef",
-        "yolov6n.hef"
+        "yolov8m_h8l.hef",
+        "yolov11n_h8l.hef",
+        "yolov11s_h8l.hef"
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
@@ -137,6 +144,56 @@ def test_detection_hefs():
                 
                 # Write to log
                 log_file.write(f"Detection with {hef_name} completed successfully\n")
+                log_file.write(f"Return code: {process.returncode}\n")
+                
+            except Exception as e:
+                process.kill()
+                pytest.fail(f"Test failed: {str(e)}")
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                    process.wait()
+
+def test_simple_detection_hefs():
+    """Test simple detection pipeline with all compatible HEFs."""
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+
+    architecture = get_device_architecture()
+    compatible_hefs = get_detection_compatible_hefs(architecture)
+    for hef in compatible_hefs:
+        hef_name = os.path.basename(hef)
+
+        # Test with video input
+        log_file_path = os.path.join(log_dir, f"simple_detection_{hef_name}_video_test.log")
+        logging.info(f"Running simple detection with {hef_name} (video input)")
+        with open(log_file_path, "w") as log_file:
+            # Start process without redirecting output
+            process = subprocess.Popen(
+                ['python', '-m', 'hailo_apps_infra.detection_pipeline_simple',
+                 '--input', 'resources/example.mp4',
+                 '--hef-path', hef,
+                 '--show-fps'])
+            
+            try:
+                # Let it run
+                time.sleep(TEST_RUN_TIME)
+                
+                # Gracefully terminate
+                process.send_signal(signal.SIGTERM)
+                
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                
+                # Check return code
+                assert process.returncode == 0 or process.returncode == -15, \
+                    f"Process failed with return code {process.returncode}"
+                
+                # Write to log
+                log_file.write(f"Simple detection with {hef_name} completed successfully\n")
                 log_file.write(f"Return code: {process.returncode}\n")
                 
             except Exception as e:
@@ -303,6 +360,7 @@ def test_rpi_camera():
     # Test each pipeline with RPI camera
     pipeline_configs = [
         ('detection_pipeline', get_detection_compatible_hefs(arch)),
+        ('detection_pipeline_simple', get_detection_compatible_hefs(arch)),
         ('pose_estimation_pipeline', get_pose_compatible_hefs(arch)),
         ('instance_segmentation_pipeline', get_seg_compatible_hefs(arch)),
         ('depth_pipeline', get_depth_compatible_hefs(arch))

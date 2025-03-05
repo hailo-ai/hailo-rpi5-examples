@@ -55,8 +55,8 @@ python basic_pipelines/detection.py --labels-json resources/barcode-labels.json 
 ```
 
 By default, the package contains the following YOLO-based detection models: YOLOv6n, YOLOv8s, YOLOv8m, YOLOv11n, and YOLOv11s.
-The files located under the hailo-apps-infra directory installation, for example:
-`/.../hailo-apps-infra/resources/yolov6n.hef`
+The files located under the hailo-rpi5-examples/resources directory, for example:
+`/.../hailo-rpi5-examples/resources/yolov8m.hef`
 
 **Example Output:**
 ![Barcode Detection Example](images/barcode-example.png)
