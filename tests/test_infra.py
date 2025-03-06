@@ -36,6 +36,7 @@ def get_detection_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
     H8_HEFS = [
         "yolov5m_wo_spp.hef",
+        "yolov6n.hef",
         "yolov8s.hef",
         "yolov8m.hef",
         "yolov11n.hef",
@@ -81,6 +82,21 @@ def get_seg_compatible_hefs(architecture):
 
     H8L_HEFS = [
         "yolov5n_seg_h8l.hef",
+    ]
+    hef_list = H8L_HEFS
+    if architecture == 'hailo8':
+        hef_list = hef_list + H8_HEFS
+
+    return [os.path.join("resources", hef) for hef in hef_list]
+
+def get_depth_compatible_hefs(architecture):
+    """Get a list of compatible HEF files based on the device architecture."""
+    H8_HEFS = [
+        "scdepthv3.hef"
+    ]
+
+    H8L_HEFS = [
+        "scdepthv3_h8l.hef"
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':

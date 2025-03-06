@@ -9,6 +9,16 @@ def run_pipeline_with_input(script, input_source):
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     return process
 
+def test_automatic_usb_camera_input_detection():
+    """Test automatic usb camera input detection."""
+    # make sure no usb camera is connected
+    script = 'detection.py'
+    result = run_pipeline_with_input(script, 'usb')
+    if "no available USB cameras found" in result.stdout:
+        assert True, "The pipeline reported an error for an invalid video path."
+    else:
+        assert False, "The pipeline did not report an error for an invalid usb camera."
+
 def test_invalid_video_input():
     """Test invalid video input."""
     script = 'detection.py'
