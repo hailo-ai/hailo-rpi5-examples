@@ -9,7 +9,7 @@ Sailted Fish 🐟 is a Red Light 🔴 Green Light 🟢 game that uses advanced A
 
 ## Video
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/TxlH3vfFT-g/hqdefault.jpg)](https://youtube.com/shorts/TxlH3vfFT-g?si=21905bCQhv52vQm4)
+[![watch the video](https://img.youtube.com/vi/q8ZG8zzRlzE/hqdefault.jpg)](https://youtube.com/shorts/q8ZG8zzRlzE)
 
 ## Versions
 

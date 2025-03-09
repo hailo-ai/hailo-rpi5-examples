@@ -7,6 +7,9 @@ NavigAItor is an intuitive, AI-driven robot designed to autonomously navigate al
 
 By capturing images and creating a video-based map, NavigAItor constructs a "path story," similar to how a person might walk a trail, marking key landmarks to ensure they can retrace their steps. At the heart of this process, a neural network integrates interest point detection and descriptor extraction into a single, efficient model.
 
+### Hackathon Video
+[![Watch the video](https://img.youtube.com/vi/E0Z55e1KyOo/0.jpg)](https://youtu.be/E0Z55e1KyOo)
+
 ### Key Features
 - **Remote Control**: Manage the Raspbot’s movement via a web-based server GUI.
 - **Snapshot Capture**: Automatically take snapshots along the drive path for documentation.
@@ -46,11 +49,11 @@ To get started with NavigAItor, follow these steps:
 
 ## Usage - with Server
 
-1. **Record a Path**:  
+1. **Record a Path**:
    - Start recording mode and guide the robot along the desired path.
    - Stop recording when finished.
-   
-2. **Navigate and Retrace**:  
+
+2. **Navigate and Retrace**:
    - Use the navigation buttons to bring the robot back to the starting point.
    - Activate "retreat mode" and watch the robot retrace its recorded path.
 
@@ -70,13 +73,13 @@ To get started with NavigAItor, follow these steps:
     ```
     As the camera moves, the robot will record the path, simulating movement like a driving car.
 
-3. **Navigate and Retrace**:  
+3. **Navigate and Retrace**:
     After you have recorded the path, you can retrace it by using the following command. This should start from the exact point where you began the recording:
     ```bash
     python navigator.py --navigate --retreat --cam 0
     ```
     The robot will retrace the recorded path from the point where the recording began and move back to the starting point.
-    
+
 
 To control the actual robot (car) in real-time while navigating and recording, add the -run-with-car flag
 
