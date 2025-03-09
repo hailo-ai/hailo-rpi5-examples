@@ -10,8 +10,7 @@ Based on the work of [SkyTNT Midi-Model](https://github.com/SkyTNT/midi-model).
 
 The model we compiled to Hailo is [midi-model-tv2o-medium](https://huggingface.co/skytnt/midi-model-tv2o-medium).
 
-[![VIDEO](https://img.youtube.com/vi/xX3PSgciWHs/1.jpg)](https://www.youtube.com/watch?v=xX3PSgciWHs)
-
+[![VIDEO](https://img.youtube.com/vi/OxKtO-TGpic/0.jpg)](https://youtu.be/OxKtO-TGpic)
 ## Requirements
 
 The packages are described in the requirements (in addition to the requirements of the whole repo).

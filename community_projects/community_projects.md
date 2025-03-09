@@ -16,7 +16,7 @@ For more information see [TAILO Example Documentation.](TAILO/README.md)
 
 TEMPO brings **biofeedback AI music generation** to the edge, dynamically creating music based on **heart rate**.
 
-[![VIDEO](https://img.youtube.com/vi/xX3PSgciWHs/0.jpg)](https://www.youtube.com/watch?v=xX3PSgciWHs)
+[![VIDEO](https://img.youtube.com/vi/OxKtO-TGpic/0.jpg)](https://youtu.be/OxKtO-TGpic)
 
 For more information see [TEMPO Example Documentation.](TEMPO/README.md)
 
@@ -27,7 +27,7 @@ Image captioning with **Florence2** on Hailo8 (26TOPS).
 Not all the pipeline is accelerated on Hailo however porting a big part of it allows for a major speed up.
 The latent space is monitored and caption is updated only when the scene changes.
 
-[![Watch the video](https://img.youtube.com/vi/nhMLRAJMgh0/0.jpg)](https://youtube.com/shorts/nhMLRAJMgh0?feature=share)
+[![Watch the video](https://img.youtube.com/vi/kLqhP2z9qtI/0.jpg)](https://youtu.be/kLqhP2z9qtI)
 
 For more information see [Dynamic Captioning Example Documentation.](dynamic_captioning/README.md)
 
@@ -37,6 +37,7 @@ A robot that autonomously navigates using visual landmarks (no GPS or Gyro).
 
 ![AI Frames Match](Navigator/resources/frame_compare.jpg)
 
+[![Watch the video](https://img.youtube.com/vi/E0Z55e1KyOo/0.jpg)](https://youtu.be/E0Z55e1KyOo)
 
 For more information see [NavigAItor Example Documentation.](Navigator/README.md)
 
@@ -45,7 +46,7 @@ For more information see [NavigAItor Example Documentation.](Navigator/README.md
 
 A robotic chess system for fully automated game play.
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/YMOs-p2F7OY/0.jpg)](https://www.youtube.com/watch?v=YMOs-p2F7OY)
+[![watch the video](https://img.youtube.com/vi/uWqTUqIQcjI/0.jpg)](https://youtu.be/uWqTUqIQcjI)
 
 For more information see [ChessMate Example Documentation.](RoboChess/README.md)
 
@@ -54,7 +55,7 @@ For more information see [ChessMate Example Documentation.](RoboChess/README.md)
 
 A "Red Light, Green Light" game based on Pose Estimation.
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/TxlH3vfFT-g/hqdefault.jpg)](https://youtube.com/shorts/TxlH3vfFT-g?si=21905bCQhv52vQm4)
+[![watch the video](https://img.youtube.com/vi/q8ZG8zzRlzE/hqdefault.jpg)](https://youtube.com/shorts/q8ZG8zzRlzE)
 
 For more information see [HailoGames Example Documentation.](sailted_fish/README.md)
 
@@ -66,7 +67,7 @@ You can explore more community projects in our hailo-CLIP repository -
 ## Ad Genie
 A system that personalizes ads by matching outfits to individual styles in real time.
 
-[![Watch the demo on YouTube](https://img.youtube.com/vi/_PN4cdiFKmw/0.jpg)](<https://youtu.be/_PN4cdiFKmw>)
+[![Watch the demo on YouTube](https://img.youtube.com/vi/0_v2V7lV514/0.jpg)](<https://youtu.be/0_v2V7lV514>)
 
 For more information see [Ad Genie Example Documentation.](https://github.com/hailo-ai/hailo-CLIP/blob/main/community_projects/ad_genie/README.md)
 
