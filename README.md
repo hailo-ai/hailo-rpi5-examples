@@ -58,6 +58,17 @@ python basic_pipelines/detection.py --input rpi
 ```
 
 #### Running with USB camera input (webcam):
+There are 2 ways:
+
+Specify the argument `--input` to `usb`:
+```bash
+python basic_pipelines/detection.py --input usb
+```
+
+This will automatically detect the available USB camera (if multiple are connected, it will use the first detected).
+
+Second way:
+
 Detect the available camera using this script:
 ```bash
 get-usb-camera
@@ -74,6 +85,15 @@ python basic_pipelines/detection.py --help
 
 #### Retrained Networks Support
 This application includes support for using retrained detection models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
+
+### Simple Detection Example
+A lightweight version of the detection example above, mainly focusing on demonstrating Hailo performance while minimizing CPU load. The internal GStreamer video processing pipeline is simplified by minimizing video processing tasks, and the YOLOv6 Nano model is used.
+
+#### Run the simple detection example:
+```bash
+python basic_pipelines/detection_simple.py
+```
+To close the application, press `Ctrl+C`.
 
 ### Pose Estimation Example
 For more information see [Pose Estimation Example Documentation.](doc/basic-pipelines.md#pose-estimation-example)
@@ -93,6 +113,17 @@ For more information see [Instance Segmentation Example Documentation.](doc/basi
 #### Run the instance segmentation example:
 ```bash
 python basic_pipelines/instance_segmentation.py
+```
+To close the application, press `Ctrl+C`.
+See Detection Example above for additional input options examples.
+
+### Depth Estimation Example
+For more information see [Depth Estimation Example Documentation.](doc/basic-pipelines.md#depth-estimation-example)
+![Depth Estimation Example](doc/images/depth.gif)
+
+#### Run the depth estimation example:
+```bash
+python basic_pipelines/depth.py
 ```
 To close the application, press `Ctrl+C`.
 See Detection Example above for additional input options examples.

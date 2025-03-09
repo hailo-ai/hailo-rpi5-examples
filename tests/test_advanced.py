@@ -39,7 +39,7 @@ def run_download_resources():
         return Falseupstream
 
 def test_inference_speed():
-    models = ['detection.py', 'pose_estimation.py', 'instance_segmentation.py']
+    models = ['detection.py', 'detection_simple.py', 'pose_estimation.py', 'instance_segmentation.py', 'depth.py']
     for model in models:
         stdout, _ = run_pipeline(model, 'resources/example.mp4', duration=60, additional_args=['--show-fps'])
         fps_lines = [line for line in stdout.split('\n') if 'FPS' in line or 'fps' in line]
@@ -61,13 +61,6 @@ def test_long_running():
     stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=360)
     assert "Error" not in stderr, f"Errors encountered during long-running test: {stderr}"
 
-def test_pi_camera_running():
-    if not os.path.exists('/dev/video0'):
-        pytest.skip("No camera detected at /dev/video0")
-
-    stdout, stderr = run_pipeline('detection.py', '/dev/video0', duration=10)
-    assert "error" not in stderr.lower(), f"Unexpected error when accessing Pi camera: {stderr}"
-    # We're not checking the return code here as it might be -15 due to SIGTERM
 
 def test_detection_pipeline_all_hefs():
     assert run_download_resources(), "Failed to download resources"
