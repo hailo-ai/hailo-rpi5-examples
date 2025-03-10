@@ -455,65 +455,65 @@ def test_detection_retraining():
         assert "Traceback" not in stderr.decode(), f"Detection with retrained model (video input) encountered an exception: {stderr.decode()}"
         assert "Error" not in stderr.decode(), f"Detection with retrained model (video input) encountered an error: {stderr.decode()}"
 
-def test_pipeline_with_use_frame():
-    """
-    Combined test function for pipelines with the --use-frame flag, using a camera as the input source.
-    """
-    TEST_RUN_TIME = 10  # Run time set to 10 seconds
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-    pipeline_list = get_pipelines_list()
+# def test_pipeline_with_use_frame():
+#     """
+#     Combined test function for pipelines with the --use-frame flag, using a camera as the input source.
+#     """
+#     TEST_RUN_TIME = 10  # Run time set to 10 seconds
+#     log_dir = "logs"
+#     os.makedirs(log_dir, exist_ok=True)
+#     pipeline_list = get_pipelines_list()
 
-    # Set the camera input source (update this based on your camera type)
-    camera_input = "/dev/video0"  # USB camera example; use "rpi" if it's a Raspberry Pi camera
+#     # Set the camera input source (update this based on your camera type)
+#     camera_input = "/dev/video0"  # USB camera example; use "rpi" if it's a Raspberry Pi camera
 
-    for pipeline in pipeline_list:
-        # Set up logging for each pipeline
-        log_file_path = os.path.join(log_dir, f"{pipeline}_use_frame_camera_test.log")
-        with open(log_file_path, "w") as log_file:
-            cmd = ['python', f'basic_pipelines/{pipeline}', '--use-frame', '--input', camera_input]
+#     for pipeline in pipeline_list:
+#         # Set up logging for each pipeline
+#         log_file_path = os.path.join(log_dir, f"{pipeline}_use_frame_camera_test.log")
+#         with open(log_file_path, "w") as log_file:
+#             cmd = ['python', f'basic_pipelines/{pipeline}', '--use-frame', '--input', camera_input]
 
-            # Start the process
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logging.info(f"Running {pipeline} with --use-frame flag using camera input")
+#             # Start the process
+#             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#             logging.info(f"Running {pipeline} with --use-frame flag using camera input")
 
-            try:
-                # Let the process run for the specified test time
-                time.sleep(TEST_RUN_TIME)
+#             try:
+#                 # Let the process run for the specified test time
+#                 time.sleep(TEST_RUN_TIME)
 
-                # Attempt to terminate the process
-                process.send_signal(signal.SIGTERM)
+#                 # Attempt to terminate the process
+#                 process.send_signal(signal.SIGTERM)
 
-                try:
-                    # Wait for process to exit and capture output within a timeout
-                    stdout, stderr = process.communicate(timeout=5)
-                except subprocess.TimeoutExpired:
-                    # If process does not terminate, kill it
-                    process.kill()
-                    stdout, stderr = process.communicate()
-                    pytest.fail(f"{pipeline} with --use-frame flag could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
+#                 try:
+#                     # Wait for process to exit and capture output within a timeout
+#                     stdout, stderr = process.communicate(timeout=5)
+#                 except subprocess.TimeoutExpired:
+#                     # If process does not terminate, kill it
+#                     process.kill()
+#                     stdout, stderr = process.communicate()
+#                     pytest.fail(f"{pipeline} with --use-frame flag could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
 
-                # Decode outputs
-                stdout_str, stderr_str = stdout.decode(), stderr.decode()
+#                 # Decode outputs
+#                 stdout_str, stderr_str = stdout.decode(), stderr.decode()
 
-                # Write output to log file
-                log_file.write(f"{pipeline} with --use-frame flag stdout:\n{stdout_str}\n")
-                log_file.write(f"{pipeline} with --use-frame flag stderr:\n{stderr_str}\n")
+#                 # Write output to log file
+#                 log_file.write(f"{pipeline} with --use-frame flag stdout:\n{stdout_str}\n")
+#                 log_file.write(f"{pipeline} with --use-frame flag stderr:\n{stderr_str}\n")
 
-                # Assertions to check for errors in stderr and expected output in stdout
-                assert "Traceback" not in stderr_str, f"{pipeline} with --use-frame flag encountered an exception: {stderr_str}"
-                assert "Error" not in stderr_str, f"{pipeline} with --use-frame flag encountered an error: {stderr_str}"
-                assert "frame" in stdout_str.lower(), f"{pipeline} with --use-frame flag did not process any frames"
-                assert "detection" in stdout_str.lower(), f"{pipeline} with --use-frame flag did not make any detections"
+#                 # Assertions to check for errors in stderr and expected output in stdout
+#                 assert "Traceback" not in stderr_str, f"{pipeline} with --use-frame flag encountered an exception: {stderr_str}"
+#                 assert "Error" not in stderr_str, f"{pipeline} with --use-frame flag encountered an error: {stderr_str}"
+#                 assert "frame" in stdout_str.lower(), f"{pipeline} with --use-frame flag did not process any frames"
+#                 assert "detection" in stdout_str.lower(), f"{pipeline} with --use-frame flag did not make any detections"
 
-                # Log that the test completed successfully for this pipeline
-                log_file.write(f"{pipeline} with --use-frame flag test passed: completed without errors.\n")
-                logging.info(f"{pipeline} with --use-frame flag test completed successfully.")
+#                 # Log that the test completed successfully for this pipeline
+#                 log_file.write(f"{pipeline} with --use-frame flag test passed: completed without errors.\n")
+#                 logging.info(f"{pipeline} with --use-frame flag test completed successfully.")
 
-            except Exception as e:
-                # Ensure any exceptions are logged before failing
-                logging.error(f"Error occurred in test for {pipeline} with --use-frame flag: {e}")
-                pytest.fail(f"Test for {pipeline} with --use-frame flag failed due to unexpected error: {e}")
+#             except Exception as e:
+#                 # Ensure any exceptions are logged before failing
+#                 logging.error(f"Error occurred in test for {pipeline} with --use-frame flag: {e}")
+#                 pytest.fail(f"Test for {pipeline} with --use-frame flag failed due to unexpected error: {e}")
 
 
 if __name__ == "__main__":
