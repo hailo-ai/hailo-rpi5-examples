@@ -6,7 +6,7 @@ An open-source, innovative chess-playing robotic system that combines cutting-ed
 
 The hackathon journey is presented in the following link:
 
-[![watch the video](https://img.youtube.com/vi/uWqTUqIQcjI/0.jpg)](https://youtu.be/uWqTUqIQcjI)
+[![watch the video](https://img.youtube.com/vi/aXNgmYCEgDc/0.jpg)](https://youtu.be/aXNgmYCEgDc)
 
 ---
 
