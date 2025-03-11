@@ -16,7 +16,7 @@ For more information see [TAILO Example Documentation.](TAILO/README.md)
 
 TEMPO brings **biofeedback AI music generation** to the edge, dynamically creating music based on **heart rate**.
 
-[![VIDEO](https://img.youtube.com/vi/OxKtO-TGpic/0.jpg)](https://youtu.be/OxKtO-TGpic)
+[![VIDEO](https://img.youtube.com/vi/nQr9nL7bH3k/0.jpg)](https://youtu.be/nQr9nL7bH3k)
 
 For more information see [TEMPO Example Documentation.](TEMPO/README.md)
 
@@ -46,7 +46,7 @@ For more information see [NavigAItor Example Documentation.](Navigator/README.md
 
 A robotic chess system for fully automated game play.
 
-[![watch the video](https://img.youtube.com/vi/uWqTUqIQcjI/0.jpg)](https://youtu.be/uWqTUqIQcjI)
+[![watch the video](https://img.youtube.com/vi/aXNgmYCEgDc/0.jpg)](https://youtu.be/aXNgmYCEgDc)
 
 For more information see [ChessMate Example Documentation.](RoboChess/README.md)
 
