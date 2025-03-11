@@ -61,6 +61,7 @@ RETRAIN_HEFS=(
 VIDEOS=(
   "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/example.mp4"
   "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/barcode.mp4"
+  "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/example_640.mp4"
 )
 
 # If --all flag is provided, download everything in parallel

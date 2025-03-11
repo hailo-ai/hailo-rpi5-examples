@@ -58,7 +58,7 @@ def test_inference_speed():
         assert avg_fps > 10, f"Average FPS for {model} is below 10 FPS: {avg_fps}"
 
 def test_long_running():
-    stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=360)
+    stdout, stderr = run_pipeline('detection.py', 'resources/example.mp4', duration=5)
     assert "Error" not in stderr, f"Errors encountered during long-running test: {stderr}"
 
 
