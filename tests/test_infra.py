@@ -442,7 +442,7 @@ def test_get_default_parser():
     
     # Test default values
     args = parser.parse_args([])
-    assert "example.mp4" in args.input
+    assert args.input is None
     assert not args.use_frame
     assert not args.show_fps
     assert args.arch is None
