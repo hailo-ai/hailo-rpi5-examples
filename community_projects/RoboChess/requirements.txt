@@ -1,0 +1,11 @@
+onnxruntime
+tensorflow
+matplotlib
+pyclipper
+scipy
+scikit-learn
+chess
+stockfish
+cairosvg
+IPython
+pyttsx3

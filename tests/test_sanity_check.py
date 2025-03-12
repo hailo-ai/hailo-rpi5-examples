@@ -17,17 +17,17 @@ def test_check_hailo_runtime_installed():
 def test_check_required_files():
     """Test if required files exist."""
     required_files = [
-        'setup.py',
+        'setup_env.sh',
         'download_resources.sh',
         'requirements.txt',
         'basic_pipelines/detection.py',
+        'basic_pipelines/detection_simple.py',
         'basic_pipelines/pose_estimation.py',
-        'basic_pipelines/instance_segmentation.py'
+        'basic_pipelines/instance_segmentation.py',
+        'basic_pipelines/depth.py'
     ]
     for file in required_files:
         assert os.path.exists(file), f"Error: {file} is missing."
-
-
 
 def test_environment():
     """Test the Python environment and required packages."""
@@ -47,7 +47,6 @@ def test_environment():
         except ImportError:
             pytest.fail(f"{package} is not installed.")
 
-
 def test_gstreamer_installation():
     """Test GStreamer installation."""
     try:
@@ -55,11 +54,9 @@ def test_gstreamer_installation():
     except subprocess.CalledProcessError:
         pytest.fail("GStreamer is not installed or not in PATH.")
 
-
-
 def test_setup_env():
     """Test setup_env.sh script."""
-    result = subprocess.run(['bash', '-c', 'pip install -v -e .'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(['bash', '-c', 'source setup_env.sh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout_str = result.stdout
     stderr_str = result.stderr
 
