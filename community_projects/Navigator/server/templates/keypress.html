@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Key Press and Release Listener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        video {
+            max-width: 90%;
+            height: auto;
+            border: 2px solid #000;
+            border-radius: 8px;
+        }
+        .message {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            font-size: 20px;      /* Increase font size */
+            padding: 15px 30px;   /* Add padding for larger buttons */
+            margin: 10px;         /* Space between buttons */
+            cursor: pointer;     /* Change cursor on hover */
+            border-radius: 5px;   /* Rounded corners */
+            border: 2px solid #333; /* Border color */
+            background-color: #f0f0f0; /* Background color */
+            display: list-item;
+            justify-content: space-between;
+            align-items:flex-start;
+        }
+        button:hover {
+            background-color: #ddd; /* Change background on hover */
+        }
+        hr {
+            border: 0;
+            border-top: 2px solid #992222;
+            margin: 20px 0; /* Add margin for spacing */
+        }
+    </style>
+    <script>
+        function callFunctionStartRecord() {
+            fetch('/call_function_start_record', {
+                method: 'POST', // Send a POST request
+            })
+        }
+        function callFunctionStopRecord() {
+            fetch('/call_function_stop_record', {
+                method: 'POST', // Send a POST request
+            })
+        }
+        function callFunctionRepeatCourse() {
+            fetch('/call_function_repeat_course', {
+                method: 'POST', // Send a POST request
+            })
+        function callFunctionRetractToHome() {
+            fetch('/call_function_retract_home', {
+                method: 'POST', // Send a POST request
+            })
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Press or Release Any Arrow to move the robot</h1>
+
+    <script>
+        // Establish WebSocket connection to the FastAPI WebSocket endpoint
+        const socket = new WebSocket("ws://192.168.200.194:8000/move");
+
+        // Handle WebSocket messages from the server
+        socket.onmessage = function(event) {
+            const keyDisplay = document.getElementById("keyPressDisplay");
+            keyDisplay.innerHTML = `Server response: <strong>${event.data}</strong>`;
+        };
+
+        // Handle WebSocket errors
+        socket.onerror = function(error) {
+            console.error("WebSocket Error:", error);
+        };
+	
+        document.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            socket.send(`{"pressed" : "${event.key}"}`);
+        });
+
+        document.addEventListener('keyup', (e) => {
+                    if (e.repeat) return;
+                    socket.send(`{"released" : "${event.key}"}`);
+            });
+
+    </script>
+
+        <p>
+
+        <!-- Start Recording button -->
+        <button onclick="callFunctionStartRecord()">Start Recording</button>
+        
+        <!-- Stop Recording button -->
+        <button onclick="callFunctionStopRecord()">Stop Recording</button>
+
+        <!-- Repeat Course base button -->
+        <button onclick="callFunctionRepeatCourse()">Repeat Course</button>
+
+        <!-- Retract to home base button -->
+        <button onclick="callFunctionRetractToHome()">Retract to home</button>
+
+        </p>
+</body>
+</html>
+

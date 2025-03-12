@@ -54,6 +54,10 @@ The `download_resources.sh` script downloads the network trained in the [Retrain
 python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef-path resources/yolov8s-hailo8l-barcode.hef --input resources/barcode.mp4
 ```
 
+By default, the package contains the following YOLO-based detection models: YOLOv6n, YOLOv8s, YOLOv8m, YOLOv11n, and YOLOv11s.
+The files located under the hailo-rpi5-examples/resources directory, for example:
+`/.../hailo-rpi5-examples/resources/yolov8m.hef`
+
 **Example Output:**
 ![Barcode Detection Example](images/barcode-example.png)
 
@@ -87,7 +91,36 @@ The callback function processes instance segmentation metadata from the network 
 - **Mask Overlay**: Resizes and overlays the segmentation masks on the frame.
 - **Boundary Handling**: Ensures the ROI dimensions are within the frame boundaries and handles negative values.
 
-## Development Recommendations
+# Depth Estimation Example
+![Banner](images/depth.gif)
+
+This example demonstrates depth estimation using the `scdepthv3` model.
+
+The result of depth estimation is essentially assigning each pixel in the image frame with an additional property - the distance from the camera.
+
+For example:
+
+Each pixel is represented by its position in the frame (x, y).
+
+The value of the pixel might be represented by a trio of (Red, Green, Blue) values.
+
+Depth estimation adds a fourth dimension to the pixel - the distance from the camera: (Red, Green, Blue, Distance).
+
+However, it's important to familiarize yourself with the meaning of depth values, such as the fact that the distances might be relative, normalized, and unitless.
+<u>Specifically, the results might not represent real-world distances from the camera to objects in the image.</u>
+Please refer to the original [scdepthv3](https://arxiv.org/abs/2211.03660) paper for more details and the [hailo-apps-infra C++ post-processing](https://github.com/hailo-ai/hailo-apps-infra/tree/main/cpp).
+
+## What’s in This Example:
+
+### Application Callback Function
+This function demonstrates parsing the `HAILO_DEPTH_MASK` depth matrix. Each GStreamer buffer contains a `HAILO_ROI` object, serving as the root for all Hailo metadata attached to the buffer. The function extracts the depth matrix for each frame buffer. The depth values are part of a separate matrix representing the frame with only depth values for each pixel (without the RGB values). For each depth matrix, using the User Application Callback Class, a logical calculation is performed and the result is printed to the terminal (CLI).
+
+Note about frame sizing and rescaling: the scdepthv3 output frame size (depth matrix) is 320x256 pixels, which is typically smaller than the camera's frame size (resolution). The Hailo `INFERENCE_PIPELINE_WRAPPER` GStreamer pipeline element, which is part of the [depth GStreamer pipeline](https://github.com/hailo-ai/hailo-apps-infra/tree/main/hailo_apps_infra), rescales the depth matrix to the original frame size.
+
+### User Application Callback Class
+This class includes various methods for manipulating the depth results. In this example, we filter out the highest 5% of the values (treating them as outliers) and then calculate the average depth value across the frame.
+
+# Development Recommendations
 
 - **Start Simple**: If you're new to the pipeline, begin with the basic scripts to familiarize yourself with the workflow.
 - **Minimal Setup**: Simply run the script and focus on editing the callback function to customize how the output is processed.
@@ -115,6 +148,9 @@ Note that you need to install the `ipdb` package to use this debugger. You can i
 ```bash
 pip install ipdb
 ```
+#### Debugpy in VS Code
+There is another option for IDE native debugging when working with VS Code. Please refer to the [following guide in Hailo community forum](https://community.hailo.ai/t/debugging-raspberry-pi-python-code-using-vs-code/12595)
+
 #### Choppy Video Playback
 
 If you experience choppy video playback, it might be caused due to too long processing time in the pipeline. This will casue frames to be dropped.

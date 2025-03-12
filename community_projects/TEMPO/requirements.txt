@@ -1,0 +1,6 @@
+adafruit-circuitpython-ads1x15==2.4.1
+matplotlib
+scipy
+gdown
+gradio==5.3.0
+pyfluidsynth
