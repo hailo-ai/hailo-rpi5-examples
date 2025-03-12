@@ -81,7 +81,7 @@ def get_seg_compatible_hefs(architecture):
     ]
 
     H8L_HEFS = [
-        "yolov5n_seg_h8l_mz.hef",
+        "yolov5n_seg_h8l.hef",
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
