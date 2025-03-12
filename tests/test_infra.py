@@ -442,8 +442,8 @@ def test_get_default_parser():
     
     # Test default values
     args = parser.parse_args([])
-    assert args.input is None
     assert not args.use_frame
+    assert args.input is None
     assert not args.show_fps
     assert args.arch is None
     assert args.hef_path is None
