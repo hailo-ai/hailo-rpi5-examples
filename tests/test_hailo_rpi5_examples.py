@@ -304,7 +304,7 @@ def test_simple_detection_hefs():
         log_file_path = os.path.join(log_dir, f"simple_detection_{hef_name}_video_test.log")
         logging.info(f"Running simple detection with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', '-u', basic_pipelines/detection_simple.py', '--input', 'resources/example.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', '-u', 'basic_pipelines/detection_simple.py', '--input', 'resources/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
