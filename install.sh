@@ -14,7 +14,7 @@ DOWNLOAD_RESOURCES_FLAG=""
 PYHAILORT_WHL=""
 PYTAPPAS_WHL=""
 INSTALL_TEST_REQUIREMENTS=false
-TAG="25.3.1"
+TAG="dev"
 
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do
