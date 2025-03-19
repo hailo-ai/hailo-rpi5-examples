@@ -22,6 +22,8 @@ TEST_RUN_TIME = 10
 
 def test_rpi_camera_connection():
     """Test if RPI camera is connected by running rpicam-hello."""
+    if not rpi_camera_available:
+        pytest.skip("RPi camera is not available")
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     log_file_path = os.path.join(log_dir, "rpi_camera_test.log")
