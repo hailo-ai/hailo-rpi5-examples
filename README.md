@@ -47,7 +47,17 @@ For more information see [Detection Example Documentation.](doc/basic-pipelines.
 
 ![Detection Example](doc/images/detection.gif)
 
-#### Run the detection example:
+#### Run the simple detection example:
+```bash
+python basic_pipelines/detection_simple.py
+```
+To close the application, press `Ctrl+C`.
+
+This is lightweight version of the detection example, mainly focusing on demonstrating Hailo performance while minimizing CPU load. The internal GStreamer video processing pipeline is simplified by minimizing video processing tasks, and the YOLOv6 Nano model is used.
+
+#### Run the full detection example:
+This is the full detection example, including object tracker and multiple video resolution support - see more information [Detection Example Documentation](doc/basic-pipelines.md#detection-example):
+
 ```bash
 python basic_pipelines/detection.py
 ```
@@ -86,15 +96,6 @@ python basic_pipelines/detection.py --help
 
 #### Retrained Networks Support
 This application includes support for using retrained detection models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
-
-### Simple Detection Example
-A lightweight version of the detection example above, mainly focusing on demonstrating Hailo performance while minimizing CPU load. The internal GStreamer video processing pipeline is simplified by minimizing video processing tasks, and the YOLOv6 Nano model is used.
-
-#### Run the simple detection example:
-```bash
-python basic_pipelines/detection_simple.py
-```
-To close the application, press `Ctrl+C`.
 
 ### Pose Estimation Example
 For more information see [Pose Estimation Example Documentation.](doc/basic-pipelines.md#pose-estimation-example)

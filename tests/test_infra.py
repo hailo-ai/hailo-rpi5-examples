@@ -81,7 +81,22 @@ def get_seg_compatible_hefs(architecture):
     ]
 
     H8L_HEFS = [
-        "yolov5n_seg_h8l_mz.hef",
+        "yolov5n_seg_h8l.hef",
+    ]
+    hef_list = H8L_HEFS
+    if architecture == 'hailo8':
+        hef_list = hef_list + H8_HEFS
+
+    return [os.path.join("resources", hef) for hef in hef_list]
+
+def get_depth_compatible_hefs(architecture):
+    """Get a list of compatible HEF files based on the device architecture."""
+    H8_HEFS = [
+        "scdepthv3.hef"
+    ]
+
+    H8L_HEFS = [
+        "scdepthv3_h8l.hef"
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
@@ -442,8 +457,8 @@ def test_get_default_parser():
     
     # Test default values
     args = parser.parse_args([])
-    assert "example.mp4" in args.input
     assert not args.use_frame
+    assert args.input is None
     assert not args.show_fps
     assert args.arch is None
     assert args.hef_path is None

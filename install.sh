@@ -15,15 +15,7 @@ DOWNLOAD_RESOURCES_FLAG=""
 PYHAILORT_WHL=""
 PYTAPPAS_WHL=""
 INSTALL_TEST_REQUIREMENTS=false
-
-
-# Get current git branch
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$CURRENT_BRANCH" != "main" && "$CURRENT_BRANCH" != "dev" ]]; then
-    echo "Current branch '$CURRENT_BRANCH' is neither main nor dev. Using dev branch for hailo-apps-infra."
-    CURRENT_BRANCH="dev"
-fi
-echo "Using hailo-apps-infra from branch: $CURRENT_BRANCH"
+TAG="dev"
 
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -32,6 +24,7 @@ while [[ "$#" -gt 0 ]]; do
         --pytappas) PYTAPPAS_WHL="$2"; shift ;;
         --test) INSTALL_TEST_REQUIREMENTS=true ;;
         --all) DOWNLOAD_RESOURCES_FLAG="--all" ;;
+        --tag) TAG="$2"; shift ;;   # New parameter to specify tag
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -52,11 +45,9 @@ fi
 echo "Installing required Python dependencies..."
 pip install -r requirements.txt
 
-
-# Install Hailo Apps Infrastructure with specific branch
-echo "Installing Hailo Apps Infrastructure from branch: $CURRENT_BRANCH..."
-pip install "git+https://github.com/hailo-ai/hailo-apps-infra.git@$CURRENT_BRANCH"
-
+# Install Hailo Apps Infrastructure from specified tag/branch
+echo "Installing Hailo Apps Infrastructure from version: $TAG..."
+pip install "git+https://github.com/hailo-ai/hailo-apps-infra.git@$TAG"
 
 # Install test requirements if needed
 if [[ "$INSTALL_TEST_REQUIREMENTS" == true ]]; then
