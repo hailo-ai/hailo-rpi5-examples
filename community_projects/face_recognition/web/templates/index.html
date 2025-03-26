@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Persons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #77aaff 3px solid;
+        }
+        header h1 {
+            text-align: center;
+            text-transform: uppercase;
+            margin: 0;
+            font-size: 24px;
+        }
+        .person {
+            background: #fff;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .person h2 {
+            margin-top: 0;
+        }
+        .person img {
+            max-width: 150px;
+            border-radius: 5px;
+        }
+        .person form {
+            margin-top: 10px;
+        }
+        .person input[type="text"] {
+            padding: 10px;
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .person button {
+            padding: 10px 20px;
+            background: #77aaff;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .person button:hover {
+            background: #5599ff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Update Persons</h1>
+    </header>
+    <div class="container">
+        <select id="personSelect">
+            <option value="">Select a person</option>
+            {% for person in persons %}
+                <option value="{{ person.global_id }}">{{ person.name }}</option>
+            {% endfor %}
+        </select>
+        <div id="personContainer">
+            {% for person in persons %}
+                <div class="person" data-person-id="{{ person.global_id }}" style="display: none;">
+                    <h2>Updating person: {{ person.global_id }} - {{ person.name }}</h2>
+                    {% for face in person.faces_json %}
+                        <img src="data:image/jpeg;base64,{{ encode_image(face.image) }}" alt="Person ID: {{ person.global_id }}">
+                        <form action="{{ url_for('update_person') }}" method="post">
+                            <input type="hidden" name="global_id" value="{{ person.global_id }}">
+                            <input type="hidden" name="face_id" value="{{ face.id }}">
+                            <input type="text" name="action" placeholder="Enter name or 'delete'">
+                            <button type="submit">Submit</button>
+                        </form>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        document.getElementById('personSelect').addEventListener('change', function() {
+            var selectedPersonId = this.value;
+            var persons = document.querySelectorAll('.person');
+            persons.forEach(function(person) {
+                if (person.getAttribute('data-person-id') === selectedPersonId) {
+                    person.style.display = 'block';
+                } else {
+                    person.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
