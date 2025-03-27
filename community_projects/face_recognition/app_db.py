@@ -7,12 +7,11 @@ from PIL import Image
 import hailo
 from hailo_apps_infra.hailo_rpi_common import app_callback_class
 from face_recognition_pipeline_db import GStreamerFaceRecognitionApp
-from db_handler import get_all_persons, clear_table, remove_face_by_id, update_person_name, init_database as db_init
+from db_handler import clear_table, init_database as db_init
 import telebot
-import matplotlib.pyplot as plt
 
-TELEGRAM_TOKEN = ''  # TODO
-TELEGRAM_CHAT_ID = ''  # TODO
+TELEGRAM_TOKEN = '7544346062:AAFSvYjJlvlby-rmJoUF3sWoXQh-7dxj2RY'
+TELEGRAM_CHAT_ID = '7520285462'
 
 class user_callbacks_class(app_callback_class):
     def __init__(self):
@@ -22,20 +21,22 @@ class user_callbacks_class(app_callback_class):
             self.bot = telebot.TeleBot(TELEGRAM_TOKEN)
             self.chat_id = TELEGRAM_CHAT_ID
 
-    def send_notification(self, person, frame):
+    def send_notification(self, name, global_id, distance, frame):
         if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
             return
+        caption = None  # Initialize caption with a default value
         current_time = datetime.now()
-        last_sent_time = self.ids_msg_sent.get(person['global_id'])
-
-        # Check if the notification was sent more than an hour ago or never sent
-        if last_sent_time is None or current_time - last_sent_time > timedelta(hours=1):
-            if person['name'] != 'Unknown':
-                caption = f"{person['name']} detected (confidence: {int(1 - person['_distance'])})"
-            else:
+        last_sent_time = self.ids_msg_sent.get(global_id)
+        if last_sent_time is None or current_time - last_sent_time > timedelta(hours=1):  # Check if the notification was sent more than an hour ago or never sent
+            if not name:
                 caption = "🚨 Unknown person detected!"  # For Unknown person there is no classification hence no classification confidence
-
-            self.ids_msg_sent[person['global_id']] = current_time  # Update the last sent time
+            else:
+                if name == 'Unknown':
+                    caption = f"Detected {global_id} (confidence: {(1 - distance):.2f})"
+                else:
+                    caption = f"Detected {name} (confidence: {(1 - distance):.2f})"
+        if caption:
+            self.ids_msg_sent[global_id] = current_time  # Update the last sent time
             image = Image.fromarray(frame)  # Open the image from the file path
             image_byte_array = BytesIO()  # Save the image to a byte stream
             image.save(image_byte_array, format='PNG')
@@ -69,43 +70,6 @@ def app_callback(pad, info, user_data):
     # print(string_to_print)
     return Gst.PadProbeReturn.OK
 
-def show_image_non_blocking(image, title):
-    plt.figure()
-    plt.imshow(image)
-    plt.title(title)
-    plt.show(block=False)
-    plt.pause(0.001)  # Add a small pause to allow the image to render
-
-def update_persons():
-    for person in get_all_persons(only_unknowns=True):
-        print(f"Updating person: {person['global_id']}" + (f" - {person['name']}" if person['name'] != 'Unknown' else ""))
-        first_name = None
-        for face in person['faces_json']:
-            image = Image.open(face['image'])
-            show_image_non_blocking(image, f"Person ID: {person['global_id']}")
-            action = input("Enter the name of the person or 'delete' to remove this image: ").strip()
-            plt.close()  # Close the image after input is submitted
-            if action.lower() == 'delete':
-                if not remove_face_by_id(person, face['id']):
-                    print(f"Image {face['id']} deleted.")
-                else:
-                    print(f"This was the last image of this person - person removed from DB.")
-            else:
-                if first_name is None:
-                    first_name = action
-                    update_person_name(person['global_id'], action)
-                    print(f"Person name updated to {action}.")
-                else:
-                    if action != first_name:
-                        print(f"Conflicting names: '{first_name}' and '{action}'")
-                        selected_name = input(f"Select the correct name ('{first_name}' or '{action}'): ").strip()
-                        while selected_name not in [first_name, action]:
-                            selected_name = input(f"Invalid selection. Please select '{first_name}' or '{action}': ").strip()
-                        first_name = selected_name
-                        update_person_name(person['global_id'], selected_name)
-                        print(f"Person name updated to {selected_name}.")
-        print('Finished updating.')
-
 if __name__ == "__main__":
     user_data = user_callbacks_class()
     app = GStreamerFaceRecognitionApp(app_callback, user_data)
@@ -113,7 +77,5 @@ if __name__ == "__main__":
         db, tbl_persons = db_init()
         clear_table()
         print("All records deleted from the database")
-    elif app.options_menu.mode == 'update':
-        update_persons()  # use the web interface instead
     else:  # run, run-save, train
         app.run()

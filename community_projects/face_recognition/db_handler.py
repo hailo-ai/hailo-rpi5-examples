@@ -146,7 +146,8 @@ def search_person(embedding: np.ndarray, top_k: int = 1, metric_type: str = 'cos
     )
     if search_result:
         search_result[0]['faces_json'] = json.loads(search_result[0]['faces_json'])
-        return search_result[0]
+        if search_result[0]['_distance'] > search_result[0]['classificaiton_confidence_threshold']:
+            return search_result[0]
     return None
 
 def update_person_name(global_id: str, name: str = 'Unknown') -> None:

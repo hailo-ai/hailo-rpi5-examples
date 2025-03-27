@@ -100,7 +100,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
 
         # Define the worker function
         def worker():
-            while True:
+            while True:  # TODO while pipeline playing
                 frame, image_path = self.task_queue.get()
                 if frame is None or image_path is None:
                     break
@@ -133,7 +133,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
                                             so_path=self.post_process_so_cropper, function_name=self.cropper_func, internal_offset=True)
         vector_db_callback_pipeline = USER_CALLBACK_PIPELINE(name=self.vector_db_callback_name)  # 'identity name' - is a GStreamer element that does nothing, but allows to add a probe to it
         user_callback_pipeline = USER_CALLBACK_PIPELINE()
-        display_pipeline = (f'hailooverlay name=hailo_overlay qos=false show-confidence=false local-gallery=true line-thickness=5 font-thickness=2 landmark-point-radius=8 ! '
+        display_pipeline = (f'hailooverlay name=hailo_overlay qos=false show-confidence=true local-gallery=false line-thickness=5 font-thickness=2 landmark-point-radius=8 ! '
                             f'queue name=hailo_post_draw leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! '
                             f'videoconvert n-threads=4 qos=false name=display_videoconvert qos=false ! '
                             f'queue name=hailo_display_q_0 leaky=no max-size-buffers=30 max-size-bytes=0 max-size-time=0 ! '
@@ -283,8 +283,9 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
         bbox_height_pixels = int(bbox.height() * frame_height)
         return bbox_width_pixels * bbox_height_pixels
     
-    def signal_handler(self):
+    def signal_handler(self, sig, frame):
         # Signal handler to stop worker threads
+        print(f"Received signal {sig}. Shutting down...")
         for i in range(self.num_worker_threads):
             self.task_queue.put(None)
         for t in self.threads:
@@ -306,16 +307,32 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
             embedding = detection.get_objects_typed(hailo.HAILO_MATRIX)
             if len(embedding) != 1:  # we will continue if new embedding exists - might be new person, or another image of existing person
                 continue  # if cropper pipeline element decided to pass the detection - it will arrive to this stage of the pipeline without face embedding. # print(f"Error: Expected 1 embedding, got {len(embedding)}")
-            detection.remove_object(embedding[0])  # in case the detection pointer tracker pipeline element (from earlier side of the pipeline) holds is the same as the one we have, remove the embedding
+            detection.remove_object(embedding[0])  # in case the detection pointer tracker pipeline element (from earlier side of the pipeline) holds is the same as the one we have, remove the embedding, so embedding similarity won't be part of the decision criteria
             track = detection.get_objects_typed(hailo.HAILO_UNIQUE_ID)
             track_id = track[0].get_id() if track else None
+            if track_id in self.trac_id_to_global_id:
+                continue  # if the track id is already associated with a global id - we already processed this detection, so add face can't be for same track id session anyway
             embedding_vector = np.array(embedding[0].get_data())
             person = search_person(embedding=embedding_vector)
-            if (  # existing person and good picture: order of conditions exploit lazy evaluation spare time
-                person is not None                                                                                          and
-                self.options_menu.mode in ['run-save', 'train']                                                             and
+
+            if self.options_menu.mode == 'run':  
+                detection.add_object(hailo.HailoClassification(type='1', label=person['name'] if person else 'Unknown', confidence=person['_distance'] if person else 1))  # type 1 = hailo.HAILO_CLASSIFICATION
+                self.trac_id_to_global_id[track_id] = uuid.uuid4() if person is None else person['global_id']  # so even same track id stranger will be "classified" (tracked) + for notifications - there track id is the best "classification"
+                print(f"Person recognized: {person['name'] if person else 'new stranger'}")
+                user_data.send_notification(name=person['name'] if person else None, global_id=self.trac_id_to_global_id[track_id], distance=person['_distance'] if person else None, frame=frame)  # bussines logic example
+                continue  # run mode - skip the rest of the logic  
+
+            elif person is None:  # new person, mode run-save or train
+                image_path = os.path.join(self.resources_path, 'faces', f"{uuid.uuid4()}.png")
+                self.add_task(frame, image_path)  # Add the frame to the queue for processing
+                person = create_person(embedding=embedding_vector, image=image_path, timestamp=int(time.time()))
+                print(f"New person added: {person['global_id']}")
+                self.trac_id_to_global_id[track_id] = person['global_id']  # to later maintain on tracker pipeline element
+                detection.add_object(hailo.HailoClassification(type='1', label=person['name'], confidence=(1 - person['_distance']))) 
+                
+            elif (  # existing person, mode run-save or train, and good picture: order of conditions exploit lazy evaluation spare time
                 len(person['faces_json']) < self.max_faces_per_person                                                       and
-                1 - person['_distance'] > person['classificaiton_confidence_threshold'] - self.embedding_distance_tolerance and
+                1 - person['_distance'] > person['classificaiton_confidence_threshold'] + self.embedding_distance_tolerance and
                 time.time() - person['last_image_recieved_time'] > self.last_image_sent__threshold_time                     and
                 self.get_detection_num_pixels(detection.get_bbox(), width, height) > self.min_face_pixels_tolerance         and 
                 self.calculate_procrustes_distance(detection, width, height) < self.procrustes_distance_threshold           and
@@ -326,23 +343,10 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
                 self.add_task(frame, image_path)  # Add the frame to the queue for processing
                 insert_new_face(person=person, embedding=embedding_vector, image=image_path, timestamp=int(time.time())) 
                 self.trac_id_to_global_id[track_id] = person['global_id']  # to later maintain on tracker pipeline element
-            elif (  # new person, will be effective after update session, before that - might add same person again as new
-                (person is None or (1 - person['_distance'] < person['classificaiton_confidence_threshold'] and person['name'] == 'Unknown')) and
-                self.options_menu.mode in ['run-save', 'train']
-            ):
-                image_path = os.path.join(self.resources_path, 'faces', f"{uuid.uuid4()}.png")
-                self.add_task(frame, image_path)  # Add the frame to the queue for processing
-                person = create_person(embedding=embedding_vector, image=image_path, timestamp=int(time.time()))
-                print(f"New person added: {person['global_id']}")
-                self.trac_id_to_global_id[track_id] = person['global_id']  # to later maintain on tracker pipeline element
-            if person is not None and person['name'] != 'Unknown':  # basically every distance and name != Unknown, update detection object for the rest of the pipeline - display and app callback function
-                classification_list = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
-                if classification_list:
-                    classification = classification_list[0]
-                    classification.set_label(person['name'])
-                    classification.set_confidence(1 - person['_distance'])
-                    detection.add_object(classification)
-                    print(f"Person recognized: {person['name']} (confidence: {1 - person['_distance']})")
-            if person is not None and self.options_menu.mode in ['run', 'run-save']:  # bussines logic example
-                user_data.send_notification(person, frame)  
+                detection.add_object(hailo.HailoClassification(type='1', label=person['name'], confidence=(1 - person['_distance']))) 
+            
+            else:  # existing regular
+                self.trac_id_to_global_id[track_id] = person['global_id']
+                detection.add_object(hailo.HailoClassification(type='1', label=person['name'], confidence=(1 - person['_distance'])))
+
         return Gst.PadProbeReturn.OK
