@@ -104,6 +104,21 @@ def get_depth_compatible_hefs(architecture):
 
     return [os.path.join("resources", hef) for hef in hef_list]
 
+def get_depth_compatible_hefs(architecture):
+    """Get a list of compatible HEF files based on the device architecture."""
+    H8_HEFS = [
+        "scdepthv3.hef"
+    ]
+
+    H8L_HEFS = [
+        "scdepthv3_h8l.hef"
+    ]
+    hef_list = H8L_HEFS
+    if architecture == 'hailo8':
+        hef_list = hef_list + H8_HEFS
+
+    return [os.path.join("resources", hef) for hef in hef_list]
+
 def test_detection_hefs():
     """Test detection pipeline with all compatible HEFs."""
     log_dir = "logs"

@@ -43,6 +43,7 @@ When opening a new terminal session, ensure you have sourced the environment set
 source setup_env.sh
 ```
 ### Detection Example
+For more information see [Detection Example Documentation.](doc/basic-pipelines.md#detection-example)
 
 ![Detection Example](doc/images/detection.gif)
 
@@ -98,6 +99,7 @@ This application includes support for using retrained detection models. For more
 
 ### Pose Estimation Example
 For more information see [Pose Estimation Example Documentation.](doc/basic-pipelines.md#pose-estimation-example)
+
 ![Pose Estimation Example](doc/images/pose_estimation.gif)
 
 #### Run the pose estimation example:
@@ -109,6 +111,7 @@ See Detection Example above for additional input options examples.
 
 ### Instance Segmentation Example
 For more information see [Instance Segmentation Example Documentation.](doc/basic-pipelines.md#instance-segmentation-example)
+
 ![Instance Segmentation Example](doc/images/instance_segmentation.gif)
 
 #### Run the instance segmentation example:
@@ -120,6 +123,7 @@ See Detection Example above for additional input options examples.
 
 ### Depth Estimation Example
 For more information see [Depth Estimation Example Documentation.](doc/basic-pipelines.md#depth-estimation-example)
+
 ![Depth Estimation Example](doc/images/depth.gif)
 
 #### Run the depth estimation example:
