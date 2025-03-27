@@ -8,7 +8,7 @@ import signal
 from test_hailo_rpi5_examples import get_device_architecture, get_detection_compatible_hefs
 
 def run_pipeline(script, input_source, duration=30, additional_args=None):
-    cmd = ['python', f'basic_pipelines/{script}', '--input', input_source]
+    cmd = ['python', '-u', f'basic_pipelines/{script}', '--input', input_source]
     if additional_args:
         cmd.extend(additional_args)
 

@@ -6,6 +6,7 @@ import time
 import signal
 import glob
 import logging
+import re
 
 # Adjust the sys.path to include the parent directory of the test folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -21,6 +22,8 @@ TEST_RUN_TIME = 10
 
 def test_rpi_camera_connection():
     """Test if RPI camera is connected by running rpicam-hello."""
+    if not rpi_camera_available:
+        pytest.skip("RPi camera is not available")
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     log_file_path = os.path.join(log_dir, "rpi_camera_test.log")
@@ -202,7 +205,7 @@ def test_all_pipelines_cameras():
             log_file_path = os.path.join(log_dir, f"test_{pipeline}_{device_name}_camera_test.log")
             logging.info(f"Running {pipeline} with {device} camera")
             with open(log_file_path, "w") as log_file:
-                cmd = ['python', f'basic_pipelines/{pipeline}', '--input', device]
+                cmd = ['python', '-u', f'basic_pipelines/{pipeline}', '--input', device]
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 try:
                     time.sleep(TEST_RUN_TIME)
@@ -237,7 +240,7 @@ def test_all_pipelines_usb_camera():
         log_file_path = os.path.join(log_dir, f"test_{pipeline}_{device}_camera_test.log")
         logging.info(f"Running {pipeline} with {device} camera")
         with open(log_file_path, "w") as log_file:
-            cmd = ['python', f'basic_pipelines/{pipeline}', '--input', device]
+            cmd = ['python', '-u', f'basic_pipelines/{pipeline}', '--input', device]
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -303,7 +306,7 @@ def test_simple_detection_hefs():
         log_file_path = os.path.join(log_dir, f"simple_detection_{hef_name}_video_test.log")
         logging.info(f"Running simple detection with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/detection_simple.py', '--input', 'resources/example.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', '-u', 'basic_pipelines/detection_simple.py', '--input', 'resources/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -438,7 +441,7 @@ def test_detection_retraining():
     log_file_path = os.path.join(log_dir, "detection_retrained_video_test.log")
     logging.info("Running detection with retrained model (video input)")
     with open(log_file_path, "w") as log_file:
-        cmd = ['python', 'basic_pipelines/detection.py', '--labels-json', labels_json, '--hef-path', retrained_hef, '--input', video_path]
+        cmd = ['python', '-u', 'basic_pipelines/detection.py', '--labels-json', labels_json, '--hef-path', retrained_hef, '--input', video_path]
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             time.sleep(TEST_RUN_TIME)
@@ -454,6 +457,59 @@ def test_detection_retraining():
 
         assert "Traceback" not in stderr.decode(), f"Detection with retrained model (video input) encountered an exception: {stderr.decode()}"
         assert "Error" not in stderr.decode(), f"Detection with retrained model (video input) encountered an error: {stderr.decode()}"
+
+def test_frame_rate():
+    """Test that pipelines honor the --frame-rate flag by checking output FPS values"""
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    pipeline_list = get_pipelines_list()
+    for pipeline in pipeline_list:
+        # Test with video input
+        log_file_path = os.path.join(log_dir, f"test_{pipeline}_frame_rate_test.log")
+        logging.info(f"Running {pipeline} with frame rate flag")
+        with open(log_file_path, "w") as log_file:
+            cmd = ['python', '-u', f'basic_pipelines/{pipeline}', '--frame-rate', '10', '--show-fps']
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                time.sleep(TEST_RUN_TIME)
+                process.send_signal(signal.SIGTERM)
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                pytest.fail(f"{pipeline} (frame rate) could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
+            stdout, stderr = process.communicate()
+            stdout_str = stdout.decode()
+            stderr_str = stderr.decode()
+            
+            # Log outputs
+            log_file.write(f"{pipeline} (frame rate) stdout:\n{stdout_str}\n")
+            log_file.write(f"{pipeline} (frame rate) stderr:\n{stderr_str}\n")
+            
+            # Check for errors
+            assert "Traceback" not in stderr_str, f"{pipeline} (frame rate) encountered an exception: {stderr_str}"
+            assert "Error" not in stderr_str, f"{pipeline} (frame rate) encountered an error: {stderr_str}"
+            
+            # Extract FPS values using regex
+            fps_pattern = re.compile(r'FPS: (\d+\.\d+)')
+            fps_matches = fps_pattern.findall(stdout_str)
+            
+            # Only check FPS if we found some values
+            if fps_matches:
+                # Convert matches to float values
+                fps_values = [float(match) for match in fps_matches]
+                
+                # Skip first few values as they might be during startup
+                if len(fps_values) > 3:
+                    fps_values = fps_values[3:]
+                
+                # Calculate average FPS
+                avg_fps = sum(fps_values) / len(fps_values)
+                log_file.write(f"Average FPS: {avg_fps:.2f}\n")
+                
+                # Assert that average FPS is within acceptable range of target (10)
+                # Using a 10% tolerance
+                assert 9.0 <= avg_fps <= 11.0, f"FPS not within expected range. Got average {avg_fps:.2f}, expected around 10.0"
+                logging.info(f"{pipeline} FPS test passed with average FPS of {avg_fps:.2f}")
 
 # def test_pipeline_with_use_frame():
 #     """
@@ -471,7 +527,7 @@ def test_detection_retraining():
 #         # Set up logging for each pipeline
 #         log_file_path = os.path.join(log_dir, f"{pipeline}_use_frame_camera_test.log")
 #         with open(log_file_path, "w") as log_file:
-#             cmd = ['python', f'basic_pipelines/{pipeline}', '--use-frame', '--input', camera_input]
+#             cmd = ['python', '-u', f'basic_pipelines/{pipeline}', '--use-frame', '--input', camera_input]
 
 #             # Start the process
 #             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
