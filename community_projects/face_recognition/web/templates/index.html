@@ -2,109 +2,134 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Update Persons</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #e8f5e9; /* Light green background */
             margin: 0;
             padding: 0;
         }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-        }
-        header {
-            background: #333;
-            color: #fff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #77aaff 3px solid;
-        }
-        header h1 {
+        h1 {
             text-align: center;
-            text-transform: uppercase;
-            margin: 0;
-            font-size: 24px;
-        }
-        .person {
-            background: #fff;
+            color: #2e7d32; /* Dark green for the title */
             margin: 20px 0;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .person h2 {
-            margin-top: 0;
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #ffffff; /* White background for the table */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for the table */
         }
-        .person img {
-            max-width: 150px;
-            border-radius: 5px;
-        }
-        .person form {
-            margin-top: 10px;
-        }
-        .person input[type="text"] {
+        th {
+            background-color: #66bb6a; /* Green header background */
+            color: white;
             padding: 10px;
-            width: calc(100% - 22px);
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
         }
-        .person button {
-            padding: 10px 20px;
-            background: #77aaff;
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            color: #424242; /* Dark gray text */
+        }
+        tr:nth-child(even) {
+            background-color: #f1f8e9; /* Light green for alternate rows */
+        }
+        tr:hover {
+            background-color: #c8e6c9; /* Slightly darker green on hover */
+        }
+        img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px; /* Rounded corners for images */
+        }
+        button {
+            background-color: #2e7d32; /* Dark green button */
+            color: white;
             border: none;
-            color: #fff;
-            border-radius: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
             cursor: pointer;
         }
-        .person button:hover {
-            background: #5599ff;
+        button:hover {
+            background-color: #1b5e20; /* Darker green on hover */
+        }
+        label {
+            font-weight: bold;
+            color: #2e7d32; /* Dark green for labels */
+        }
+        input[type="text"], input[type="number"] {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 80%;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Update Persons</h1>
-    </header>
-    <div class="container">
-        <select id="personSelect">
-            <option value="">Select a person</option>
+    <h1>Face Recognition</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Person Name</th>
+                <th>Images</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for person in persons %}
-                <option value="{{ person.global_id }}">{{ person.name }}</option>
+            <tr>
+                <!-- Person Name -->
+                <td>
+                    <form method="POST" action="{{ url_for('update_person_name_route') }}">
+                        <input type="hidden" name="global_id" value="{{ person['global_id'] }}">
+                        <input type="text" name="new_name" value="{{ person['name'] }}" placeholder="Enter name">
+                        <button type="submit">Update Name</button>
+                    </form>
+                </td>
+
+                <!-- Images -->
+                <td>
+                    <div style="display: flex; justify-content: center; gap: 10px;">
+                        {% for face in person['faces_json'][:3] %}
+                            {% if face['image'] %}
+                                <div>
+                                    <!-- Ensure encode_image is called -->
+                                    <img src="data:image/jpeg;base64,{{ encode_image(face['image']) }}" alt="Face">
+                                    <form method="POST" action="{{ url_for('delete_image') }}">
+                                        <input type="hidden" name="global_id" value="{{ person['global_id'] }}">
+                                        <input type="hidden" name="face_id" value="{{ face['id'] }}">
+                                        <button type="submit">Delete</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <p>No image available</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </td>
+
+                <!-- Actions -->
+                <td>
+                    {% if person['faces_json']|length == 0 %}
+                    <form method="POST" action="{{ url_for('delete_person') }}">
+                        <input type="hidden" name="global_id" value="{{ person['global_id'] }}">
+                        <button type="submit">Delete Person</button>
+                    </form>
+                    {% endif %}
+                    <!-- Display and Update Threshold -->
+                    <form method="POST" action="{{ url_for('update_person_threshold') }}">
+                        <input type="hidden" name="global_id" value="{{ person['global_id'] }}">
+                        <label for="threshold">Threshold:</label>
+                        <input type="number" step="0.01" name="new_threshold" value="{{ "%.2f"|format(person['classification_confidence_threshold']) }}">
+                        <button type="submit">Update Threshold</button>
+                    </form>
+                </td>
+            </tr>
             {% endfor %}
-        </select>
-        <div id="personContainer">
-            {% for person in persons %}
-                <div class="person" data-person-id="{{ person.global_id }}" style="display: none;">
-                    <h2>Updating person: {{ person.global_id }} - {{ person.name }}</h2>
-                    {% for face in person.faces_json %}
-                        <img src="data:image/jpeg;base64,{{ encode_image(face.image) }}" alt="Person ID: {{ person.global_id }}">
-                        <form action="{{ url_for('update_person') }}" method="post">
-                            <input type="hidden" name="global_id" value="{{ person.global_id }}">
-                            <input type="hidden" name="face_id" value="{{ face.id }}">
-                            <input type="text" name="action" placeholder="Enter name or 'delete'">
-                            <button type="submit">Submit</button>
-                        </form>
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-    <script>
-        document.getElementById('personSelect').addEventListener('change', function() {
-            var selectedPersonId = this.value;
-            var persons = document.querySelectorAll('.person');
-            persons.forEach(function(person) {
-                if (person.getAttribute('data-person-id') === selectedPersonId) {
-                    person.style.display = 'block';
-                } else {
-                    person.style.display = 'none';
-                }
-            });
-        });
-    </script>
+        </tbody>
+    </table>
 </body>
 </html>

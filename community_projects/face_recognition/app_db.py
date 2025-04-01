@@ -1,14 +1,19 @@
+# region imports
+import datetime
+from datetime import datetime, timedelta
+from io import BytesIO
+
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
-from io import BytesIO
-from datetime import datetime, timedelta
 from PIL import Image
+import telebot
+
 import hailo
 from hailo_apps_infra.hailo_rpi_common import app_callback_class
 from face_recognition_pipeline_db import GStreamerFaceRecognitionApp
 from db_handler import clear_table, init_database as db_init
-import telebot
+# endregion
 
 TELEGRAM_TOKEN = '7544346062:AAFSvYjJlvlby-rmJoUF3sWoXQh-7dxj2RY'
 TELEGRAM_CHAT_ID = '7520285462'
@@ -70,7 +75,7 @@ def app_callback(pad, info, user_data):
     # print(string_to_print)
     return Gst.PadProbeReturn.OK
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     user_data = user_callbacks_class()
     app = GStreamerFaceRecognitionApp(app_callback, user_data)
     if app.options_menu.mode == 'delete':

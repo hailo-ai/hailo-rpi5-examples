@@ -1,15 +1,19 @@
+# region imports
 import os
 import json
-from typing import Dict, Any, List, Tuple
 import uuid
+from typing import Dict, Any, List, Tuple
+
 import numpy as np
-from lancedb.pydantic import Vector, LanceModel
-import lancedb
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-from PIL import Image, ImageDraw
 from matplotlib.patches import Ellipse
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from PIL import Image, ImageDraw
+
+from lancedb.pydantic import Vector, LanceModel
+import lancedb
+# endregion
 
 DISTANCE_THRESHOLD = 0.7
 
@@ -21,14 +25,6 @@ class PersonRecord(LanceModel):
     classificaiton_confidence_threshold: float = 1 - DISTANCE_THRESHOLD  # initial default value
     last_image_recieved_time: int = None  # epoch timestamp: In case the last image removed - not maintend to previous image time...
     faces_json: str = "[]"  # Store faces as a JSON string  # [{"embedding", "image", "id"}]
-
-    @property
-    def faces(self) -> List[Dict[str, Any]]:
-        return json.loads(self.faces_json)
-    
-    @faces.setter
-    def faces(self, value: List[Dict[str, Any]]):
-        self.faces_json = json.dumps(value)
 
 # Initialize the LanceDB database
 def init_database():
@@ -146,7 +142,7 @@ def search_person(embedding: np.ndarray, top_k: int = 1, metric_type: str = 'cos
     )
     if search_result:
         search_result[0]['faces_json'] = json.loads(search_result[0]['faces_json'])
-        if search_result[0]['_distance'] > search_result[0]['classificaiton_confidence_threshold']:
+        if (1 - search_result[0]['_distance']) > search_result[0]['classificaiton_confidence_threshold']:  # if search_result[0]['_distance']>1 the condition is false by default (1-1.1=-0.1) because default value if 0.3
             return search_result[0]
     return None
 
@@ -258,7 +254,19 @@ def get_persons_num_faces(global_id: str) -> int:
         int: The number of faces.
     """
     return len(get_person_by_id(global_id)['faces_json'])
-    #return len(json.loads(get_person_by_id(global_id)['faces_json']))
+
+def get_persons_classificaiton_confidence_threshold(global_id: str) -> float:
+    """
+    Gets the classificaiton confidence threshold associated with a person.
+
+    Args:
+        global_id (str): The global ID of the person to
+        retrieve.
+    
+    Returns:
+        float: The classificaiton confidence threshold.
+    """
+    return get_person_by_id(global_id)['classificaiton_confidence_threshold']
 
 def get_persons_last_image_recieved_time(global_id: str) -> int:
     """
@@ -322,13 +330,67 @@ def calibrate_classification_confidence_threshold():
 
     for i, record in enumerate(records):
         # Calculate the new threshold based on normalized area
-        new_threshold = 1 - norm_areas[i] * DISTANCE_THRESHOLD
+        # Ensure the threshold is between 0.1 and 0.9
+        new_threshold = 0.1 + (0.9 - 0.1) * (1 - norm_areas[i])  # Scale to [0.1, 0.9]
         update_person_classificaiton_confidence_threshold(record['global_id'], new_threshold)
+
+# Global variables to store the plot's Axes and PCA object
+global_ax = None
+global_pca = None
+
+def add_embedding_to_existing_plot(embedding_vector, cropped_frame):
+    """
+    Adds a single embedding as a black point to the existing plot created by visualize_persons.
+
+    Args:
+        embedding_vector (numpy.ndarray): The embedding to add to the plot.
+    """
+    global global_ax, global_pca
+
+    if global_ax is None or global_pca is None:
+        print("Error: The plot has not been initialized. Call visualize_persons first.")
+        return
+
+    # Transform the embedding to 2D using the existing PCA
+    reduced_embedding = global_pca.transform([embedding_vector])[0]
+
+    # Add the embedding as a black point to the plot
+    global_ax.scatter(
+        reduced_embedding[0],  # X-coordinate
+        reduced_embedding[1],  # Y-coordinate
+        color='black',         # Black color for the point
+        s=100,                 # Size of the point
+        label='New Embedding'  # Label for the legend
+    )
+
+    # If a cropped frame is provided, draw the image near the point
+    if cropped_frame is not None:
+        img = Image.fromarray(cropped_frame)
+        img.thumbnail((30, 30))  # Resize the image to a smaller thumbnail
+
+        # Create a circular mask
+        mask = Image.new("L", img.size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, img.size[0], img.size[1]), fill=255)
+        img = Image.composite(img, Image.new("RGBA", img.size, (255, 255, 255, 0)), mask)
+
+        # Offset the image to the side of the point
+        offset = 0.05  # Adjust this value to control the distance from the point
+        image_position = (reduced_embedding[0] + offset, reduced_embedding[1] + offset)
+
+        # Add the circular image to the plot
+        imagebox = OffsetImage(img, zoom=0.5)
+        ab = AnnotationBbox(imagebox, image_position, frameon=False)
+        global_ax.add_artist(ab)
+
+    # Redraw the plot to reflect the changes
+    plt.draw()
 
 def visualize_persons():
     """
     Creates a 2D visualization of persons with their embeddings, confidence circles, and their first picture near the point.
     """
+    global global_ax, global_pca
     persons = tbl_persons.search().to_list()
     # Extract all embeddings and perform PCA for dimensionality reduction
     all_embeddings = []
@@ -336,12 +398,13 @@ def visualize_persons():
     for person in persons:
         faces = json.loads(person['faces_json'])
         embeddings = [np.array(face['embedding']) for face in faces]
+        images = [face['image'] for face in faces]
         all_embeddings.extend(embeddings)
         person_data[person['global_id']] = {
             'name': person['name'],
             'avg_embedding': np.array(person['avg_embedding']),
             'embeddings': embeddings,
-            'image': faces[0]['image'] if faces else None
+            'images': images
         }
     
     if not all_embeddings:
@@ -357,6 +420,8 @@ def visualize_persons():
     
     # Create a 2D scatter plot
     fig, ax = plt.subplots(figsize=(10, 8))
+    global_ax = ax
+    global_pca = pca
     colors = ['blue', 'green', 'red', 'purple', 'orange', 'brown', 'pink', 'gray', 'cyan', 'magenta']
     
     for idx, (person_id, data) in enumerate(person_data.items()):
@@ -377,20 +442,29 @@ def visualize_persons():
             alpha=0.2
         )
         ax.add_patch(ellipse)
-        
-        # Add the average embedding point
+
+        # Draw all embeddings for the person
+        reduced_person_embeddings = np.array([embedding_map[tuple(embedding)] for embedding in data['embeddings']])
+        ax.scatter(
+            reduced_person_embeddings[:, 0],  # X-coordinates of all embeddings
+            reduced_person_embeddings[:, 1],  # Y-coordinates of all embeddings
+            color=colors[idx % len(colors)],  # Use the same color for all points of the person
+            alpha=0.6,  # Slightly transparent for better visualization
+            s=50  # Smaller size for individual points
+        )
+
+        # Add the average embedding point with a black outline
         ax.scatter(
             reduced_avg_embedding[0], reduced_avg_embedding[1],
             color=colors[idx % len(colors)], label=data['name'], s=100, edgecolor='black'
         )
         
-        # Add the image near the point
-        if data['image']:
-            image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'faces', data['image'])
+        # Add the small image near each embedding point
+        for embedding, reduced_point, image_path in zip(data['embeddings'], reduced_person_embeddings, data['images']):
             if os.path.exists(image_path):
                 # Open the image
                 img = Image.open(image_path)
-                img.thumbnail((50, 50))  # Resize the image to a small thumbnail
+                img.thumbnail((30, 30))  # Resize the image to a smaller thumbnail
 
                 # Create a circular mask
                 mask = Image.new("L", img.size, 0)
@@ -398,9 +472,9 @@ def visualize_persons():
                 draw.ellipse((0, 0, img.size[0], img.size[1]), fill=255)
                 img = Image.composite(img, Image.new("RGBA", img.size, (255, 255, 255, 0)), mask)
 
-                # Offset the image to the side of the ellipse
-                offset = 0.1  # Adjust this value to control the distance from the point
-                image_position = (reduced_avg_embedding[0] + offset, reduced_avg_embedding[1] + offset)
+                # Offset the image to the side of the point
+                offset = 0.05  # Adjust this value to control the distance from the point
+                image_position = (reduced_point[0] + offset, reduced_point[1] + offset)
 
                 # Add the circular image to the plot
                 imagebox = OffsetImage(img, zoom=0.5)
@@ -409,8 +483,8 @@ def visualize_persons():
 
     # Add labels and legend
     ax.set_title("2D Visualization of Persons with Confidence Circles", fontsize=16)
-    ax.set_xlabel("PCA Component 1", fontsize=12)
-    ax.set_ylabel("PCA Component 2", fontsize=12)
+    # ax.set_xlabel("PCA Component 1", fontsize=12)
+    # ax.set_ylabel("PCA Component 2", fontsize=12)
 
     # Place the legend outside the main plotting area
     ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1), fontsize=10)
