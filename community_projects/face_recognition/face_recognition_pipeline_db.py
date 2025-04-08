@@ -420,7 +420,7 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
             if self.options_menu.mode == 'run':  
                 detection.add_object(hailo.HailoClassification(type='1', label=person['name'] if person else 'Unknown', confidence=person['_distance'] if person else 1))  # type 1 = hailo.HAILO_CLASSIFICATION
                 self.trac_id_to_global_id[track_id] = uuid.uuid4() if person is None else person['global_id']  # so even same track id stranger will be "classified" (tracked) + for notifications - there track id is the best "classification"
-                print(f"Person recognized: {person['name'] if person else 'new stranger'}")
+                print(f"Person recognized: {person['name'] if person else 'New Stranger'}")
                 # TODO self.add_task('send_notification', name=person['name'] if person else None, global_id=self.trac_id_to_global_id[track_id], distance=person['_distance'] if person else None, frame=cropped_frame)
                 add_embedding_to_existing_plot(embedding_vector, cropped_frame)
                 continue  # run mode - skip the rest of the logic and continue to the next detection in the frame
@@ -433,10 +433,10 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
                 self.trac_id_to_global_id[track_id] = person['global_id']  # to later maintain on tracker pipeline element
                 detection.add_object(hailo.HailoClassification(type='1', label=person['name'], confidence=0.3))  # default min confidence for new person 
                 
-            elif (  # existing person, mode run-save or train, and good picture: order of conditions exploit lazy evaluation spare time
+            elif (  # For existing persons & save or train mode, and "good" picture quality: the order of conditions exploits lazy evaluation to save time
                 len(person['faces_json']) < self.max_faces_per_person                                                       and
                 1 - person['_distance'] > person['classificaiton_confidence_threshold'] + self.embedding_distance_tolerance and
-                time.time() - person['last_image_recieved_time'] > self.last_image_sent_threshold_time                     and
+                time.time() - person['last_image_recieved_time'] > self.last_image_sent_threshold_time                      and
                 self.get_detection_num_pixels(detection.get_bbox(), width, height) > self.min_face_pixels_tolerance         and 
                 self.calculate_procrustes_distance(detection, width, height) < self.procrustes_distance_threshold           and
                 self.measure_blurriness(cropped_frame) > self.blurriness_tolerance  # takes ~0.01 seconds, for now skipping with return 400 always
@@ -453,7 +453,6 @@ class GStreamerFaceRecognitionApp(GStreamerApp):
                 try:
                     detection.add_object(hailo.HailoClassification(type='1', label=person['name'], confidence=(1 - person['_distance'])))
                 except Exception as e:
-                    breakpoint()
                     print(f"Error adding classification to detection: {e}")
         return Gst.PadProbeReturn.OK
     

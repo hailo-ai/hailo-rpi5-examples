@@ -1,22 +1,25 @@
 # region imports
+# Standard library imports
 import datetime
 from datetime import datetime, timedelta
 from io import BytesIO
 
+# Third-party imports
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 from PIL import Image
 import telebot
 
+# Local application-specific imports
 import hailo
 from hailo_apps_infra.hailo_rpi_common import app_callback_class
 from face_recognition_pipeline_db import GStreamerFaceRecognitionApp
 from db_handler import clear_table, init_database as db_init
 # endregion
 
-TELEGRAM_TOKEN = '7544346062:AAFSvYjJlvlby-rmJoUF3sWoXQh-7dxj2RY'
-TELEGRAM_CHAT_ID = '7520285462'
+TELEGRAM_TOKEN = ''
+TELEGRAM_CHAT_ID = ''
 
 class user_callbacks_class(app_callback_class):
     def __init__(self):

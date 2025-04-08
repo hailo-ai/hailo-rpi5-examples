@@ -1,16 +1,17 @@
 # region imports
+# Standard library imports
 import os
 import json
 import uuid
 from typing import Dict, Any, List, Tuple
 
+# Third-party imports
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from PIL import Image, ImageDraw
-
 from lancedb.pydantic import Vector, LanceModel
 import lancedb
 # endregion
@@ -408,7 +409,7 @@ def visualize_persons():
         }
     
     if not all_embeddings:
-        print("No embeddings found.")
+        print("No embeddings found. The plot can't be visualized. Run in 'save' or 'train' mode first to populate the database with faces.")
         return
     
     # Perform PCA to reduce embeddings to 2D
@@ -496,6 +497,8 @@ def visualize_persons():
     plt.show()
 
 def main():
+    # persons = get_all_persons()
+    # print(persons)
     visualize_persons()
 
 if __name__ == "__main__":
