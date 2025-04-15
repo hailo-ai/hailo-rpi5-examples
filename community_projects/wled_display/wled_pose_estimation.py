@@ -22,7 +22,7 @@ from wled_display import WLEDDisplay
 class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
-        self.wled = WLEDDisplay(panels=2, udp_enabled=True)
+        self.wled = WLEDDisplay(panels=1, wled_enabled=True)
         self.frame_skip = 2  # Process every 2nd frame
 
 # Predefined colors (BGR format)
@@ -38,6 +38,8 @@ COLORS = [
     (0, 128, 128),  # Teal
     (128, 128, 0)   # Olive
 ]
+
+CONFIDENCE_THRESHOLD = 0.5 # Confidence threshold for keypoints
 
 # Keypoints for pose estimation (example indices, adjust based on your model)
 keypoints = {
@@ -114,14 +116,16 @@ def app_callback(pad, info, user_data):
                 for wrist in ['left_wrist', 'right_wrist']:
                     keypoint_index = keypoints[wrist]
                     point = points[keypoint_index]
+                    if point.confidence() < CONFIDENCE_THRESHOLD:
+                        continue
                     x = int((point.x() * bbox.width() + bbox.xmin()) * reduced_width)
                     y = int((point.y() * bbox.height() + bbox.ymin()) * reduced_height)
                     string_to_print += f"{wrist}: x: {x:.2f} y: {y:.2f}\n"
                     color = COLORS[track_id % len(COLORS)]  # Get color based on track_id
                     cv2.circle(reduced_frame, (x, y), 10, color, -1)
 
-    # Resize the frame to the WLED panel size for display
-    final_frame = cv2.resize(reduced_frame, (user_data.wled.panel_width * user_data.wled.panels, user_data.wled.panel_height))
+    # Resize the frame to the WLED size for display
+    final_frame = cv2.resize(reduced_frame, (user_data.wled.width, user_data.wled.height))
     user_data.wled.frame_queue.put(final_frame)
 
     print(string_to_print)

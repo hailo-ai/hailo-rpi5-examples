@@ -33,9 +33,10 @@ class GestureDrawingCallback(app_callback_class):
     def __init__(
         self,
         mirror_hands=True,
-        panel_width=20,
-        panel_height=20,
-        panels=1
+        panel_width=None,
+        panel_height=None,
+        panels=1,
+        wled_enabled=True
     ):
         """
         :param mirror_hands:  If True, swap 'left' <-> 'right'
@@ -52,20 +53,16 @@ class GestureDrawingCallback(app_callback_class):
             panel_width=panel_width,
             panel_height=panel_height,
             panels=panels,
-            udp_enabled=True
+            wled_enabled=wled_enabled
         )
 
         # Process every frame
         self.frame_skip = 1
 
-        # The total LED dimension (handle multi-panel horizontally if panels>1)
-        total_width = panel_width * panels
-        total_height = panel_height
-
         # The DrawingBoard: handles chest-enabling, color picking, T-pose, etc.
         self.drawing_board = DrawingBoard(
-            width=total_width,
-            height=total_height
+            width=self.wled.width,
+            height=self.wled.height,
         )
 
     def __del__(self):
@@ -76,7 +73,7 @@ def app_callback(pad, info, user_data):
     """
     GStreamer pad-probe callback:
       - For each detected 'person', retrieve bounding box + landmarks
-      - Convert them into the global (total_width × total_height) panel coords
+      - Convert them into the global coords
       - Forward them to the DrawingBoard.
     """
     user_data.increment()
@@ -89,10 +86,6 @@ def app_callback(pad, info, user_data):
 
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
-
-    # Our total LED dimension
-    total_w = user_data.drawing_board.width
-    total_h = user_data.drawing_board.height
 
     for detection in detections:
         if detection.get_label() != "person":
@@ -129,8 +122,8 @@ def app_callback(pad, info, user_data):
 
         # Convert detection-local coords [0..1] to total LED coords
         def to_panel_coords(pt):
-            x_glob = (pt.x() * bbox.width() + bbox.xmin()) * total_w
-            y_glob = (pt.y() * bbox.height() + bbox.ymin()) * total_h
+            x_glob = (pt.x() * bbox.width() + bbox.xmin()) * user_data.drawing_board.width
+            y_glob = (pt.y() * bbox.height() + bbox.ymin()) * user_data.drawing_board.height
             return int(x_glob), int(y_glob)
 
         # Extract final pixel coords
@@ -169,9 +162,8 @@ if __name__ == "__main__":
         python gesture_drawing_app.py (with panels=2)
     """
     user_data = GestureDrawingCallback(
+        wled_enabled=True,
         mirror_hands=True,
-        panel_width=20,
-        panel_height=20,
         panels=1  # default
     )
     app = GStreamerPoseEstimationApp(app_callback, user_data)

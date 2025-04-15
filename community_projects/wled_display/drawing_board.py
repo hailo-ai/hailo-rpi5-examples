@@ -35,7 +35,7 @@ class DrawingBoard:
         to enable drawing.
     T-pose:
       - LW < LS < RS < RW horizontally
-      - Wrists near shoulders vertically (± self.y_tolerance)
+      - Wrists near shoulders vertically (± self.tpose_y_tolerance)
     Color picking in the last 3 columns, single-pixel drawing if enabled.
     """
     def __init__(self, width=20, height=20):
@@ -50,15 +50,13 @@ class DrawingBoard:
 
         # T-pose detection timing
         self.tpose_start_time = {}
-        self.TPOSE_THRESHOLD = 5.0     # hold T-pose for 5s => reset
+        self.tpose_threshold = 5.0     # hold T-pose for 5s => reset
         self.tpose_warning_time = 2.0  # after 2s => flashing
+        self.tpose_y_tolerance = self.height * 0.1  # 10% of height
 
         # The palette uses the last 3 columns
-        self.PALETTE_WIDTH = 3
-        self.color_swatch_height = max(1, self.height // len(COLOR_PALETTE))
-
-        # T-pose logic
-        self.y_tolerance = 5
+        self.PALETTE_WIDTH = max(3, self.width // 15)
+        self.color_tab_height = max(1, self.height // len(COLOR_PALETTE))
 
         # For the "chest" bounding box shrink
         self.torso_shrink_factor = 0.4
@@ -113,7 +111,7 @@ class DrawingBoard:
 
             # 2) Color picking: if right wrist is in the last 3 columns
             if rw[0] >= self.width - self.PALETTE_WIDTH:
-                palette_index = rw[1] // self.color_swatch_height
+                palette_index = rw[1] // self.color_tab_height
                 palette_index = min(palette_index, len(COLOR_PALETTE) - 1)
                 data['color'] = COLOR_PALETTE[palette_index]
 
@@ -136,7 +134,7 @@ class DrawingBoard:
                         self.canvas[:] = 255 - self.canvas
 
                 # Reset after 5s
-                if elapsed > self.TPOSE_THRESHOLD:
+                if elapsed > self.tpose_threshold:
                     print(f"[DEBUG] T-pose RESET for track_id={track_id}")
                     self.canvas[:] = 0
                     self.tpose_start_time[track_id] = now
@@ -155,8 +153,8 @@ class DrawingBoard:
 
         # Draw the color palette on the far right side
         for i, color in enumerate(COLOR_PALETTE):
-            row_start = i * self.color_swatch_height
-            row_end = min((i + 1) * self.color_swatch_height, self.height)
+            row_start = i * self.color_tab_height
+            row_end = min((i + 1) * self.color_tab_height, self.height)
             frame[row_start:row_end, self.width - self.PALETTE_WIDTH : self.width] = color
 
         # Overlay each player's right wrist in their chosen color
@@ -170,7 +168,7 @@ class DrawingBoard:
     def is_tpose(self, track_id, data):
         """
         T-pose if x-coords are LW < LS < RS < RW,
-        wrists' y-values are within self.y_tolerance of shoulders.
+        wrists' y-values are within self.tpose_y_tolerance of shoulders.
         """
         lw = data['left_wrist']
         rw = data['right_wrist']
@@ -182,13 +180,13 @@ class DrawingBoard:
 
         # Wrists near shoulders in Y
         y_correct = (
-            abs(lw[1] - ls[1]) <= self.y_tolerance and
-            abs(rw[1] - rs[1]) <= self.y_tolerance
+            abs(lw[1] - ls[1]) <= self.tpose_y_tolerance and
+            abs(rw[1] - rs[1]) <= self.tpose_y_tolerance
         )
 
-        print(f"[DEBUG] T-pose check track_id={track_id}: "
-              f"horizontal_correct={horizontal_correct}, y_correct={y_correct}; "
-              f"LW={lw}, LS={ls}, RS={rs}, RW={rw}")
+        # print(f"[DEBUG] T-pose check track_id={track_id}: "
+        #       f"horizontal_correct={horizontal_correct}, y_correct={y_correct}; "
+        #       f"LW={lw}, LS={ls}, RS={rs}, RW={rw}")
 
         return horizontal_correct and y_correct
 

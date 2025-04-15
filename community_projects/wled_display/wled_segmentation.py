@@ -24,7 +24,7 @@ from wled_display import WLEDDisplay
 class user_app_callback_class(app_callback_class):
     def __init__(self):
         super().__init__()
-        self.wled = WLEDDisplay(panels=2, udp_enabled=True)
+        self.wled = WLEDDisplay(panels=1, wled_enabled=True)
         self.frame_skip = 2  # Process every 2nd frame
 
 # Predefined colors (BGR format)
@@ -120,8 +120,8 @@ def app_callback(pad, info, user_data):
                     mask_overlay[y_min:y_max, x_min:x_max] = np.dstack([(resized_mask_data[:y_max-y_min, :x_max-x_min] > 0.5) * c for c in color])
                     reduced_frame = cv2.addWeighted(reduced_frame, 1, mask_overlay, 0.5, 0)
 
-    # Resize the frame to the WLED panel size for display
-    final_frame = cv2.resize(reduced_frame, (user_data.wled.panel_width * user_data.wled.panels, user_data.wled.panel_height))
+    # Resize the frame to the WLED size for display
+    final_frame = cv2.resize(reduced_frame, (user_data.wled.width, user_data.wled.height))
     user_data.wled.frame_queue.put(final_frame)
 
     print(string_to_print)
