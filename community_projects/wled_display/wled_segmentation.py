@@ -6,26 +6,25 @@ import sys
 import numpy as np
 import cv2
 import hailo
-sys.path.append('../../basic_pipelines')
 
 from hailo_apps_infra.hailo_rpi_common import (
     get_caps_from_pad,
-    get_numpy_from_buffer,
     app_callback_class,
+    get_default_parser,
 )
 from hailo_apps_infra.instance_segmentation_pipeline import GStreamerInstanceSegmentationApp
 
-from wled_display import WLEDDisplay
+from wled_display import WLEDDisplay, add_parser_args
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
 # -----------------------------------------------------------------------------------------------
 # Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
-    def __init__(self):
+    def __init__(self, parser):
         super().__init__()
-        self.wled = WLEDDisplay(panels=2, udp_enabled=True)
-        self.frame_skip = 2  # Process every 2nd frame
+        self.wled = WLEDDisplay(parser=parser)
+        self.frame_skip = 1  # Process every frame
 
 # Predefined colors (BGR format)
 COLORS = [
@@ -120,15 +119,24 @@ def app_callback(pad, info, user_data):
                     mask_overlay[y_min:y_max, x_min:x_max] = np.dstack([(resized_mask_data[:y_max-y_min, :x_max-x_min] > 0.5) * c for c in color])
                     reduced_frame = cv2.addWeighted(reduced_frame, 1, mask_overlay, 0.5, 0)
 
-    # Resize the frame to the WLED panel size for display
-    final_frame = cv2.resize(reduced_frame, (user_data.wled.panel_width * user_data.wled.panels, user_data.wled.panel_height))
+    # Resize the frame to the WLED size for display
+    final_frame = cv2.resize(reduced_frame, (user_data.wled.width, user_data.wled.height))
     user_data.wled.frame_queue.put(final_frame)
 
     print(string_to_print)
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
+    # Create a modified parser to include WLED display options
+    parser = get_default_parser()
+    # Drawing every frame on the Pi is too slow, so we update the frame rate to 15
+    # You can modify this from the command line with the --frame-rate flag
+    parser.set_defaults(
+        frame_rate=15,          # Override default frame rate
+    )
+    # Add WLED display options
+    add_parser_args(parser)
     # Create an instance of the user app callback class
-    user_data = user_app_callback_class()
-    app = GStreamerInstanceSegmentationApp(app_callback, user_data)
+    user_data = user_app_callback_class(parser)
+    app = GStreamerInstanceSegmentationApp(app_callback, user_data, parser)
     app.run()

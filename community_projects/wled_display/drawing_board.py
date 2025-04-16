@@ -1,22 +1,9 @@
-"""
-drawing_board.py
-
-Same logic as before, except we now refer to the region as "chest"
-instead of "belly button."
-We still use a shrunk bounding box around shoulders & hips to confirm
-the left wrist is near the center of the body (the 'chest' area).
-
-If multiple panels are used, the total LED width might be panel_width * panels.
-The last 3 columns are always reserved for the color palette.
-"""
-
 import time
 import numpy as np
-import cv2
 
-# A vertical color palette on the right side of the final LED matrix
+# Color palette for drawing - displayed vertically on the right side
 COLOR_PALETTE = [
-    (255, 0, 0),    # Blue
+    (255, 0, 0),    # Blue   (BGR format)
     (0, 255, 0),    # Green
     (0, 0, 255),    # Red
     (255, 255, 0),  # Cyan
@@ -27,46 +14,69 @@ COLOR_PALETTE = [
 
 class DrawingBoard:
     """
-    Maintains a persistent canvas for gesture-based drawing across a
-    (width × height) LED matrix, which may span multiple WLED panels horizontally.
+    A virtual drawing board for gesture-based interaction using pose estimation.
 
-    "Chest" check:
-      - The left wrist must be inside a shrunk rectangle around (shoulders & hips)
-        to enable drawing.
-    T-pose:
-      - LW < LS < RS < RW horizontally
-      - Wrists near shoulders vertically (± self.y_tolerance)
-    Color picking in the last 3 columns, single-pixel drawing if enabled.
+    The board provides a persistent canvas where users can draw using hand gestures.
+    Features:
+    - Multi-user support with unique tracking IDs
+    - Color palette selection using right hand
+    - Drawing activation using left hand position (above shoulders)
+    - T-pose gesture for canvas reset
+    - Support for multiple WLED panels
+
+    Drawing Controls:
+    - Left hand above shoulders: Enables drawing mode
+    - Right hand: Acts as drawing pointer
+    - Right hand in palette area: Selects color
+    - T-pose for 5 seconds: Resets canvas
+
+    Attributes:
+        width (int): Total width of the drawing board in pixels
+        height (int): Height of the drawing board in pixels
+        canvas (np.ndarray): Persistent drawing canvas (height × width × 3)
+        PALETTE_WIDTH (int): Width of the color palette area in pixels
     """
+
     def __init__(self, width=20, height=20):
+        """
+        Initialize the drawing board with specified dimensions.
+
+        Args:
+            width (int): Board width in pixels
+            height (int): Board height in pixels
+        """
         self.width = width
         self.height = height
 
-        # Persistent canvas
+        # Initialize empty canvas (black background)
         self.canvas = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
-        # Player states
+        # Dictionary to track multiple players: {track_id: player_data}
         self.players = {}
 
-        # T-pose detection timing
-        self.tpose_start_time = {}
-        self.TPOSE_THRESHOLD = 5.0     # hold T-pose for 5s => reset
-        self.tpose_warning_time = 2.0  # after 2s => flashing
+        # T-pose detection configuration
+        self.tpose_start_time = {}      # Track when each player started T-pose
+        self.tpose_threshold = 3.0      # Seconds to hold T-pose for reset
+        self.tpose_warning_time = 1.0   # Seconds before warning flash
+        self.tpose_y_tolerance = self.height * 0.1  # Vertical tolerance for T-pose
 
-        # The palette uses the last 3 columns
-        self.PALETTE_WIDTH = 3
-        self.color_swatch_height = max(1, self.height // len(COLOR_PALETTE))
-
-        # T-pose logic
-        self.y_tolerance = 5
-
-        # For the "chest" bounding box shrink
-        self.torso_shrink_factor = 0.4
+        # Color palette configuration
+        self.PALETTE_WIDTH = max(3, self.width // 15)  # Minimum 3 pixels wide
+        self.color_tab_height = max(1, self.height // len(COLOR_PALETTE))
 
     def update_player_pose(self, track_id, left_wrist, right_wrist,
-                           left_shoulder, right_shoulder, left_hip, right_hip):
-        """Stores updated landmarks for a given player in pixel coords."""
+                          left_shoulder, right_shoulder, left_hip, right_hip):
+        """
+        Update pose data for a specific player.
+
+        Args:
+            track_id (int): Unique player identifier
+            left_wrist, right_wrist, left_shoulder, right_shoulder, left_hip, right_hip (tuple):
+                (x, y) coordinates for each body keypoint in pixel space, can be None if not detected
+        """
+
         if track_id not in self.players:
+            # Initialize new player with default white color
             self.players[track_id] = {
                 'left_wrist': left_wrist,
                 'right_wrist': right_wrist,
@@ -75,9 +85,10 @@ class DrawingBoard:
                 'left_hip': left_hip,
                 'right_hip': right_hip,
                 'drawing_enabled': False,
-                'color': (255, 255, 255)  # default color (white)
+                'color': (255, 255, 255)  # default: white
             }
         else:
+            # Update existing player's pose data
             self.players[track_id].update({
                 'left_wrist': left_wrist,
                 'right_wrist': right_wrist,
@@ -89,11 +100,7 @@ class DrawingBoard:
 
     def update(self):
         """
-        Main logic for each player:
-          1) "Chest" => left wrist in shrunk bounding box => enable drawing
-          2) Right wrist color picking if in last 3 columns
-          3) Single-pixel drawing if enabled
-          4) T-pose => reset after 5s
+        Process all players' states and update the canvas.
         """
         now = time.time()
 
@@ -105,128 +112,98 @@ class DrawingBoard:
             lh = data['left_hip']
             rh = data['right_hip']
 
-            # 1) "Chest": check if left wrist is in the shrunk bounding box of shoulders & hips
-            if self.is_within_torso_shrunk(lw, ls, rs, lh, rh, self.torso_shrink_factor):
-                data['drawing_enabled'] = True
-            else:
-                data['drawing_enabled'] = False
+            # Skip processing if essential landmarks are missing
+            if None in (lw, rw, ls, rs):
+                continue
 
-            # 2) Color picking: if right wrist is in the last 3 columns
+            # Enable drawing when left wrist is above shoulders
+            shoulder_y = min(ls[1], rs[1])
+            data['drawing_enabled'] = lw[1] < shoulder_y
+
+            # Color selection from palette
             if rw[0] >= self.width - self.PALETTE_WIDTH:
-                palette_index = rw[1] // self.color_swatch_height
-                palette_index = min(palette_index, len(COLOR_PALETTE) - 1)
+                palette_index = min(rw[1] // self.color_tab_height,
+                                  len(COLOR_PALETTE) - 1)
                 data['color'] = COLOR_PALETTE[palette_index]
 
-            # 3) If drawing is enabled, paint 1 pixel
+            # Draw if enabled
             if data['drawing_enabled']:
                 x, y = rw
                 if 0 <= x < self.width and 0 <= y < self.height:
                     self.canvas[y, x] = data['color']
 
-            # 4) T-pose detection => reset logic
+            # T-pose reset handling
             if self.is_tpose(track_id, data):
                 if track_id not in self.tpose_start_time:
-                    print(f"[DEBUG] T-pose START for track_id={track_id}")
+                    print(f"T-pose started: track_id={track_id}")
                     self.tpose_start_time[track_id] = now
 
                 elapsed = now - self.tpose_start_time[track_id]
-                # Flash after 2s
+                # Warning flash after 2 seconds
                 if elapsed > self.tpose_warning_time:
                     if int(elapsed) % 2 == 1:
                         self.canvas[:] = 255 - self.canvas
 
-                # Reset after 5s
-                if elapsed > self.TPOSE_THRESHOLD:
-                    print(f"[DEBUG] T-pose RESET for track_id={track_id}")
+                # Reset after 5 seconds
+                if elapsed > self.tpose_threshold:
+                    print(f"Canvas reset: track_id={track_id}")
                     self.canvas[:] = 0
                     self.tpose_start_time[track_id] = now
             else:
-                # If T-pose ended
                 if track_id in self.tpose_start_time:
-                    print(f"[DEBUG] T-pose END for track_id={track_id}")
+                    print(f"T-pose ended: track_id={track_id}")
                     del self.tpose_start_time[track_id]
 
     def get_frame(self):
         """
-        Returns the final frame = persistent canvas + color palette +
-        right-wrist marker in the player's color.
+        Generate the final frame for display.
         """
         frame = self.canvas.copy()
 
-        # Draw the color palette on the far right side
+        # Draw color palette
         for i, color in enumerate(COLOR_PALETTE):
-            row_start = i * self.color_swatch_height
-            row_end = min((i + 1) * self.color_swatch_height, self.height)
-            frame[row_start:row_end, self.width - self.PALETTE_WIDTH : self.width] = color
+            y_start = i * self.color_tab_height
+            y_end = min((i + 1) * self.color_tab_height, self.height)
+            frame[y_start:y_end, -self.PALETTE_WIDTH:] = color
 
-        # Overlay each player's right wrist in their chosen color
+        # Draw player cursors
         for data in self.players.values():
-            x, y = data['right_wrist']
-            if 0 <= x < self.width and 0 <= y < self.height:
-                frame[y, x] = data['color']
+            if data['right_wrist'] is not None:  # Only draw cursor if right wrist is detected
+                x, y = data['right_wrist']
+                if 0 <= x < self.width and 0 <= y < self.height:
+                    frame[y, x] = data['color']
 
         return frame
 
     def is_tpose(self, track_id, data):
         """
-        T-pose if x-coords are LW < LS < RS < RW,
-        wrists' y-values are within self.y_tolerance of shoulders.
+        Check if a player is in T-pose position.
+
+        Args:
+            track_id (int): Player identifier
+            data (dict): Player pose data
+
+        Returns:
+            bool: True if player is in T-pose position
+
+        T-pose criteria:
+        - Left to right ordering: LW < LS < RS < RW
+        - Wrists at shoulder height (within tolerance)
         """
         lw = data['left_wrist']
         rw = data['right_wrist']
         ls = data['left_shoulder']
         rs = data['right_shoulder']
 
-        # Horizontal ordering
+        # Check if any required landmark is missing
+        if None in (lw, rw, ls, rs):
+            return False
+
+        # Check horizontal ordering
         horizontal_correct = (lw[0] < ls[0] < rs[0] < rw[0])
 
-        # Wrists near shoulders in Y
-        y_correct = (
-            abs(lw[1] - ls[1]) <= self.y_tolerance and
-            abs(rw[1] - rs[1]) <= self.y_tolerance
-        )
-
-        print(f"[DEBUG] T-pose check track_id={track_id}: "
-              f"horizontal_correct={horizontal_correct}, y_correct={y_correct}; "
-              f"LW={lw}, LS={ls}, RS={rs}, RW={rw}")
+        # Check vertical alignment
+        y_correct = (abs(lw[1] - ls[1]) <= self.tpose_y_tolerance and
+                    abs(rw[1] - rs[1]) <= self.tpose_y_tolerance)
 
         return horizontal_correct and y_correct
-
-    @staticmethod
-    def shrink_bbox(x_min, x_max, y_min, y_max, shrink_factor):
-        """
-        Given bounding box edges [x_min..x_max], [y_min..y_max],
-        shrink them around the center by 'shrink_factor' (0..1).
-        If shrink_factor=0.4 => box is 40% of original size,
-        centered at the midpoint.
-        """
-        cx = (x_min + x_max) / 2.0
-        cy = (y_min + y_max) / 2.0
-        w = x_max - x_min
-        h = y_max - y_min
-
-        new_w = w * shrink_factor
-        new_h = h * shrink_factor
-
-        x_min_new = cx - new_w / 2
-        x_max_new = cx + new_w / 2
-        y_min_new = cy - new_h / 2
-        y_max_new = cy + new_h / 2
-
-        return x_min_new, x_max_new, y_min_new, y_max_new
-
-    def is_within_torso_shrunk(self, point, ls, rs, lh, rh, shrink_factor=0.9):
-        """
-        Returns True if 'point' is inside a *shrunk* rectangle
-        around the torso points [ls, rs, lh, rh] => 'chest' region.
-        """
-        x_min = min(ls[0], rs[0], lh[0], rh[0])
-        x_max = max(ls[0], rs[0], lh[0], rh[0])
-        y_min = min(ls[1], rs[1], lh[1], rh[1])
-        y_max = max(ls[1], rs[1], lh[1], rh[1])
-
-        (x_min_s, x_max_s,
-         y_min_s, y_max_s) = self.shrink_bbox(x_min, x_max, y_min, y_max, shrink_factor)
-
-        px, py = point
-        return (x_min_s <= px <= x_max_s) and (y_min_s <= py <= y_max_s)
