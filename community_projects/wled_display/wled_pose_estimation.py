@@ -10,19 +10,20 @@ import hailo
 from hailo_apps_infra.hailo_rpi_common import (
     get_caps_from_pad,
     app_callback_class,
+    get_default_parser,
 )
 from hailo_apps_infra.pose_estimation_pipeline import GStreamerPoseEstimationApp
 
-from wled_display import WLEDDisplay
+from wled_display import WLEDDisplay, add_parser_args
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
 # -----------------------------------------------------------------------------------------------
 # Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
-    def __init__(self):
+    def __init__(self, parser):
         super().__init__()
-        self.wled = WLEDDisplay(panels=1, wled_enabled=True)
+        self.wled = WLEDDisplay(parser=parser)
         self.frame_skip = 2  # Process every 2nd frame
 
 # Predefined colors (BGR format)
@@ -132,7 +133,11 @@ def app_callback(pad, info, user_data):
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
+    # Create a modified parser to include WLED display options
+    parser = get_default_parser()
+    # Add WLED display options
+    add_parser_args(parser)
     # Create an instance of the user app callback class
-    user_data = user_app_callback_class()
-    app = GStreamerPoseEstimationApp(app_callback, user_data)
+    user_data = user_app_callback_class(parser)
+    app = GStreamerPoseEstimationApp(app_callback, user_data, parser)
     app.run()

@@ -4,27 +4,22 @@ from gi.repository import Gst, GLib
 import numpy as np
 import hailo
 
-from hailo_apps_infra.hailo_rpi_common import app_callback_class
+from hailo_apps_infra.hailo_rpi_common import app_callback_class, get_default_parser
 from hailo_apps_infra.pose_estimation_pipeline import GStreamerPoseEstimationApp
 
-from wled_display import WLEDDisplay
+from wled_display import WLEDDisplay, add_parser_args
 from particle_simulation import ParticleSimulation
 
-WLED = True
-
 class user_app_callback_class(app_callback_class):
-    def __init__(self):
+    def __init__(self, parser):
         super().__init__()
 
-        if WLED: # WLED example
-            self.wled = WLEDDisplay(wled_enabled=True)
+        self.wled = WLEDDisplay(parser=parser)
+        if self.wled.wled_enabled:
             particle_size=1
         else:
-            # Projector example
-            self.wled = WLEDDisplay(wled_enabled=False)
             particle_size=10
 
-        self.frame_skip = 2
         self.particle_simulation = ParticleSimulation(screen_height=self.wled.height,
                                                       screen_width=self.wled.width,
                                                       particle_size=particle_size)
@@ -35,8 +30,6 @@ class user_app_callback_class(app_callback_class):
 
 def app_callback(pad, info, user_data):
     user_data.increment()
-    if user_data.get_count() % user_data.frame_skip != 0:
-        return Gst.PadProbeReturn.OK
 
     buffer = info.get_buffer()
     if buffer is None:
@@ -70,6 +63,16 @@ def app_callback(pad, info, user_data):
 
 
 if __name__ == "__main__":
-    user_data = user_app_callback_class()
-    app = GStreamerPoseEstimationApp(app_callback, user_data)
+    # Create a modified parser to include WLED display options
+    parser = get_default_parser()
+    # Drawing every frame on the Pi is too slow, so we update the frame rate to 15
+    # You can modify this from the command line with the --frame-rate flag
+    parser.set_defaults(
+        frame_rate=15,          # Override default frame rate
+    )
+    # Add WLED display options
+    add_parser_args(parser)
+    # Create an instance of the user app callback class
+    user_data = user_app_callback_class(parser)
+    app = GStreamerPoseEstimationApp(app_callback, user_data, parser)
     app.run()

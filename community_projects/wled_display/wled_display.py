@@ -2,7 +2,28 @@ import socket
 import time
 import cv2
 import numpy as np
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Event
+
+# Centralized default values
+WLED_DEFAULTS = {
+    'wled_enabled': True,
+    'wled_panel_width': 20,
+    'wled_panel_height': 20,
+    'wled_ip': '4.3.2.1',
+    'wled_port': 21324,
+    'wled_panels': 1
+}
+
+def add_parser_args(parser):
+    wled_group = parser.add_argument_group(
+        'WLED Display Options', 'Configuration options for the WLED display'
+    )
+    wled_group.add_argument('--wled-disable', dest='wled_enabled', action='store_false', default=WLED_DEFAULTS['wled_enabled'], help='Disable WLED display')
+    wled_group.add_argument('--wled-panel-width', type=int, default=WLED_DEFAULTS['wled_panel_width'], help='Width of each panel in pixels')
+    wled_group.add_argument('--wled-panel-height', type=int, default=WLED_DEFAULTS['wled_panel_height'], help='Height of each panel in pixels')
+    wled_group.add_argument('--wled-ip', type=str, default=WLED_DEFAULTS['wled_ip'], help='WLED IP address')
+    wled_group.add_argument('--wled-port', type=int, default=WLED_DEFAULTS['wled_port'], help='WLED port')
+    wled_group.add_argument('--wled-panels', type=int, default=WLED_DEFAULTS['wled_panels'], help='Number of WLED panels')
 
 class WLEDDisplay:
     """
@@ -16,15 +37,14 @@ class WLEDDisplay:
     """
 
     def __init__(
-        self,
-        # ip="wled-hailo.local", # You can use mDNS if available
-        # ip="4.3.2.1", # Or use the IP address directly
-        ip="192.168.68.75", # Or use the IP address directly
-        port=21324,
-        panel_width=None,
-        panel_height=None,
-        panels=1,
-        wled_enabled=True,
+            self,
+            ip=None,
+            port=None,
+            panel_width=None,
+            panel_height=None,
+            panels=None,
+            wled_enabled=None,
+            parser=None,
     ):
         """
         Initialize the WLED display controller.
@@ -36,23 +56,46 @@ class WLEDDisplay:
             panel_height (int, optional): Height of each panel in pixels. Defaults to 20 if wled_enabled
             panels (int): Number of LED panels to control (default: 1)
             wled_enabled (bool): Enable/disable WLED output (default: True)
+            parser (argparse.ArgumentParser): Argument parser to use for configuration
         """
-        self.ip = ip
-        self.port = port
         self.PROTOCOL = 4
         self.TIMEOUT = 1
-        self.wled_enabled = wled_enabled
+        self.stop_event = Event()
+        options = vars(parser.parse_args()) if parser else {}
 
-        # Set default panel dimensions based on wled_enabled if not specified
-        self.panel_width = panel_width if panel_width is not None else (20 if wled_enabled else 640)
-        self.panel_height = panel_height if panel_height is not None else (20 if wled_enabled else 360)
+        # Parameter priority: manual options > parser options > default
 
-        self.panels = panels
+        self.wled_enabled = (
+            wled_enabled if wled_enabled is not None
+            else options.get('wled_enabled', WLED_DEFAULTS['wled_enabled'])
+        )
+        if self.wled_enabled:
+            print("WLED display enabled")
+        else:
+            print("WLED display disabled")
+
+        self.panel_width = (
+            panel_width if panel_width
+            else options.get('wled_panel_width', WLED_DEFAULTS['wled_panel_width'])
+        )
+        self.panel_height = (
+            panel_height if panel_height
+            else options.get('wled_panel_height', WLED_DEFAULTS['wled_panel_height'])
+        )
+
+        # Conditional defaults based on wled_enabled
+        if not self.wled_enabled and self.panel_width == WLED_DEFAULTS['wled_panel_width'] and self.panel_height == WLED_DEFAULTS['wled_panel_height']:
+            self.panel_width = 640
+            self.panel_height = 360
+
+        self.ip = ip if ip is not None else options.get('wled_ip', WLED_DEFAULTS['wled_ip'])
+        self.port = port if port is not None else options.get('wled_port', WLED_DEFAULTS['wled_port'])
+        self.panels = panels if panels is not None else options.get('wled_panels', WLED_DEFAULTS['wled_panels'])
+
+        # Derived properties
         self.num_leds_per_panel = self.panel_width * self.panel_height
-        self.num_leds = self.num_leds_per_panel * panels
-
-        # Calculate the total display dimensions
-        self.width = self.panel_width * panels
+        self.num_leds = self.num_leds_per_panel * self.panels
+        self.width = self.panel_width * self.panels
         self.height = self.panel_height
 
         # Initialize frame queue
@@ -69,7 +112,6 @@ class WLEDDisplay:
                 self.sock = None
         else:
             self.sock = None
-
         # Start the process
         self.process = Process(target=self.run)
         self.process.start()
@@ -157,10 +199,19 @@ class WLEDDisplay:
         LED display when available. This method is automatically started
         by the process created in __init__.
         """
-        while True:
-            if not self.frame_queue.empty():
-                frame = self.frame_queue.get()
-                self.send_frame(frame)
+        try:
+            while not self.stop_event.is_set():  # Check stop flag
+                if not self.frame_queue.empty():
+                    frame = self.frame_queue.get()
+                    self.send_frame(frame)
+                else:
+                    time.sleep(0.01)  # Add a short sleep to prevent busy-waiting
+        except Exception as e:
+            print(f"An error occurred in the display process: {e}")
+        finally:
+            if hasattr(self, 'sock') and self.sock:
+                self.sock.close()
+            cv2.destroyAllWindows()
 
     def send_frame(self, frame):
         """
@@ -189,14 +240,12 @@ class WLEDDisplay:
         cv2.waitKey(1)  # Prevent window from freezing
 
     def terminate(self):
-        """
-        Terminate the display process.
-
-        Cleanly stops the display process and releases associated resources.
-        Should be called when the display is no longer needed.
-        """
-        self.process.terminate()
-        self.process.join()
+        """Gracefully stop the display process"""
+        if hasattr(self, 'process') and self.process is not None:
+            self.stop_event.set()  # Signal process to stop
+            self.process.join(timeout=1)  # Wait for process to finish
+            if self.process.is_alive():
+                self.process.terminate()  # Force terminate if still running
 
     def __del__(self):
         """
