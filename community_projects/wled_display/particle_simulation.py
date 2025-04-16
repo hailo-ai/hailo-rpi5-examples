@@ -13,7 +13,7 @@ COLORS = [
 ]
 
 class ParticleSimulation:
-    def __init__(self, screen_width=40, screen_height=20, max_particles=200, particle_lifetime=10,
+    def __init__(self, screen_width=20, screen_height=20, max_particles=200, particle_lifetime=10,
                  particle_speed_decay=0.8, glitter_probability=0.01, player_timeout=60, particle_size=1):
         self.SCREEN_WIDTH = screen_width
         self.SCREEN_HEIGHT = screen_height

@@ -2,34 +2,107 @@ import socket
 import time
 import cv2
 import numpy as np
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Event
+
+# Centralized default values
+WLED_DEFAULTS = {
+    'wled_enabled': True,
+    'wled_panel_width': 20,
+    'wled_panel_height': 20,
+    'wled_ip': '4.3.2.1',
+    'wled_port': 21324,
+    'wled_panels': 1
+}
+
+def add_parser_args(parser):
+    wled_group = parser.add_argument_group(
+        'WLED Display Options', 'Configuration options for the WLED display'
+    )
+    wled_group.add_argument('--wled-disable', dest='wled_enabled', action='store_false', default=WLED_DEFAULTS['wled_enabled'], help='Disable WLED display')
+    wled_group.add_argument('--wled-panel-width', type=int, default=WLED_DEFAULTS['wled_panel_width'], help='Width of each panel in pixels')
+    wled_group.add_argument('--wled-panel-height', type=int, default=WLED_DEFAULTS['wled_panel_height'], help='Height of each panel in pixels')
+    wled_group.add_argument('--wled-ip', type=str, default=WLED_DEFAULTS['wled_ip'], help='WLED IP address')
+    wled_group.add_argument('--wled-port', type=int, default=WLED_DEFAULTS['wled_port'], help='WLED port')
+    wled_group.add_argument('--wled-panels', type=int, default=WLED_DEFAULTS['wled_panels'], help='Number of WLED panels')
 
 class WLEDDisplay:
-    PROTOCOL = 4
-    TIMEOUT = 1
+    """
+    A class to control WLED-based LED matrix displays via UDP protocol.
+
+    This class provides functionality to:
+    - Control single or multiple LED matrix panels
+    - Send frame data via UDP to WLED devices
+    - Display debug visualization
+    - Handle frame processing in a separate process
+    """
 
     def __init__(
-        self,
-        # ip="wled-hailo.local", # You can use mDNS if available
-        ip="4.3.2.1", # Or use the IP address directly
-        port=21324,
-        panel_width=20,
-        panel_height=20,
-        panels=1,
-        udp_enabled=True,
+            self,
+            ip=None,
+            port=None,
+            panel_width=None,
+            panel_height=None,
+            panels=None,
+            wled_enabled=None,
+            parser=None,
     ):
-        self.ip = ip
-        self.port = port
-        self.panel_width = panel_width
-        self.panel_height = panel_height
-        self.panels = panels
-        self.udp_enabled = udp_enabled
-        self.num_leds_per_panel = panel_width * panel_height
-        self.num_leds = self.num_leds_per_panel * panels
+        """
+        Initialize the WLED display controller.
+
+        Args:
+            ip (str): IP address or hostname of the WLED device
+            port (int): UDP port number (default: 21324)
+            panel_width (int, optional): Width of each panel in pixels. Defaults to 20 if wled_enabled
+            panel_height (int, optional): Height of each panel in pixels. Defaults to 20 if wled_enabled
+            panels (int): Number of LED panels to control (default: 1)
+            wled_enabled (bool): Enable/disable WLED output (default: True)
+            parser (argparse.ArgumentParser): Argument parser to use for configuration
+        """
+        self.PROTOCOL = 4
+        self.TIMEOUT = 1
+        self.stop_event = Event()
+        options = vars(parser.parse_args()) if parser else {}
+
+        # Parameter priority: manual options > parser options > default
+
+        self.wled_enabled = (
+            wled_enabled if wled_enabled is not None
+            else options.get('wled_enabled', WLED_DEFAULTS['wled_enabled'])
+        )
+        if self.wled_enabled:
+            print("WLED display enabled")
+        else:
+            print("WLED display disabled")
+
+        self.panel_width = (
+            panel_width if panel_width
+            else options.get('wled_panel_width', WLED_DEFAULTS['wled_panel_width'])
+        )
+        self.panel_height = (
+            panel_height if panel_height
+            else options.get('wled_panel_height', WLED_DEFAULTS['wled_panel_height'])
+        )
+
+        # Conditional defaults based on wled_enabled
+        if not self.wled_enabled and self.panel_width == WLED_DEFAULTS['wled_panel_width'] and self.panel_height == WLED_DEFAULTS['wled_panel_height']:
+            self.panel_width = 640
+            self.panel_height = 360
+
+        self.ip = ip if ip is not None else options.get('wled_ip', WLED_DEFAULTS['wled_ip'])
+        self.port = port if port is not None else options.get('wled_port', WLED_DEFAULTS['wled_port'])
+        self.panels = panels if panels is not None else options.get('wled_panels', WLED_DEFAULTS['wled_panels'])
+
+        # Derived properties
+        self.num_leds_per_panel = self.panel_width * self.panel_height
+        self.num_leds = self.num_leds_per_panel * self.panels
+        self.width = self.panel_width * self.panels
+        self.height = self.panel_height
+
+        # Initialize frame queue
         self.frame_queue = Queue()
 
         # Initialize UDP socket with mDNS support
-        if self.udp_enabled:
+        if self.wled_enabled:
             try:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 self.sock.settimeout(2)
@@ -37,30 +110,28 @@ class WLEDDisplay:
             except (socket.gaierror, socket.timeout):
                 print(f"Unable to reach {self.ip}. Disabling UDP.")
                 self.sock = None
-                self.udp_enabled = False
         else:
             self.sock = None
-
         # Start the process
         self.process = Process(target=self.run)
         self.process.start()
 
-    def apply_filters(self, image, saturation=1.0, brightness=1.0, vibrant=False):
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-        s = cv2.multiply(s, saturation)
-        v = cv2.multiply(v, brightness)
-        if vibrant:
-            v = cv2.addWeighted(v, 1.5, v, 0, -50)
-        s = np.clip(s, 0, 255).astype(np.uint8)
-        v = np.clip(v, 0, 255).astype(np.uint8)
-        hsv_filtered = cv2.merge([h, s, v])
-        return cv2.cvtColor(hsv_filtered, cv2.COLOR_HSV2BGR)
-
     def create_debug_pattern(self, frame_number):
-        pattern = np.zeros((self.panel_height, self.panel_width * self.panels, 3), dtype=np.uint8)
+        """
+        Generate a debug pattern for testing LED panel configuration.
+
+        Creates a checkerboard pattern with different colors for each panel,
+        alternating based on the frame number.
+
+        Args:
+            frame_number (int): Current frame number for pattern animation
+
+        Returns:
+            numpy.ndarray: RGB image array of shape (height, width, 3)
+        """
+        pattern = np.zeros((self.height, self.width, 3), dtype=np.uint8)
         for panel in range(self.panels):
-            for y in range(self.panel_height):
+            for y in range(self.height):
                 for x in range(self.panel_width):
                     if (x + y + frame_number) % 2 == 0:
                         color = (
@@ -72,14 +143,39 @@ class WLEDDisplay:
         return pattern
 
     def image_to_led_data(self, image):
+        """
+        Convert an image array to LED data format.
+
+        Transforms a numpy image array into a list of RGB tuples suitable
+        for LED control.
+
+        Args:
+            image (numpy.ndarray): Input image of shape (height, width, 3)
+
+        Returns:
+            list: List of RGB tuples [(r,g,b), ...] for each LED
+        """
         led_data = []
-        for y in range(self.panel_height):
-            for x in range(self.panel_width * self.panels):
+        for y in range(self.height):
+            for x in range(self.width):
                 color = image[y, x]
                 led_data.append((color[0], color[1], color[2]))
         return led_data
 
     def convert_to_dnrgb_chunks(self, colors, chunk_size=489):
+        """
+        Convert RGB colors to WLED UDP protocol chunks.
+
+        Splits the LED data into manageable chunks and formats them according
+        to the WLED UDP protocol specification.
+
+        Args:
+            colors (list): List of RGB tuples [(r,g,b), ...]
+            chunk_size (int): Maximum number of LEDs per chunk (default: 489)
+
+        Returns:
+            list: List of bytearray chunks formatted for WLED UDP protocol
+        """
         chunks = []
         for panel in range(self.panels):
             start_led = panel * self.num_leds_per_panel
@@ -96,34 +192,81 @@ class WLEDDisplay:
         return chunks
 
     def run(self):
-        """Run the display loop in a separate process."""
-        while True:
-            if not self.frame_queue.empty():
-                frame = self.frame_queue.get()
-                self.send_frame(frame)
+        """
+        Main display loop running in a separate process.
+
+        Continuously monitors the frame queue and sends new frames to the
+        LED display when available. This method is automatically started
+        by the process created in __init__.
+        """
+        try:
+            while not self.stop_event.is_set():  # Check stop flag
+                if not self.frame_queue.empty():
+                    frame = self.frame_queue.get()
+                    self.send_frame(frame)
+                else:
+                    time.sleep(0.01)  # Add a short sleep to prevent busy-waiting
+        except Exception as e:
+            print(f"An error occurred in the display process: {e}")
+        finally:
+            if hasattr(self, 'sock') and self.sock:
+                self.sock.close()
+            cv2.destroyAllWindows()
 
     def send_frame(self, frame):
-        # Convert to LED data
-        led_data = self.image_to_led_data(frame)
+        """
+        Send a frame to the LED display.
 
+        Processes and sends the frame data to the WLED device via UDP and
+        optionally displays it in a debug window.
+
+        Args:
+            frame (numpy.ndarray): RGB image array of shape (height, width, 3)
+        """
         # Send LED data via UDP if enabled
-        if self.udp_enabled and self.sock:
+        if self.wled_enabled and self.sock:
+            # Convert to LED data
+            led_data = self.image_to_led_data(frame)
             data_chunks = self.convert_to_dnrgb_chunks(led_data)
             for chunk in data_chunks:
                 self.sock.sendto(chunk, (self.ip, self.port))
 
         # Always display the frame
-        debug_display = cv2.resize(frame, (400 * self.panels, 400), interpolation=cv2.INTER_NEAREST)
+        duplicate_pixels = 10 if self.wled_enabled else 1 # Duplicate pixels for better visibility
+        debug_display = cv2.resize(frame,
+                                   (self.width * duplicate_pixels, self.height * duplicate_pixels),
+                                   interpolation=cv2.INTER_NEAREST)
         cv2.imshow("Debug Display", debug_display)
         cv2.waitKey(1)  # Prevent window from freezing
 
     def terminate(self):
-        """Terminate the display process."""
-        self.process.terminate()
-        self.process.join()
+        """Gracefully stop the display process"""
+        if hasattr(self, 'process') and self.process is not None:
+            self.stop_event.set()  # Signal process to stop
+            self.process.join(timeout=1)  # Wait for process to finish
+            if self.process.is_alive():
+                self.process.terminate()  # Force terminate if still running
+
+    def __del__(self):
+        """
+        Cleanup method called when the object is being destroyed.
+
+        Ensures proper cleanup of resources by closing the UDP socket and
+        terminating the display process if still running.
+        """
+        if hasattr(self, 'sock') and self.sock:
+            self.sock.close()
+        if hasattr(self, 'process') and self.process.is_alive():
+            self.terminate()
 
 if __name__ == "__main__":
-    wled = WLEDDisplay(panels=2, udp_enabled=True)
+    """
+    Example usage of the WLEDDisplay class.
+
+    Creates a simple animation using the debug pattern generator
+    running at 30 FPS.
+    """
+    wled = WLEDDisplay(panels=1, wled_enabled=True)
 
     frame_number = 0
     try:

@@ -10,19 +10,20 @@ import hailo
 from hailo_apps_infra.hailo_rpi_common import (
     get_caps_from_pad,
     app_callback_class,
+    get_default_parser,
 )
 from hailo_apps_infra.pose_estimation_pipeline import GStreamerPoseEstimationApp
 
-from wled_display import WLEDDisplay
+from wled_display import WLEDDisplay, add_parser_args
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
 # -----------------------------------------------------------------------------------------------
 # Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
-    def __init__(self):
+    def __init__(self, parser):
         super().__init__()
-        self.wled = WLEDDisplay(panels=2, udp_enabled=True)
+        self.wled = WLEDDisplay(parser=parser)
         self.frame_skip = 2  # Process every 2nd frame
 
 # Predefined colors (BGR format)
@@ -38,6 +39,8 @@ COLORS = [
     (0, 128, 128),  # Teal
     (128, 128, 0)   # Olive
 ]
+
+CONFIDENCE_THRESHOLD = 0.5 # Confidence threshold for keypoints
 
 # Keypoints for pose estimation (example indices, adjust based on your model)
 keypoints = {
@@ -114,21 +117,27 @@ def app_callback(pad, info, user_data):
                 for wrist in ['left_wrist', 'right_wrist']:
                     keypoint_index = keypoints[wrist]
                     point = points[keypoint_index]
+                    if point.confidence() < CONFIDENCE_THRESHOLD:
+                        continue
                     x = int((point.x() * bbox.width() + bbox.xmin()) * reduced_width)
                     y = int((point.y() * bbox.height() + bbox.ymin()) * reduced_height)
                     string_to_print += f"{wrist}: x: {x:.2f} y: {y:.2f}\n"
                     color = COLORS[track_id % len(COLORS)]  # Get color based on track_id
                     cv2.circle(reduced_frame, (x, y), 10, color, -1)
 
-    # Resize the frame to the WLED panel size for display
-    final_frame = cv2.resize(reduced_frame, (user_data.wled.panel_width * user_data.wled.panels, user_data.wled.panel_height))
+    # Resize the frame to the WLED size for display
+    final_frame = cv2.resize(reduced_frame, (user_data.wled.width, user_data.wled.height))
     user_data.wled.frame_queue.put(final_frame)
 
     print(string_to_print)
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
+    # Create a modified parser to include WLED display options
+    parser = get_default_parser()
+    # Add WLED display options
+    add_parser_args(parser)
     # Create an instance of the user app callback class
-    user_data = user_app_callback_class()
-    app = GStreamerPoseEstimationApp(app_callback, user_data)
+    user_data = user_app_callback_class(parser)
+    app = GStreamerPoseEstimationApp(app_callback, user_data, parser)
     app.run()

@@ -14,10 +14,10 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
 import hailo
 
-from hailo_apps_infra.hailo_rpi_common import app_callback_class
+from hailo_apps_infra.hailo_rpi_common import app_callback_class, get_default_parser
 from hailo_apps_infra.pose_estimation_pipeline import GStreamerPoseEstimationApp
 
-from wled_display import WLEDDisplay
+from wled_display import WLEDDisplay, add_parser_args
 from drawing_board import DrawingBoard
 
 # Typical body indices in your pose model (COCO-like)
@@ -30,42 +30,24 @@ RIGHT_HIP_IDX = 12
 
 
 class GestureDrawingCallback(app_callback_class):
-    def __init__(
-        self,
-        mirror_hands=True,
-        panel_width=20,
-        panel_height=20,
-        panels=1
-    ):
+    def __init__(self, parser):
+
         """
         :param mirror_hands:  If True, swap 'left' <-> 'right'
-                              for wrists/shoulders/hips (video is mirrored).
-        :param panel_width:   Width of a single WLED panel in pixels.
-        :param panel_height:  Height of a single WLED panel in pixels.
-        :param panels:        Number of WLED panels in a horizontal array (default=1).
         """
         super().__init__()
-        self.mirror_hands = mirror_hands
+        self.mirror_hands = True # mirror left and right landmarks
 
         # Create the WLED display
-        self.wled = WLEDDisplay(
-            panel_width=panel_width,
-            panel_height=panel_height,
-            panels=panels,
-            udp_enabled=True
-        )
+        self.wled = WLEDDisplay(parser=parser)
 
         # Process every frame
         self.frame_skip = 1
 
-        # The total LED dimension (handle multi-panel horizontally if panels>1)
-        total_width = panel_width * panels
-        total_height = panel_height
-
         # The DrawingBoard: handles chest-enabling, color picking, T-pose, etc.
         self.drawing_board = DrawingBoard(
-            width=total_width,
-            height=total_height
+            width=self.wled.width,
+            height=self.wled.height,
         )
 
     def __del__(self):
@@ -76,7 +58,7 @@ def app_callback(pad, info, user_data):
     """
     GStreamer pad-probe callback:
       - For each detected 'person', retrieve bounding box + landmarks
-      - Convert them into the global (total_width × total_height) panel coords
+      - Convert them into the global coords
       - Forward them to the DrawingBoard.
     """
     user_data.increment()
@@ -89,10 +71,6 @@ def app_callback(pad, info, user_data):
 
     roi = hailo.get_roi_from_buffer(buffer)
     detections = roi.get_objects_typed(hailo.HAILO_DETECTION)
-
-    # Our total LED dimension
-    total_w = user_data.drawing_board.width
-    total_h = user_data.drawing_board.height
 
     for detection in detections:
         if detection.get_label() != "person":
@@ -129,8 +107,11 @@ def app_callback(pad, info, user_data):
 
         # Convert detection-local coords [0..1] to total LED coords
         def to_panel_coords(pt):
-            x_glob = (pt.x() * bbox.width() + bbox.xmin()) * total_w
-            y_glob = (pt.y() * bbox.height() + bbox.ymin()) * total_h
+            # check pt confidence
+            if pt.confidence() < 0.5:
+                return None
+            x_glob = (pt.x() * bbox.width() + bbox.xmin()) * user_data.drawing_board.width
+            y_glob = (pt.y() * bbox.height() + bbox.ymin()) * user_data.drawing_board.height
             return int(x_glob), int(y_glob)
 
         # Extract final pixel coords
@@ -168,11 +149,11 @@ if __name__ == "__main__":
       If you have multiple panels, e.g. 2 horizontally, run:
         python gesture_drawing_app.py (with panels=2)
     """
-    user_data = GestureDrawingCallback(
-        mirror_hands=True,
-        panel_width=20,
-        panel_height=20,
-        panels=1  # default
-    )
-    app = GStreamerPoseEstimationApp(app_callback, user_data)
+    # Create a modified parser to include WLED display options
+    parser = get_default_parser()
+    # Add WLED display options
+    add_parser_args(parser)
+    # Create an instance of the user app callback class
+    user_data = GestureDrawingCallback(parser)
+    app = GStreamerPoseEstimationApp(app_callback, user_data, parser)
     app.run()
