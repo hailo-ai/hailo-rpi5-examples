@@ -6,12 +6,13 @@ import numpy as np
 import cv2
 import hailo
 
-from hailo_apps_infra.hailo_rpi_common import (
+from hailo_common.common import (
     get_caps_from_pad,
     get_numpy_from_buffer,
-    app_callback_class,
 )
-from hailo_apps_infra.detection_pipeline import GStreamerDetectionApp
+from hailo_pipelines.detection_pipeline import GStreamerDetectionApp
+from hailo_gstreamer.gstreamer_app import app_callback_class
+
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function

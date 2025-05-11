@@ -1,0 +1,14 @@
+Required:
+  - apps_infra_path: ../hailo-apps-infra #
+    # The path to the Apps Infra repository. This should be a valid path on your system.
+    # For example, "/home/user/apps-infra" or "/Users/user/apps-infra".
+  - apps_infra_version: "dev" #
+    # The version of the Apps Infra to use. This should be set to "dev" for development purposes.
+    # For production, use a specific version number.( or a branch Name because this clones the apps infra)
+  - virtual_env: venv_hailo_rpi5_examples #
+    # The path to the virtual environment. This should be a valid path on your system.
+    # For example, "/home/user/venv" or "/Users/user/venv".
+    # OR this should be the name of the virtual envoirment if you want to create a new one 
+  - Extra_Resources: None #
+    # The path to the extra resources. This should be a valid path on your system.
+    # For example, "/home/user/extra_resources" or "/Users/user/extra_resources".
