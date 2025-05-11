@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -161,6 +162,7 @@ venv_hailo_rpi5_examples/*
 resources/*.mp4
 resources/*.hef
 resources/*.so
+=======
 # Byte-compiled files
 __pycache__/
 hailo_apps_infra/__pycache__/
@@ -187,5 +189,4 @@ dist/
 *.egg-info/
 .cache/
 coverage/
-
-hailo_infra_venv/
+>>>>>>> 6fc8e4a (Initial drop (#3))
