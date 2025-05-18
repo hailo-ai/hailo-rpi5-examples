@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hailo-rpi5-examples"
+version = "0.1.0"
+description = "Raspberry Pi 5 example applications for Hailo Apps Infra"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy<2.0.0",
+    "setproctitle",
+    "opencv-python",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/your-org/hailo-rpi5-examples"
+"Hailo Community" = "https://community.hailo.ai/"
+
+[tool.setuptools.packages.find]
+# where="." is the default; include only basic_pipelines and anything beneath it
+include = ["basic_pipelines*"]
