@@ -5,13 +5,12 @@ import os
 import numpy as np
 import cv2
 import hailo
-
-from hailo_apps_infra.hailo_rpi_common import (
+from hailo_apps_infra.hailo_core.hailo_common.buffer_utils import (
     get_caps_from_pad,
     get_numpy_from_buffer,
-    app_callback_class,
 )
-from hailo_apps_infra.instance_segmentation_pipeline import GStreamerInstanceSegmentationApp
+from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
+from hailo_apps_infra.hailo_apps.hailo_pipelines.instance_segmentation_pipeline import GStreamerInstanceSegmentationApp
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
