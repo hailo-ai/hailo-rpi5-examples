@@ -46,13 +46,10 @@ def app_callback(pad, info, user_data):
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
-    project_root = Path(__file__).resolve().parent
+    project_root = Path(__file__).resolve().parent.parent
     env_file     = project_root / ".env"
     env_path_str = str(env_file)
-    print(f"Using env file: {env_path_str}")
     os.environ["HAILO_ENV_FILE"] = env_path_str
-    print("HAILO_ENV_FILE =", os.environ.get("HAILO_ENV_FILE"))
-
 
     user_data = user_app_callback_class()
     app = GStreamerDepthApp(app_callback, user_data)

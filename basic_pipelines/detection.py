@@ -1,3 +1,4 @@
+from pathlib import Path
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
@@ -83,6 +84,10 @@ def app_callback(pad, info, user_data):
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
+    project_root = Path(__file__).resolve().parent.parent
+    env_file     = project_root / ".env"
+    env_path_str = str(env_file)
+    os.environ["HAILO_ENV_FILE"] = env_path_str
     # Create an instance of the user app callback class
     user_data = user_app_callback_class()
     app = GStreamerDetectionApp(app_callback, user_data)
