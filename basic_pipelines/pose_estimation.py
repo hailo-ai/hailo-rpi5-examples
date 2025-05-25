@@ -1,3 +1,4 @@
+from pathlib import Path
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
@@ -6,12 +7,12 @@ import numpy as np
 import cv2
 import hailo
 
-from hailo_apps_infra.hailo_rpi_common import (
+from hailo_apps_infra.hailo_core.hailo_common.buffer_utils import (
     get_caps_from_pad,
     get_numpy_from_buffer,
-    app_callback_class,
 )
-from hailo_apps_infra.pose_estimation_pipeline import GStreamerPoseEstimationApp
+from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
+from hailo_apps_infra.hailo_apps.hailo_pipelines.pose_estimation_pipeline import GStreamerPoseEstimationApp
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
@@ -113,6 +114,10 @@ def get_keypoints():
     return keypoints
 
 if __name__ == "__main__":
+    project_root = Path(__file__).resolve().parent.parent
+    env_file     = project_root / ".env"
+    env_path_str = str(env_file)
+    os.environ["HAILO_ENV_FILE"] = env_path_str
     # Create an instance of the user app callback class
     user_data = user_app_callback_class()
     app = GStreamerPoseEstimationApp(app_callback, user_data)
