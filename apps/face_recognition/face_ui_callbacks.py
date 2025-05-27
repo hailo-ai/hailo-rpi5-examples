@@ -6,6 +6,7 @@ import multiprocessing
 from multiprocessing import Value
 import queue
 import time
+import signal
 
 # Third-party imports
 import gi
@@ -22,7 +23,7 @@ from hailo_apps_infra.hailo_core.hailo_common.db_visualizer import DatabaseVisua
 EMBEDDING_TIMEOUT = 0.5
 RESULT_QUEUE_TIMEOUT = 2
 WORKER_SLEEP_INTERVAL = 3 
-PROCESS_DETECTED_PERSONS_INTERVAL = 2
+PROCESS_UI_TEXT_MESSAGE_INTERVAL = 2
 PROCESSING_STARTED_MESSAGE = "Processing started."
 PROCESSING_STOPPED_MESSAGE = "Processing stopped."
 # endregion constants
@@ -45,11 +46,12 @@ class UICallbacks(BaseUICallbacks):
         p = multiprocessing.Process(target=self.display_visualization_process, args=(db_records, self.pipeline.embedding_queue, self.pipeline.pipeline))
         p.daemon = True  # Process will terminate when the main program exits
         p.start()
-        self.visualization_process = p 
+        self.pipeline.visualization_process = p 
 
     @staticmethod
     def display_visualization_process(db_records, embedding_queue, pipeline):
         """Run visualization in a separate process and yield embeddings."""
+        signal.signal(signal.SIGINT, signal.SIG_IGN)  # Ignore SIGINT in child processes
         while True:
             if UICallbacks.is_started.value:  # Check if processing has started
                 visualizer = DatabaseVisualizer()  # Create a new visualizer in this process
@@ -96,11 +98,11 @@ class UICallbacks(BaseUICallbacks):
                 print(f"Error in consume_plot_queue: {e}")
                 time.sleep(0.1)  # Add a small pause to prevent high CPU usage
 
-    def process_detected_persons(self):
+    def process_ui_text_message(self):
         self.start_processing()  # Start processing, because this responds to start button click
         while not self.stop_event.is_set():
-            yield "\n".join(self.pipeline.user_data.detected_persons)  # Format the list as a string. self.pipeline.user_data.detected_persons updated continuously in the pipeline via appcallback regardless of stop_event status
-            time.sleep(PROCESS_DETECTED_PERSONS_INTERVAL)
+            yield "\n".join(self.pipeline.user_data.ui_text_message)  # Format the list as a string. self.pipeline.user_data.ui_text_message updated continuously in the pipeline via appcallback regardless of stop_event status
+            time.sleep(PROCESS_UI_TEXT_MESSAGE_INTERVAL)
 
     def start_processing(self):
         """
@@ -129,21 +131,27 @@ class UICallbacks(BaseUICallbacks):
 
     def on_embedding_distance_change(self, value):
         self.pipeline.embedding_distance_tolerance = value
+        self.pipeline.algo_params['embedding_distance_tolerance'] = value
 
     def on_min_face_pixels_change(self, value):
         self.pipeline.min_face_pixels_tolerance = value
+        self.pipeline.algo_params['min_face_pixels_tolerance'] = value
 
     def on_blurriness_change(self, value):
         self.pipeline.blurriness_tolerance = value
+        self.pipeline.algo_params['blurriness_tolerance'] = value
 
     def on_max_faces_change(self, value):
         self.pipeline.max_faces_per_person = value
+        self.pipeline.algo_params['max_faces_per_person'] = value
 
     def on_last_image_time_change(self, value):
         self.pipeline.last_image_sent_threshold_time = value
+        self.pipeline.algo_params['last_image_sent_threshold_time'] = value
 
     def on_procrustes_distance_change(self, value):
         self.pipeline.procrustes_distance_threshold = value
+        self.pipeline.algo_params['procrustes_distance_threshold'] = value
     
     def clear_queue_keep_last(self, queue):
         """Helper function to clear all items from a queue except the last one."""

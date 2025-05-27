@@ -47,7 +47,7 @@ class UIElements(BaseUIElements):
             minimum=0.0, maximum=1.0, value=0.3, label="Procrustes Distance Threshold", elem_id="procrustes-distance-slider"
         )
         # Text Areas
-        self.detected_persons = gr.TextArea(label="Detected Persons", interactive=False, elem_id="detected-persons-textarea")  # ID for custom styling
+        self.ui_text_message = gr.TextArea(label="Detected Persons", interactive=False, elem_id="detected-persons-textarea")  # ID for custom styling
 
         # css
         self.ui_css = """
@@ -116,7 +116,7 @@ class UIElements(BaseUIElements):
                             self.last_image_sent_threshold_time.render()
                             self.procrustes_distance_threshold.render()
                 with gr.Column(elem_classes=["limited-height"]):  # Apply same-height class
-                    self.detected_persons.render()
+                    self.ui_text_message.render()
             
             # Add the logo just above the footer
             # Define the original file and the alias (symlink) paths
@@ -140,9 +140,9 @@ class UIElements(BaseUIElements):
             )
 
             self.start_btn.click(
-                fn=ui_callbacks.process_detected_persons,
+                fn=ui_callbacks.process_ui_text_message,
                 inputs=None,
-                outputs=self.detected_persons
+                outputs=self.ui_text_message
             )
 
             self.stop_btn.click(

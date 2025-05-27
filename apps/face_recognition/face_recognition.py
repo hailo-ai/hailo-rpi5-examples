@@ -25,7 +25,7 @@ class user_callbacks_class(app_callback_class):
         super().__init__()
         self.frame = None
         self.latest_track_id = -1
-        self.detected_persons = []  # Store detected persons
+        self.ui_text_message = []  # Store detected persons
 
         # Telegram settings as instance attributes: Please note! - Telebot package is not installed by default, so you need to install it separately
         self.telegram_enabled = False  # Set to True to enable Telegram notifications
@@ -72,17 +72,16 @@ def app_callback(pad, info, user_data):
                     string_to_print += f'Person recognition: {classification.get_label()} (Confidence: {classification.get_confidence():.1f})'
                     if track_id > user_data.latest_track_id:
                         user_data.latest_track_id = track_id
-                        if len(user_data.detected_persons) >= 10:
-                            user_data.detected_persons.pop(0)  # Remove the oldest entry to maintain size
-                        user_data.detected_persons.append(string_to_print)
+                        if len(user_data.ui_text_message) >= 10:
+                            user_data.ui_text_message.pop(0)  # Remove the oldest entry to maintain size
+                        user_data.ui_text_message.append(string_to_print)
     return Gst.PadProbeReturn.OK
 
-if __name__ == "__main__":   
+if __name__ == "__main__":  
     user_data = user_callbacks_class()
     pipeline = GStreamerFaceRecognitionApp(app_callback, user_data)  # appsink_callback argument provided anyway although in non UI interface where eventually not used - since here we don't have access to requested UI/CLI mode
     if pipeline.options_menu.mode == 'delete':  # always CLI even if mistakenly GUI mode is selected
         pipeline.db_handler.clear_table()
-        print("All records deleted from the database")
         exit(0)
     elif pipeline.options_menu.mode == 'train':  # always CLI even if mistakenly GUI mode is selected
         pipeline.run()
