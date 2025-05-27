@@ -177,13 +177,13 @@ echo "📦 Installing missing pip packages…"
 
 if $INSTALL_PYHAILORT && $INSTALL_TAPPAS_CORE; then
     echo "📦 Installing 'hailort' and '$TAPPAS_PIP_PKG'…"
-    ./scripts/install_hailo_python.sh
+    ./hailo_python_installation.sh
 elif $INSTALL_PYHAILORT; then
   echo "📦 Installing 'hailort'…"
-    ./scripts/install_hailo_python.sh --only-hailort
+    ./hailo_python_installation.sh --only-hailort
 elif $INSTALL_TAPPAS_CORE; then
   echo "📦 Installing '$TAPPAS_PIP_PKG'…"
-    ./scripts/install_hailo_python.sh --only-tappas
+    ./hailo_python_installation.sh --only-tappas
 else
   echo "✅ All pip packages are already installed."
 fi

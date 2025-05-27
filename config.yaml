@@ -1,7 +1,7 @@
 # RPI5 Examples Configuration File
 
 # This is RPI specefic variables
-hailo_apps_infra_path: "auto" # Path to the Hailo Apps Infra repository, relative to the current working directory
+hailo_apps_infra_path: "/home/hailo/Desktop/hailo-apps-infra" # Path to the Hailo Apps Infra repository, relative to the current working directory
 hailo_apps_infra_branch_tag: "auto" # Branch or tag of the Hailo Apps Infra repository to use
 hailo_apps_infra_repo_url:  https://github.com/hailo-ai/hailo-apps-infra.git
 # This is Hailo Apps Infra variables
