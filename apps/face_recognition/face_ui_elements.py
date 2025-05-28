@@ -29,22 +29,22 @@ class UIElements(BaseUIElements):
 
         # Sliders
         self.embedding_distance_tolerance = gr.Slider(
-            minimum=0.0, maximum=1.0, value=0.1, label="Embedding Distance Tolerance", elem_id="embedding-distance-slider"
+            minimum=0.0, maximum=1.0, label="Embedding Distance Tolerance", elem_id="embedding-distance-slider"
         )
         self.min_face_pixels_tolerance = gr.Slider(
-            minimum=10000, maximum=100000, value=60000, label="Min Face Pixels Tolerance", elem_id="min-face-pixels-slider"
+            minimum=10000, maximum=100000, label="Min Face Pixels Tolerance", elem_id="min-face-pixels-slider"
         )
         self.blurriness_tolerance = gr.Slider(
-            minimum=0, maximum=1000, value=300, label="Blurriness Tolerance", elem_id="blurriness-slider"
+            minimum=0, maximum=1000, label="Blurriness Tolerance", elem_id="blurriness-slider"
         )
         self.max_faces_per_person = gr.Slider(
-            minimum=1, maximum=10, value=3, label="Max Faces Per Person", elem_id="max-faces-slider"
+            minimum=1, maximum=10, label="Max Faces Per Person", elem_id="max-faces-slider"
         )
         self.last_image_sent_threshold_time = gr.Slider(
-            minimum=0, maximum=10, value=1, label="Last Image Sent Threshold Time", elem_id="last-image-slider"
+            minimum=0, maximum=10, label="Last Image Sent Threshold Time", elem_id="last-image-slider"
         )
         self.procrustes_distance_threshold = gr.Slider(
-            minimum=0.0, maximum=1.0, value=0.3, label="Procrustes Distance Threshold", elem_id="procrustes-distance-slider"
+            minimum=0.0, maximum=1.0, label="Procrustes Distance Threshold", elem_id="procrustes-distance-slider"
         )
         # Text Areas
         self.ui_text_message = gr.TextArea(label="Detected Persons", interactive=False, elem_id="detected-persons-textarea")  # ID for custom styling

@@ -5,7 +5,6 @@ import threading
 import multiprocessing
 from multiprocessing import Value
 import queue
-import time
 import signal
 
 # Third-party imports
@@ -26,6 +25,26 @@ WORKER_SLEEP_INTERVAL = 3
 PROCESS_UI_TEXT_MESSAGE_INTERVAL = 2
 PROCESSING_STARTED_MESSAGE = "Processing started."
 PROCESSING_STOPPED_MESSAGE = "Processing stopped."
+
+# Database Configuration
+DB_NAME = 'persons.db'
+DB_TABLE_NAME = 'persons'
+DB_SCHEMA = Record
+
+# Visualization Process
+VISUALIZATION_SLEEP_INTERVAL = 0.1  # Sleep interval for visualization loop
+EMBEDDING_QUEUE_TIMEOUT = 0.1  # Timeout for embedding queue operations
+
+# Pipeline States
+PIPELINE_PLAYING_STATE = Gst.State.PLAYING
+PIPELINE_PAUSED_STATE = Gst.State.PAUSED
+
+# Flush Events
+FLUSH_START_EVENT = Gst.Event.new_flush_start()
+FLUSH_STOP_EVENT = Gst.Event.new_flush_stop(False)
+
+# Thread Configuration
+THREAD_DAEMON = False  # Daemon flag for threads
 # endregion constants
 
 class UICallbacks(BaseUICallbacks):
@@ -36,7 +55,7 @@ class UICallbacks(BaseUICallbacks):
     def __init__(self, pipeline):
         super().__init__(pipeline)
         self.latest_plot_image = None
-        self.db_handler = DatabaseHandler(db_name='persons.db', table_name='persons', schema=Record)
+        self.db_handler = DatabaseHandler(db_name=DB_NAME, table_name=DB_TABLE_NAME, schema=DB_SCHEMA)
         if self.pipeline.options_menu.visualize:
             self.start_visualization_process()
 
@@ -44,7 +63,7 @@ class UICallbacks(BaseUICallbacks):
         """Start the visualization process in a separate process."""
         db_records = self.db_handler.get_all_records()  # Get a copy of the records to avoid shared memory issues
         p = multiprocessing.Process(target=self.display_visualization_process, args=(db_records, self.pipeline.embedding_queue, self.pipeline.pipeline))
-        p.daemon = True  # Process will terminate when the main program exits
+        p.daemon = THREAD_DAEMON  # Process will terminate when the main program exits
         p.start()
         self.pipeline.visualization_process = p 
 
@@ -59,7 +78,7 @@ class UICallbacks(BaseUICallbacks):
                 UICallbacks.plot_queue.put(visualizer.visualize(mode='ui'))  # Initialize the plot for UI mode & Enqueue the plot
                 break  # Exit after one iteration
             else:
-                time.sleep(0.1)  # Add a small pause to prevent high CPU usage
+                time.sleep(VISUALIZATION_SLEEP_INTERVAL)  # Add a small pause to prevent high CPU usage
         while UICallbacks.is_started.value:  # Append the new embeddings to the plot
             try:
                 embeddings = []
@@ -76,7 +95,7 @@ class UICallbacks(BaseUICallbacks):
                         visualizer.add_embeddings_to_existing_plot(
                             embeddings=embeddings, labels=labels, mode='ui'
                         ),
-                        timeout=0.1
+                        timeout=EMBEDDING_QUEUE_TIMEOUT
                     )
                 time.sleep(1)
             except queue.Empty:  # No embedding available in the queue
@@ -91,12 +110,12 @@ class UICallbacks(BaseUICallbacks):
             try:
                 if not self.stop_event.is_set():
                     yield UICallbacks.plot_queue.get_nowait()  # Get plot_fig from the queue
-                    time.sleep(0.1)  # when there are too many plot_figs in the queue, wait a bit before consuming more
+                    time.sleep(VISUALIZATION_SLEEP_INTERVAL)  # when there are too many plot_figs in the queue, wait a bit before consuming more
             except queue.Empty:  # No plot_fig available in the queue
-                time.sleep(0.1)  # Add a small pause to prevent high CPU usage
+                time.sleep(VISUALIZATION_SLEEP_INTERVAL)  # Add a small pause to prevent high CPU usage
             except Exception as e:
                 print(f"Error in consume_plot_queue: {e}")
-                time.sleep(0.1)  # Add a small pause to prevent high CPU usage
+                time.sleep(VISUALIZATION_SLEEP_INTERVAL)  # Add a small pause to prevent high CPU usage
 
     def process_ui_text_message(self):
         self.start_processing()  # Start processing, because this responds to start button click
@@ -109,11 +128,11 @@ class UICallbacks(BaseUICallbacks):
         Function to start processing by clearing the stop_event flag.
         """
         if UICallbacks.is_first_start:  # Check if this is the first start
-            app_thread = threading.Thread(target=self.pipeline.run, daemon=False)
+            app_thread = threading.Thread(target=self.pipeline.run, daemon=THREAD_DAEMON)
             app_thread.start()
             UICallbacks.is_first_start = False  # Set the flag to indicate that processing has started
-        elif self.pipeline.pipeline.get_state(0)[1] != Gst.State.PLAYING:
-            self.pipeline.pipeline.set_state(Gst.State.PLAYING)
+        elif self.pipeline.pipeline.get_state(0)[1] != PIPELINE_PLAYING_STATE:
+            self.pipeline.pipeline.set_state(PIPELINE_PLAYING_STATE)
         self.stop_event.clear()  # Unset the stop_event
         UICallbacks.is_started.value = True  # Set the flag to indicate processing has started
         print(PROCESSING_STARTED_MESSAGE)
@@ -122,9 +141,9 @@ class UICallbacks(BaseUICallbacks):
         """
         Function to stop processing by setting the stop_event flag.
         """
-        self.pipeline.pipeline.send_event(Gst.Event.new_flush_start())  # Flush buffers
-        self.pipeline.pipeline.set_state(Gst.State.PAUSED)  # Set pipeline to PAUSED
-        self.pipeline.pipeline.send_event(Gst.Event.new_flush_stop(False))  # Stop flushing
+        self.pipeline.pipeline.send_event(FLUSH_START_EVENT)  # Flush buffers
+        self.pipeline.pipeline.set_state(PIPELINE_PAUSED_STATE)  # Set pipeline to PAUSED
+        self.pipeline.pipeline.send_event(FLUSH_STOP_EVENT)  # Stop flushing
         self.stop_event.set()
         UICallbacks.is_started.value = False  # Reset the flag
         print(PROCESSING_STOPPED_MESSAGE)

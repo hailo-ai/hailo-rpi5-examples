@@ -20,6 +20,13 @@ from face_ui_callbacks import UICallbacks
 from face_ui_elements import UIElements
 # endregion
 
+# region Constants
+MAX_UI_TEXT_MESSAGES = 10  # Maximum number of UI text messages to store
+TELEGRAM_ENABLED = False  # Enable Telegram notifications
+TELEGRAM_TOKEN = ''  # Telegram bot token
+TELEGRAM_CHAT_ID = ''  # Telegram chat ID
+# endregion
+
 class user_callbacks_class(app_callback_class):
     def __init__(self):
         super().__init__()
@@ -27,10 +34,10 @@ class user_callbacks_class(app_callback_class):
         self.latest_track_id = -1
         self.ui_text_message = []  # Store detected persons
 
-        # Telegram settings as instance attributes: Please note! - Telebot package is not installed by default, so you need to install it separately
-        self.telegram_enabled = False  # Set to True to enable Telegram notifications
-        self.telegram_token = ''  # Add your Telegram bot token here
-        self.telegram_chat_id = ''  # Add your Telegram chat ID here
+        # Telegram settings as instance attributes
+        self.telegram_enabled = TELEGRAM_ENABLED
+        self.telegram_token = TELEGRAM_TOKEN
+        self.telegram_chat_id = TELEGRAM_CHAT_ID
 
         # Initialize TelegramHandler if Telegram is enabled
         self.telegram_handler = None
@@ -72,7 +79,7 @@ def app_callback(pad, info, user_data):
                     string_to_print += f'Person recognition: {classification.get_label()} (Confidence: {classification.get_confidence():.1f})'
                     if track_id > user_data.latest_track_id:
                         user_data.latest_track_id = track_id
-                        if len(user_data.ui_text_message) >= 10:
+                        if len(user_data.ui_text_message) >= MAX_UI_TEXT_MESSAGES:
                             user_data.ui_text_message.pop(0)  # Remove the oldest entry to maintain size
                         user_data.ui_text_message.append(string_to_print)
     return Gst.PadProbeReturn.OK
