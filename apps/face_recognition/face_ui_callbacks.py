@@ -39,10 +39,6 @@ EMBEDDING_QUEUE_TIMEOUT = 0.1  # Timeout for embedding queue operations
 PIPELINE_PLAYING_STATE = Gst.State.PLAYING
 PIPELINE_PAUSED_STATE = Gst.State.PAUSED
 
-# Flush Events
-FLUSH_START_EVENT = Gst.Event.new_flush_start()
-FLUSH_STOP_EVENT = Gst.Event.new_flush_stop(False)
-
 # Thread Configuration
 THREAD_DAEMON = False  # Daemon flag for threads
 # endregion constants
@@ -141,16 +137,12 @@ class UICallbacks(BaseUICallbacks):
         """
         Function to stop processing by setting the stop_event flag.
         """
-        self.pipeline.pipeline.send_event(FLUSH_START_EVENT)  # Flush buffers
+        self.pipeline.pipeline.send_event(Gst.Event.new_flush_start())  # Flush buffers
         self.pipeline.pipeline.set_state(PIPELINE_PAUSED_STATE)  # Set pipeline to PAUSED
-        self.pipeline.pipeline.send_event(FLUSH_STOP_EVENT)  # Stop flushing
+        self.pipeline.pipeline.send_event(Gst.Event.new_flush_stop(False))  # Stop flushing
         self.stop_event.set()
         UICallbacks.is_started.value = False  # Reset the flag
         print(PROCESSING_STOPPED_MESSAGE)
-
-    def on_embedding_distance_change(self, value):
-        self.pipeline.embedding_distance_tolerance = value
-        self.pipeline.algo_params['embedding_distance_tolerance'] = value
 
     def on_min_face_pixels_change(self, value):
         self.pipeline.min_face_pixels_tolerance = value
@@ -160,27 +152,10 @@ class UICallbacks(BaseUICallbacks):
         self.pipeline.blurriness_tolerance = value
         self.pipeline.algo_params['blurriness_tolerance'] = value
 
-    def on_max_faces_change(self, value):
-        self.pipeline.max_faces_per_person = value
-        self.pipeline.algo_params['max_faces_per_person'] = value
-
-    def on_last_image_time_change(self, value):
-        self.pipeline.last_image_sent_threshold_time = value
-        self.pipeline.algo_params['last_image_sent_threshold_time'] = value
-
     def on_procrustes_distance_change(self, value):
         self.pipeline.procrustes_distance_threshold = value
         self.pipeline.algo_params['procrustes_distance_threshold'] = value
-    
-    def clear_queue_keep_last(self, queue):
-        """Helper function to clear all items from a queue except the last one."""
-        last_item = None
-        while not queue.empty():
-            try:
-                last_item = queue.get_nowait()  # Remove an item from the queue without blocking
-            except queue.Empty:
-                break
 
-        # If there was at least one item, re-add the last one to the queue
-        if last_item is not None:
-            queue.put(last_item)
+    def on_skip_frames_change(self, value):
+        self.pipeline.skip_frames = value
+        self.pipeline.algo_params['skip_frames'] = value

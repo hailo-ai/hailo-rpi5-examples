@@ -28,23 +28,17 @@ class UIElements(BaseUIElements):
         self.embeddings_stream = gr.Plot(label="Embeddings Plot")
 
         # Sliders
-        self.embedding_distance_tolerance = gr.Slider(
-            minimum=0.0, maximum=1.0, label="Embedding Distance Tolerance", elem_id="embedding-distance-slider"
-        )
         self.min_face_pixels_tolerance = gr.Slider(
-            minimum=10000, maximum=100000, label="Min Face Pixels Tolerance", elem_id="min-face-pixels-slider"
+            minimum=10000, maximum=100000, label="Min face size in pixels", elem_id="min-face-pixels-slider"
         )
         self.blurriness_tolerance = gr.Slider(
-            minimum=0, maximum=1000, label="Blurriness Tolerance", elem_id="blurriness-slider"
-        )
-        self.max_faces_per_person = gr.Slider(
-            minimum=1, maximum=10, label="Max Faces Per Person", elem_id="max-faces-slider"
-        )
-        self.last_image_sent_threshold_time = gr.Slider(
-            minimum=0, maximum=10, label="Last Image Sent Threshold Time", elem_id="last-image-slider"
+            minimum=0, maximum=1000, label="Blurriness Tolerance (higher-sharper image)", elem_id="blurriness-slider"
         )
         self.procrustes_distance_threshold = gr.Slider(
-            minimum=0.0, maximum=1.0, label="Procrustes Distance Threshold", elem_id="procrustes-distance-slider"
+            minimum=0.0, maximum=1.0, label="Face landmarks ratios (lower-closer to theoretical)", elem_id="procrustes-distance-slider"
+        )
+        self.skip_frames = gr.Slider(
+            minimum=0.0, maximum=60, label="Frames to skip before trying to recognize", elem_id="skip-frames-slider"
         )
         # Text Areas
         self.ui_text_message = gr.TextArea(label="Detected Persons", interactive=False, elem_id="detected-persons-textarea")  # ID for custom styling
@@ -57,23 +51,11 @@ class UIElements(BaseUIElements):
         .fixed-size { 
             width: 480px; 
             height: 360px; 
-        } 
-        /* Ensure consistent size for video and embeddings */ 
-        .equal-size { 
-            width: 100%; 
-        } 
-        .same-height { 
-            height: 360px;  /* Set a consistent height for sliders and detected persons */ 
-        } 
-        .limited-height {
-            max-height: 600px;  /* Set a maximum height */
-            outline: none;  /* Remove the orange focus outline */
-            box-shadow: none;  /* Remove any focus-related shadow */
-        }
+        }  
         /* Enable scrolling for the detected persons TextArea */
         #detected-persons-textarea textarea {
             overflow-y: scroll;  /* Enable vertical scrolling */
-            max-height: 80px; /* Match the height of the sliders */
+            max-height: 97px; /* Match the height of the sliders */
             outline: none;  /* Remove the orange focus outline */
             box-shadow: none;  /* Remove any focus-related shadow */
         }
@@ -95,27 +77,23 @@ class UIElements(BaseUIElements):
             with gr.Row():
                 self.start_btn.render()
                 self.stop_btn.render()
-                
             # Row for live video stream and embeddings_stream
             with gr.Row():
                 with gr.Column(elem_classes=["fixed-size"]):  # Apply fixed size for live_video_stream
                     self.live_video_stream.render()
                 with gr.Column(elem_classes=["fixed-size"]):  # Apply fixed size for embeddings_stream
                     self.embeddings_stream.render()
-            
             # Row for sliders and detected persons
             with gr.Row():
                 with gr.Column():
                     with gr.Row():
                         with gr.Column():
-                            self.embedding_distance_tolerance.render()
                             self.min_face_pixels_tolerance.render()
                             self.blurriness_tolerance.render()
                         with gr.Column():
-                            self.max_faces_per_person.render()
-                            self.last_image_sent_threshold_time.render()
                             self.procrustes_distance_threshold.render()
-                with gr.Column(elem_classes=["limited-height"]):  # Apply same-height class
+                            self.skip_frames.render()
+                with gr.Column():
                     self.ui_text_message.render()
             
             # Add the logo just above the footer
@@ -159,19 +137,15 @@ class UIElements(BaseUIElements):
                 )
 
             # Dynamically adjust initial values for sliders from pipeline
-            self.embedding_distance_tolerance.value = pipeline.embedding_distance_tolerance 
             self.min_face_pixels_tolerance.value = pipeline.min_face_pixels_tolerance
             self.blurriness_tolerance.value = pipeline.blurriness_tolerance
-            self.max_faces_per_person.value = pipeline.max_faces_per_person
-            self.last_image_sent_threshold_time.value = pipeline.last_image_sent_threshold_time
             self.procrustes_distance_threshold.value = pipeline.procrustes_distance_threshold
+            self.skip_frames.value = pipeline.skip_frames
 
-            self.embedding_distance_tolerance.change(ui_callbacks.on_embedding_distance_change, inputs=self.embedding_distance_tolerance)
             self.min_face_pixels_tolerance.change(ui_callbacks.on_min_face_pixels_change, inputs=self.min_face_pixels_tolerance)
             self.blurriness_tolerance.change(ui_callbacks.on_blurriness_change, inputs=self.blurriness_tolerance)
-            self.max_faces_per_person.change(ui_callbacks.on_max_faces_change, inputs=self.max_faces_per_person)
-            self.last_image_sent_threshold_time.change(ui_callbacks.on_last_image_time_change, inputs=self.last_image_sent_threshold_time)
             self.procrustes_distance_threshold.change(ui_callbacks.on_procrustes_distance_change, inputs=self.procrustes_distance_threshold)
+            self.skip_frames.change(ui_callbacks.on_skip_frames_change, inputs=self.skip_frames)
             # endregion event handlers
 
         return interface
