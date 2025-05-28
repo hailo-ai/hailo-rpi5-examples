@@ -2,6 +2,24 @@
 set -euo pipefail
 
 # —————————————————————————————
+# 0. Parse flags
+# —————————————————————————————
+NO_INSTALLATION=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--no-installation)
+      NO_INSTALLATION=true
+      shift
+      ;;
+    *)
+      # unknown flag: treat as positional or error out
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# —————————————————————————————
 # 1. Read config 
 # —————————————————————————————
 CONFIG_FILE="config.yaml"
@@ -154,6 +172,13 @@ else
   echo "✅ pip '$TAPPAS_PIP_PKG' version: $host_tc"
 fi
 
+if [[ "$NO_INSTALLATION" == true ]]; then
+  echo "⚠️  Skipping installation due to --no-installation flag."
+  INSTALL_PYHAILORT=false
+  INSTALL_TAPPAS_CORE=false
+else
+  echo "📦 Will install missing pip packages in virtualenv."
+fi
 ###——— VENV SETUP —————————————————————————————————————————————————————
 echo
 if [[ -d "$VENV_NAME" ]]; then
@@ -177,13 +202,13 @@ echo "📦 Installing missing pip packages…"
 
 if $INSTALL_PYHAILORT && $INSTALL_TAPPAS_CORE; then
     echo "📦 Installing 'hailort' and '$TAPPAS_PIP_PKG'…"
-    ./scripts/install_hailo_python.sh
+    ./hailo_python_installation.sh
 elif $INSTALL_PYHAILORT; then
   echo "📦 Installing 'hailort'…"
-    ./scripts/install_hailo_python.sh --only-hailort
+    ./hailo_python_installation.sh --only-hailort
 elif $INSTALL_TAPPAS_CORE; then
   echo "📦 Installing '$TAPPAS_PIP_PKG'…"
-    ./scripts/install_hailo_python.sh --only-tappas
+    ./hailo_python_installation.sh --only-tappas
 else
   echo "✅ All pip packages are already installed."
 fi
