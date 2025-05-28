@@ -11,11 +11,19 @@ while [[ $# -gt 0 ]]; do
       NO_INSTALLATION=true
       shift
       ;;
+    -h|--pyhailort)
+      PYHAILORT_PATH="$2"
+      shift 2
+      ;;
+    -p|--pytappas)
+      PYTAPPAS_PATH="$2"
+      shift 2
+      ;;
     *)
-      # unknown flag: treat as positional or error out
       echo "Unknown option: $1"
       exit 1
       ;;
+
   esac
 done
 
@@ -179,6 +187,17 @@ if [[ "$NO_INSTALLATION" == true ]]; then
 else
   echo "📦 Will install missing pip packages in virtualenv."
 fi
+
+if [[ -n "$PYHAILORT_PATH" ]]; then
+  echo "📦 Using custom hailort path: $PYHAILORT_PATH"
+  INSTALL_PYHAILORT=true
+fi
+if [[ -n "$PYTAPPAS_PATH" ]]; then
+  echo "📦 Using custom tappas path: $PYTAPPAS_PATH"
+  INSTALL_TAPPAS_CORE=true
+fi
+
+
 ###——— VENV SETUP —————————————————————————————————————————————————————
 echo
 if [[ -d "$VENV_NAME" ]]; then
@@ -200,16 +219,31 @@ fi
 echo
 echo "📦 Installing missing pip packages…"
 
-if $INSTALL_PYHAILORT && $INSTALL_TAPPAS_CORE; then
-    echo "📦 Installing 'hailort' and '$TAPPAS_PIP_PKG'…"
-    ./hailo_python_installation.sh
-elif $INSTALL_PYHAILORT; then
-  echo "📦 Installing 'hailort'…"
+
+# pyhailort
+if $INSTALL_PYHAILORT; then
+  if [[ -n "$PYHAILORT_PATH" ]]; then
+    echo "📦 Installing 'hailort' from local path: $PYHAILORT_PATH"
+    pip install "$PYHAILORT_PATH"
+  else
+    echo "📦 Installing 'hailort' via helper script"
     ./hailo_python_installation.sh --only-hailort
-elif $INSTALL_TAPPAS_CORE; then
-  echo "📦 Installing '$TAPPAS_PIP_PKG'…"
+  fi
+fi
+
+# pytappas (tappas-core or tappas binding)
+if $INSTALL_TAPPAS_CORE; then
+  if [[ -n "$PYTAPPAS_PATH" ]]; then
+    echo "📦 Installing '$TAPPAS_PIP_PKG' from local path: $PYTAPPAS_PATH"
+    pip install "$PYTAPPAS_PATH"
+  else
+    echo "📦 Installing '$TAPPAS_PIP_PKG' via helper script"
     ./hailo_python_installation.sh --only-tappas
-else
+  fi
+fi
+
+# If neither was missing, you can still echo:
+if ! $INSTALL_PYHAILORT && ! $INSTALL_TAPPAS_CORE; then
   echo "✅ All pip packages are already installed."
 fi
 
