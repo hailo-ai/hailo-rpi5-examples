@@ -64,7 +64,7 @@ if [[ -n "$CONFIG_FILE" ]]; then
     esac
   done < <(grep -E '^[[:space:]]*[a-z_]+:' "$CONFIG_FILE")
 fi
-
+if 
 # —————————————————————————————
 # 2. Fallback to old defaults
 # —————————————————————————————
@@ -77,6 +77,13 @@ fi
 : "${hailo_apps_infra_branch_tag:=dev}"
 : "${hailo_apps_infra_path:="auto"}"  # or "auto" for latest
 : "${tappas_variant:="hailo-tappas-core"}"  # or "x86_64"
+
+# Ensure all required variables are set
+if [[ "$hailo_apps_infra_branch_tag" == "auto" ]] && [[ "$hailo_apps_infra_path" == "auto" ]]; then
+  echo "❌ Please set 'hailo_apps_infra_repo_url', 'hailo_apps_infra_branch_tag', and 'hailo_apps_infra_path' in the config."
+  echo "Using hailo_apps_infra_branch_tag = dev because auto was set."
+  hailo_apps_infra_branch_tag="dev"
+fi
 
 # Now use those
 BASE_URL="$server_url"
