@@ -10,7 +10,7 @@ import re
 
 # Adjust the sys.path to include the parent directory of the test folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from hailo_apps_infra.get_usb_camera import get_usb_video_devices
+from hailo_apps_infra.hailo_core.hailo_common.camera_utils import get_usb_video_devices
 
 try:
     from picamera2 import Picamera2

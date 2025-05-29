@@ -5,6 +5,8 @@ set -euo pipefail
 # 0. Parse flags
 # —————————————————————————————
 NO_INSTALLATION=false
+PYHAILORT_PATH=""
+PYTAPPAS_PATH=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -n|--no-installation)
