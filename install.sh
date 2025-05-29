@@ -64,7 +64,6 @@ if [[ -n "$CONFIG_FILE" ]]; then
     esac
   done < <(grep -E '^[[:space:]]*[a-z_]+:' "$CONFIG_FILE")
 fi
-if 
 # —————————————————————————————
 # 2. Fallback to old defaults
 # —————————————————————————————
