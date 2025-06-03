@@ -10,7 +10,7 @@ import re
 
 # Adjust the sys.path to include the parent directory of the test folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from hailo_apps_infra.get_usb_camera import get_usb_video_devices
+from hailo_apps_infra.hailo_core.hailo_common.camera_utils import get_usb_video_devices
 
 try:
     from picamera2 import Picamera2
@@ -78,19 +78,20 @@ def get_detection_compatible_hefs(architecture):
     ]
 
     H8L_HEFS = [
-        "yolov5m_wo_spp_h8l.hef",
-        "yolov6n_h8l.hef",
-        "yolov8s_h8l.hef",
-        "yolov8m_h8l.hef",
-        "yolov11n_h8l.hef",
-        "yolov11s_h8l.hef"
+        "yolov5m_wo_spp.hef",
+        "yolov6n.hef",
+        "yolov8s.hef",
+        "yolov8m.hef",
+        "yolov11n.hef",
+        "yolov11s.hef"
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
-        # check both HAILO8 and HAILO8L
-        hef_list = hef_list + H8_HEFS
-
-    return [os.path.join("resources", hef) for hef in hef_list]
+        hef_list = H8_HEFS
+        return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
+    
+    return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
+    
 
 def get_pose_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
@@ -100,14 +101,15 @@ def get_pose_compatible_hefs(architecture):
     ]
 
     H8L_HEFS = [
-        "yolov8s_pose_h8l.hef",
+        "yolov8s_pose.hef",
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
         # check both HAILO8 and HAILO8L
-        hef_list = hef_list + H8_HEFS
-
-    return [os.path.join("resources", hef) for hef in hef_list]
+        hef_list = H8_HEFS        
+        return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
+    
+    return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
 
 def get_seg_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
@@ -117,14 +119,15 @@ def get_seg_compatible_hefs(architecture):
     ]
 
     H8L_HEFS = [
-        "yolov5n_seg_h8l.hef",
+        "yolov5n_seg.hef",
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
         # check both HAILO8 and HAILO8L
-        hef_list = hef_list + H8_HEFS
-
-    return [os.path.join("resources", hef) for hef in hef_list]
+        hef_list = H8_HEFS        
+        return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
+    
+    return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
 
 def get_depth_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
@@ -133,13 +136,14 @@ def get_depth_compatible_hefs(architecture):
     ]
 
     H8L_HEFS = [
-        "scdepthv3_h8l.hef"
+        "scdepthv3.hef"
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
-        hef_list = hef_list + H8_HEFS
-
-    return [os.path.join("resources", hef) for hef in hef_list]
+        hef_list =  H8_HEFS       
+        return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
+    
+    return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
 
 def test_all_pipelines():
     """
@@ -271,7 +275,7 @@ def test_detection_hefs():
         log_file_path = os.path.join(log_dir, f"detection_{hef_name}_video_test.log")
         logging.info(f"Running detection with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', 'resources/example.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', 'basic_pipelines/detection.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -306,7 +310,7 @@ def test_simple_detection_hefs():
         log_file_path = os.path.join(log_dir, f"simple_detection_{hef_name}_video_test.log")
         logging.info(f"Running simple detection with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', '-u', 'basic_pipelines/detection_simple.py', '--input', 'resources/example.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', '-u', 'basic_pipelines/detection_simple.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -341,7 +345,7 @@ def test_pose_hefs():
         log_file_path = os.path.join(log_dir, f"pose_{hef_name}_video_test.log")
         logging.info(f"Running pose with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/pose_estimation.py', '--input', 'resources/example.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', 'basic_pipelines/pose_estimation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -376,7 +380,7 @@ def test_seg_hefs():
         log_file_path = os.path.join(log_dir, f"seg_{hef_name}_video_test.log")
         logging.info(f"Running seg with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/example.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -411,7 +415,7 @@ def test_depth_hefs():
         log_file_path = os.path.join(log_dir, f"depth_{hef_name}_video_test.log")
         logging.info(f"Running depth with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', '-u', 'basic_pipelines/depth.py', '--input', 'resources/example.mp4', '--hef-path', hef], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(['python', '-u', 'basic_pipelines/depth.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
                 process.send_signal(signal.SIGTERM)
@@ -435,9 +439,9 @@ def test_detection_retraining():
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
 
-    retrained_hef = "resources/yolov8s-hailo8l-barcode.hef"
-    labels_json = "resources/barcode-labels.json"
-    video_path = "resources/barcode.mp4"
+    retrained_hef = "resources/videos/yolov8s-hailo8l-barcode.hef"
+    labels_json = "resources/videos/barcode-labels.json"
+    video_path = "resources/videos/barcode.mp4"
     log_file_path = os.path.join(log_dir, "detection_retrained_video_test.log")
     logging.info("Running detection with retrained model (video input)")
     with open(log_file_path, "w") as log_file:
