@@ -1,0 +1,50 @@
+{
+    "iou_threshold": 0.6,
+    "score_threshold": 0.25,
+    "outputs_size": [
+        20,
+        40,
+        80
+    ],
+    "outputs_name": [
+        "yolov5m_seg/conv85",
+        "yolov5m_seg/conv66",
+        "yolov5m_seg/conv75",
+        "yolov5m_seg/conv83"
+    ],
+    "anchors": [
+        [
+            116,
+            90,
+            156,
+            198,
+            373,
+            326
+        ],
+        [
+            30,
+            61,
+            62,
+            45,
+            59,
+            119
+        ],
+        [
+            10,
+            13,
+            16,
+            30,
+            33,
+            23
+        ]
+    ],
+    "input_shape": [
+        640,
+        640
+    ],
+    "strides": [
+        32,
+        16,
+        8
+    ]
+}

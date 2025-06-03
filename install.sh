@@ -7,6 +7,7 @@ set -euo pipefail
 NO_INSTALLATION=false
 PYHAILORT_PATH=""
 PYTAPPAS_PATH=""
+DOWNLOAD_ALL="default"  # Default to false unless --all is specified
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -n|--no-installation)
@@ -20,6 +21,10 @@ while [[ $# -gt 0 ]]; do
     -p|--pytappas)
       PYTAPPAS_PATH="$2"
       shift 2
+      ;;
+    --all)
+      DOWNLOAD_ALL="all"
+      shift
       ;;
     *)
       echo "Unknown option: $1"
@@ -300,7 +305,8 @@ echo
 echo "⚙️  Running post-install…"
 python3 -m hailo_apps_infra.hailo_core.hailo_installation.post_install \
     --dotenv "$ENV_PATH" \
-    --config "$CONFIG_PATH"
+    --config "$CONFIG_PATH" \
+    --group "$DOWNLOAD_ALL"
 
 
 ###——— FINISHED —————————————————————————————————————————————————————
