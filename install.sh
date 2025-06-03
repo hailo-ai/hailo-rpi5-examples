@@ -2,6 +2,39 @@
 set -euo pipefail
 
 # —————————————————————————————
+# 0. Parse flags
+# —————————————————————————————
+NO_INSTALLATION=false
+PYHAILORT_PATH=""
+PYTAPPAS_PATH=""
+DOWNLOAD_ALL="default"  # Default to false unless --all is specified
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--no-installation)
+      NO_INSTALLATION=true
+      shift
+      ;;
+    -h|--pyhailort)
+      PYHAILORT_PATH="$2"
+      shift 2
+      ;;
+    -p|--pytappas)
+      PYTAPPAS_PATH="$2"
+      shift 2
+      ;;
+    --all)
+      DOWNLOAD_ALL="all"
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+
+  esac
+done
+
+# —————————————————————————————
 # 1. Read config 
 # —————————————————————————————
 CONFIG_FILE="config.yaml"
@@ -38,7 +71,6 @@ if [[ -n "$CONFIG_FILE" ]]; then
     esac
   done < <(grep -E '^[[:space:]]*[a-z_]+:' "$CONFIG_FILE")
 fi
-
 # —————————————————————————————
 # 2. Fallback to old defaults
 # —————————————————————————————
@@ -51,6 +83,13 @@ fi
 : "${hailo_apps_infra_branch_tag:=dev}"
 : "${hailo_apps_infra_path:="auto"}"  # or "auto" for latest
 : "${tappas_variant:="hailo-tappas-core"}"  # or "x86_64"
+
+# Ensure all required variables are set
+if [[ "$hailo_apps_infra_branch_tag" == "auto" ]] && [[ "$hailo_apps_infra_path" == "auto" ]]; then
+  echo "❌ Please set 'hailo_apps_infra_repo_url', 'hailo_apps_infra_branch_tag', and 'hailo_apps_infra_path' in the config."
+  echo "Using hailo_apps_infra_branch_tag = dev because auto was set."
+  hailo_apps_infra_branch_tag="dev"
+fi
 
 # Now use those
 BASE_URL="$server_url"
@@ -154,6 +193,24 @@ else
   echo "✅ pip '$TAPPAS_PIP_PKG' version: $host_tc"
 fi
 
+if [[ "$NO_INSTALLATION" == true ]]; then
+  echo "⚠️  Skipping installation due to --no-installation flag."
+  INSTALL_PYHAILORT=false
+  INSTALL_TAPPAS_CORE=false
+else
+  echo "📦 Will install missing pip packages in virtualenv."
+fi
+
+if [[ -n "$PYHAILORT_PATH" ]]; then
+  echo "📦 Using custom hailort path: $PYHAILORT_PATH"
+  INSTALL_PYHAILORT=true
+fi
+if [[ -n "$PYTAPPAS_PATH" ]]; then
+  echo "📦 Using custom tappas path: $PYTAPPAS_PATH"
+  INSTALL_TAPPAS_CORE=true
+fi
+
+
 ###——— VENV SETUP —————————————————————————————————————————————————————
 echo
 if [[ -d "$VENV_NAME" ]]; then
@@ -175,16 +232,31 @@ fi
 echo
 echo "📦 Installing missing pip packages…"
 
-if $INSTALL_PYHAILORT && $INSTALL_TAPPAS_CORE; then
-    echo "📦 Installing 'hailort' and '$TAPPAS_PIP_PKG'…"
-    ./scripts/install_hailo_python.sh
-elif $INSTALL_PYHAILORT; then
-  echo "📦 Installing 'hailort'…"
-    ./scripts/install_hailo_python.sh --only-hailort
-elif $INSTALL_TAPPAS_CORE; then
-  echo "📦 Installing '$TAPPAS_PIP_PKG'…"
-    ./scripts/install_hailo_python.sh --only-tappas
-else
+
+# pyhailort
+if $INSTALL_PYHAILORT; then
+  if [[ -n "$PYHAILORT_PATH" ]]; then
+    echo "📦 Installing 'hailort' from local path: $PYHAILORT_PATH"
+    pip install "$PYHAILORT_PATH"
+  else
+    echo "📦 Installing 'hailort' via helper script"
+    ./hailo_python_installation.sh --only-hailort
+  fi
+fi
+
+# pytappas (tappas-core or tappas binding)
+if $INSTALL_TAPPAS_CORE; then
+  if [[ -n "$PYTAPPAS_PATH" ]]; then
+    echo "📦 Installing '$TAPPAS_PIP_PKG' from local path: $PYTAPPAS_PATH"
+    pip install "$PYTAPPAS_PATH"
+  else
+    echo "📦 Installing '$TAPPAS_PIP_PKG' via helper script"
+    ./hailo_python_installation.sh --only-tappas
+  fi
+fi
+
+# If neither was missing, you can still echo:
+if ! $INSTALL_PYHAILORT && ! $INSTALL_TAPPAS_CORE; then
   echo "✅ All pip packages are already installed."
 fi
 
@@ -233,7 +305,8 @@ echo
 echo "⚙️  Running post-install…"
 python3 -m hailo_apps_infra.hailo_core.hailo_installation.post_install \
     --dotenv "$ENV_PATH" \
-    --config "$CONFIG_PATH"
+    --config "$CONFIG_PATH" \
+    --group "$DOWNLOAD_ALL"
 
 
 ###——— FINISHED —————————————————————————————————————————————————————

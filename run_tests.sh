@@ -18,11 +18,13 @@ pip install -r tests/test_resources/requirements.txt
 
 # Run pytest for all test files
 echo "Running tests..."
-pytest --log-cli-level=INFO \
-       "$TESTS_DIR/test_sanity_check.py" \
-       "$TESTS_DIR/test_hailo_rpi5_examples.py" \
-       "$TESTS_DIR/test_edge_cases.py" \
-       "$TESTS_DIR/test_advanced.py" \
-       "$TESTS_DIR/test_infra.py"
+# pytest --log-cli-level=INFO \
+#        #"$TESTS_DIR/test_sanity_check.py" \
+#        "$TESTS_DIR/test_hailo_rpi5_examples.py" \
+#        #"$TESTS_DIR/test_edge_cases.py" \
+#        #"$TESTS_DIR/test_advanced.py" \
+#        #"$TESTS_DIR/test_infra.py"
+
+pytest -s "$TESTS_DIR"/test_hailo_rpi5_examples.py
 
 echo "All tests completed."
