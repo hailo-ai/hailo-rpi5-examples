@@ -6,6 +6,7 @@ import multiprocessing
 from multiprocessing import Value
 import queue
 import signal
+import json
 
 # Third-party imports
 import gi
@@ -159,3 +160,16 @@ class UICallbacks(BaseUICallbacks):
     def on_skip_frames_change(self, value):
         self.pipeline.skip_frames = value
         self.pipeline.algo_params['skip_frames'] = value
+
+    def save_algo_params(self):
+        """
+        Save the algorithm parameters to the JSON file.
+        """
+        try:
+            self.pipeline.json_file.seek(0)  # Move the file pointer to the beginning of the file
+            json.dump(self.pipeline.algo_params, self.pipeline.json_file, indent=4)  # Write the updated JSON content back to the file
+            self.pipeline.json_file.truncate()  # Truncate the file to remove any leftover content
+        except Exception as e:
+            print(f"Failed to save algo_params: {e}")
+        finally:
+            self.pipeline.json_file.close()  # Close the file

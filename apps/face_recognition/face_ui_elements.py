@@ -43,6 +43,8 @@ class UIElements(BaseUIElements):
         # Text Areas
         self.ui_text_message = gr.TextArea(label="Detected Persons", interactive=False, elem_id="detected-persons-textarea")  # ID for custom styling
 
+        self.save_btn = gr.Button("Save", variant="primary", elem_id="save-btn")
+
         # css
         self.ui_css = """
         .center-text { 
@@ -95,19 +97,22 @@ class UIElements(BaseUIElements):
                             self.skip_frames.render()
                 with gr.Column():
                     self.ui_text_message.render()
-            
-            # Add the logo just above the footer
-            # Define the original file and the alias (symlink) paths
-            original_file = get_resource_path(pipeline_name=None, resource_type=RESOURCES_PHOTOS_DIR_NAME, model=HAILO_LOGO_PHOTO_NAME) 
-            alias_file = Path(Path(__file__).parent, HAILO_LOGO_PHOTO_NAME)
-            if not (alias_file.exists() or alias_file.is_symlink()):
-                alias_file.symlink_to(original_file)
+            # Row for save algo params button
             with gr.Row():
-                gr.HTML(
-                    f"""
-                        <img src=/gradio_api/file={Path(Path(__file__).parent, HAILO_LOGO_PHOTO_NAME)} style="display: block; margin: 0 auto; max-width: 300px;">
-                    """
-                )
+                with gr.Column(scale=1, min_width=60):
+                    self.save_btn.render()
+                # Add the logo just above the footer
+                # Define the original file and the alias (symlink) paths
+                original_file = get_resource_path(pipeline_name=None, resource_type=RESOURCES_PHOTOS_DIR_NAME, model=HAILO_LOGO_PHOTO_NAME) 
+                alias_file = Path(Path(__file__).parent, HAILO_LOGO_PHOTO_NAME)
+                if not (alias_file.exists() or alias_file.is_symlink()):
+                    alias_file.symlink_to(original_file)
+                with gr.Column(scale=20):
+                    gr.HTML(
+                        f"""
+                            <img src=/gradio_api/file={Path(Path(__file__).parent, HAILO_LOGO_PHOTO_NAME)} style="display: block; margin: 0 auto; max-width: 300px;">
+                        """
+                    )
             # endregion rendrering
 
             # region Event handlers: must be declared within gr.Blocks context
@@ -125,6 +130,12 @@ class UIElements(BaseUIElements):
 
             self.stop_btn.click(
                 fn=ui_callbacks.stop_processing,
+                inputs=None,
+                outputs=None
+            )
+
+            self.save_btn.click(
+                fn=ui_callbacks.save_algo_params,
                 inputs=None,
                 outputs=None
             )
