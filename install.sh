@@ -286,7 +286,7 @@ echo
 echo "📦 Upgrading pip/setuptools/wheel…"
 pip install --upgrade pip setuptools wheel
 
-sudo apt-get install libgirepository1.0-dev
+sudo apt install python3-gi python3-gi-cairo
 
 pip install -r requirements.txt
 echo $"📦 Installing Hailo-Apps-Infra… $HAILO_INFRA_PATH"
