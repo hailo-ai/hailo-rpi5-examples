@@ -286,6 +286,8 @@ echo
 echo "📦 Upgrading pip/setuptools/wheel…"
 pip install --upgrade pip setuptools wheel
 
+sudo apt-get install libgirepository1.0-dev
+
 pip install -r requirements.txt
 echo $"📦 Installing Hailo-Apps-Infra… $HAILO_INFRA_PATH"
 if [[ "$HAILO_INFRA_PATH" != "auto" ]]; then
