@@ -439,8 +439,8 @@ def test_detection_retraining():
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
 
-    retrained_hef = "resources/videos/yolov8s-hailo8l-barcode.hef"
-    labels_json = "resources/videos/barcode-labels.json"
+    retrained_hef = "resources/models/hailo8/yolov8s-hailo8l-barcode.hef"
+    labels_json = "local_resources/barcode-labels.json"
     video_path = "resources/videos/barcode.mp4"
     log_file_path = os.path.join(log_dir, "detection_retrained_video_test.log")
     logging.info("Running detection with retrained model (video input)")
