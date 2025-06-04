@@ -14,10 +14,9 @@ fi
 
 echo "🔧 Setting up environment..."
 
-# Look for *any* venv directory in the current folder
-# (you can restrict the pattern if you want a specific name, e.g. venv*)
-for d in ./venv*; do
-    if [ -d "$d/bin" ] && [ -f "$d/bin/activate" ]; then
+# Look for any directory in the current folder that contains bin/activate
+for d in ./*; do
+    if [ -d "$d" ] && [ -f "$d/bin/activate" ]; then
         VENV_DIR="$d"
         break
     fi
