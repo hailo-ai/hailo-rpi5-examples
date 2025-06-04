@@ -212,13 +212,16 @@ fi
 
 
 ###——— VENV SETUP —————————————————————————————————————————————————————
+arch=$(grep -q "Raspberry Pi" /proc/device-tree/model 2>/dev/null && echo "rpi" || uname -m)
+echo "$arch"
+
 echo
 if [[ -d "$VENV_NAME" ]]; then
   echo "✅ Virtualenv '$VENV_NAME' exists. Activating…"
   source "$VENV_NAME/bin/activate"
 else
   echo "🔧 Creating virtualenv '$VENV_NAME'…"
-  if $INSTALL_PYHAILORT && $INSTALL_TAPPAS_CORE; then
+  if $INSTALL_PYHAILORT && $INSTALL_TAPPAS_CORE && [[ "$arch" != "rpi" ]]; then
     python3 -m venv "$VENV_NAME"
   else
     python3 -m venv --system-site-packages "$VENV_NAME"
