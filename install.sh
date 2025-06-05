@@ -119,8 +119,9 @@ echo "  CONFIG_FILE        = $CONFIG_FILE"
 
 ###——— HELPERS —————————————————————————————————————————————————————
 detect_system_pkg_version() {
-  dpkg-query -W -f='${Version}' "$1" 2>/dev/null || echo ""
+  dpkg -l | grep "$1" | awk '$1=="ii" { print $3; exit }'
 }
+
 
 detect_pip_pkg_version() {
   if pip show "$1" >/dev/null 2>&1; then
@@ -153,7 +154,9 @@ echo "📋 Checking for HailoRT system version"
 HRT_VER=$(detect_system_pkg_version hailort)
 echo "📋 Checking for hailo-tappas vs hailo-tappas-core…"
 HT1=$(detect_system_pkg_version hailo-tappas)
+echo $HT1
 HT2=$(detect_system_pkg_version hailo-tappas-core)
+echo $HT2
 HTC_VER="none"
 if [[ -n "$HT1" ]]; then
   echo "✅ hailo-tappas version: $HT1"
