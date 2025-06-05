@@ -158,14 +158,15 @@ echo $HT1
 HT2=$(detect_system_pkg_version hailo-tappas-core)
 echo $HT2
 HTC_VER="none"
-if [[ -n "$HT1" ]]; then
-  echo "✅ hailo-tappas version: $HT1"
-  HTC_VER="$HT1"
-  TAPPAS_PIP_PKG="hailo-tappas"
-elif [[ -n "$HT2" ]]; then
+
+if [[ -n "$HT2" ]]; then
   echo "✅ hailo-tappas-core version: $HT2"
   TAPPAS_PIP_PKG="hailo-tappas-core-python-binding"
   HTC_VER="$HT2"
+elif [[ -n "$HT1" ]]; then
+  echo "✅ hailo-tappas version: $HT1"
+  HTC_VER="$HT1"
+  TAPPAS_PIP_PKG="hailo-tappas"
 else
   echo "❌ Neither hailo-tappas nor hailo-tappas-core is installed."
   exit 1
