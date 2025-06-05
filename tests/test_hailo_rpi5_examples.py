@@ -167,6 +167,8 @@ def test_all_pipelines():
             log_file_path = os.path.join(log_dir, f"test_{pipeline}{arch_parameter}_video_test.log")
             with open(log_file_path, "w") as log_file:
                 cmd = ['python', '-u', f'basic_pipelines/{pipeline}']
+                if pipeline == "instance_segmentation.py":
+                    cmd += ['--labels-json', 'local_resources/yolov5m_seg.json']
 
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 logging.info(f"Running {pipeline} {arch_parameter} with video input")
@@ -210,6 +212,8 @@ def test_all_pipelines_cameras():
             logging.info(f"Running {pipeline} with {device} camera")
             with open(log_file_path, "w") as log_file:
                 cmd = ['python', '-u', f'basic_pipelines/{pipeline}', '--input', device]
+                if pipeline == "instance_segmentation.py":
+                    cmd += ['--labels-json', 'local_resources/yolov5m_seg.json']
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 try:
                     time.sleep(TEST_RUN_TIME)
@@ -245,6 +249,8 @@ def test_all_pipelines_usb_camera():
         logging.info(f"Running {pipeline} with {device} camera")
         with open(log_file_path, "w") as log_file:
             cmd = ['python', '-u', f'basic_pipelines/{pipeline}', '--input', device]
+            if pipeline == "instance_segmentation.py":
+                    cmd += ['--labels-json', 'local_resources/yolov5m_seg.json']
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -380,7 +386,7 @@ def test_seg_hefs():
         log_file_path = os.path.join(log_dir, f"seg_{hef_name}_video_test.log")
         logging.info(f"Running seg with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef],
+            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef , '--labels-json', f'local_resources/{hef_name}.json'],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
@@ -473,6 +479,8 @@ def test_frame_rate():
         logging.info(f"Running {pipeline} with frame rate flag")
         with open(log_file_path, "w") as log_file:
             cmd = ['python', '-u', f'basic_pipelines/{pipeline}', '--frame-rate', '10', '--show-fps']
+            if pipeline == "instance_segmentation.py":
+                cmd += ['--labels-json', 'local_resources/yolov5m_seg.json']
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
