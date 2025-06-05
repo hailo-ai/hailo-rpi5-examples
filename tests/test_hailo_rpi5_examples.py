@@ -381,12 +381,13 @@ def test_seg_hefs():
     compatible_hefs = get_seg_compatible_hefs(architecture)
     for hef in compatible_hefs:
         hef_name = os.path.basename(hef)
+        hef_base_name = os.path.splitext(hef_name)[0]
 
         # Test with video input
         log_file_path = os.path.join(log_dir, f"seg_{hef_name}_video_test.log")
         logging.info(f"Running seg with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef , '--labels-json', f'local_resources/{hef_name}.json'],
+            process = subprocess.Popen(['python3', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef , '--labels-json', f'local_resources/{hef_base_name}.json'],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
