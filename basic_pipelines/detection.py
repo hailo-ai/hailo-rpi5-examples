@@ -11,7 +11,7 @@ from hailo_apps_infra.hailo_rpi_common import (
     get_numpy_from_buffer,
     app_callback_class,
 )
-from hailo_apps_infra.detection_pipeline import GStreamerDetectionApp
+from hailo_apps_infra.detection_rtp_pipeline import GStreamerDetectionApp
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function
@@ -39,7 +39,8 @@ def app_callback(pad, info, user_data):
 
     # Using the user_data to count the number of frames
     user_data.increment()
-    string_to_print = f"Frame count: {user_data.get_count()}\n"
+    frame_count = user_data.get_count()
+    string_to_print = f"Frame count: {frame_count}\n"
 
     # Get the caps from the pad
     format, width, height = get_caps_from_pad(pad)
@@ -79,7 +80,8 @@ def app_callback(pad, info, user_data):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         user_data.set_frame(frame)
 
-    print(string_to_print)
+    if frame_count % 100 == 0:
+        print(string_to_print)
     return Gst.PadProbeReturn.OK
 
 if __name__ == "__main__":
