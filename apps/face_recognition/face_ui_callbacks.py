@@ -25,7 +25,6 @@ RESULT_QUEUE_TIMEOUT = 2
 WORKER_SLEEP_INTERVAL = 3 
 PROCESS_UI_TEXT_MESSAGE_INTERVAL = 2
 PROCESSING_STARTED_MESSAGE = "Processing started."
-PROCESSING_STOPPED_MESSAGE = "Processing stopped."
 
 # Database Configuration
 DB_NAME = 'persons.db'
@@ -133,17 +132,6 @@ class UICallbacks(BaseUICallbacks):
         self.stop_event.clear()  # Unset the stop_event
         UICallbacks.is_started.value = True  # Set the flag to indicate processing has started
         print(PROCESSING_STARTED_MESSAGE)
-
-    def stop_processing(self):
-        """
-        Function to stop processing by setting the stop_event flag.
-        """
-        self.pipeline.pipeline.send_event(Gst.Event.new_flush_start())  # Flush buffers
-        self.pipeline.pipeline.set_state(PIPELINE_PAUSED_STATE)  # Set pipeline to PAUSED
-        self.pipeline.pipeline.send_event(Gst.Event.new_flush_stop(False))  # Stop flushing
-        self.stop_event.set()
-        UICallbacks.is_started.value = False  # Reset the flag
-        print(PROCESSING_STOPPED_MESSAGE)
 
     def on_min_face_pixels_change(self, value):
         self.pipeline.min_face_pixels_tolerance = value

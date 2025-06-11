@@ -12,12 +12,35 @@ from gi.repository import Gst
 
 # Local application-specific imports
 import hailo
-from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
-from hailo_apps_infra.hailo_apps.hailo_pipelines.face_recognition_pipeline import GStreamerFaceRecognitionApp
-from hailo_apps_infra.hailo_core.hailo_common.telegram_handler import TelegramHandler
-from hailo_apps_infra.hailo_core.hailo_common.defines import HAILO_LOGO_PHOTO_NAME
-from face_ui_callbacks import UICallbacks
-from face_ui_elements import UIElements
+try:
+    from hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
+except ImportError:
+    from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
+
+try:
+    from face_recognition_pipeline import GStreamerFaceRecognitionApp
+except ImportError:
+    from face_recognition_pipeline import GStreamerFaceRecognitionApp
+
+try:
+    from hailo_core.hailo_common.telegram_handler import TelegramHandler
+except ImportError:
+    from hailo_apps_infra.hailo_core.hailo_common.telegram_handler import TelegramHandler
+
+try:
+    from hailo_core.hailo_common.defines import HAILO_LOGO_PHOTO_NAME
+except ImportError:
+    from hailo_apps_infra.hailo_core.hailo_common.defines import HAILO_LOGO_PHOTO_NAME
+
+try:
+    from face_ui_callbacks import UICallbacks
+except ImportError:
+    from face_ui_callbacks import UICallbacks
+
+try:
+    from face_ui_elements import UIElements
+except ImportError:
+    from face_ui_elements import UIElements
 # endregion
 
 # region Constants
@@ -84,7 +107,7 @@ def app_callback(pad, info, user_data):
                         user_data.ui_text_message.append(string_to_print)
     return Gst.PadProbeReturn.OK
 
-if __name__ == "__main__":  
+def main():  
     user_data = user_callbacks_class()
     pipeline = GStreamerFaceRecognitionApp(app_callback, user_data)  # appsink_callback argument provided anyway although in non UI interface where eventually not used - since here we don't have access to requested UI/CLI mode
     if pipeline.options_menu.mode == 'delete':  # always CLI even if mistakenly GUI mode is selected
@@ -101,3 +124,6 @@ if __name__ == "__main__":
         ui_thread = threading.Thread(target=lambda: ui_interface.launch(allowed_paths=[Path(Path(__file__).parent, HAILO_LOGO_PHOTO_NAME)]), daemon=False)  # Launch the stream UI in a separate thread from the GStreamer pipeline
         ui_thread.start()
         ui_thread.join()  # otherwise not working
+
+if __name__ == "__main__": 
+    main()
