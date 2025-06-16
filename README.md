@@ -155,6 +155,19 @@ Click the image below to watch the demo on YouTube.
 
 [![Watch the demo on YouTube](https://img.youtube.com/vi/XXizBHtCLew/0.jpg)](https://youtu.be/XXizBHtCLew)
 
+### Face Recognition Application
+The application supports real-time face recognition using GStreamer pipelines and the Hailo neural network AI accelerator.
+
+It can train the catalog of known persons from a provided directory containing images of individuals (train mode described below).
+
+The information is managed in a local file-based database optimized for storing and indexing AI embeddings, called LanceDB.
+
+It uses the sample training dataset and sample video for demonstration purposes.
+```
+python face_recognition.py --mode train
+python face_recognition.py --ui --visualize
+```
+![Example](local_resources/example_gradio.png "Example")
 
 #### Frigate Integration - Coming Soon
 
