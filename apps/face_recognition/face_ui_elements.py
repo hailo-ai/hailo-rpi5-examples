@@ -14,12 +14,8 @@ import gradio as gr
 
 # region Global Variables
 # Slider configurations
-MIN_FACE_PIXELS_MIN = 10000
-MIN_FACE_PIXELS_MAX = 100000
-BLURRINESS_MIN = 0
-BLURRINESS_MAX = 1000
-PROCRUSTES_DISTANCE_MIN = 0.0
-PROCRUSTES_DISTANCE_MAX = 1.0
+CLASSIFICATION_THRESHOLD_MIN = 0.0
+CLASSIFICATION_THRESHOLD_MAX = 1.0
 SKIP_FRAMES_MIN = 0.0
 SKIP_FRAMES_MAX = 60
 
@@ -45,14 +41,8 @@ class UIElements(BaseUIElements):
         self.embeddings_stream = gr.Plot(label="Embeddings Plot")
 
         # Sliders
-        self.min_face_pixels_tolerance = gr.Slider(
-            minimum=MIN_FACE_PIXELS_MIN, maximum=MIN_FACE_PIXELS_MAX, label="Min face size in pixels", elem_id="min-face-pixels-slider"
-        )
-        self.blurriness_tolerance = gr.Slider(
-            minimum=BLURRINESS_MIN, maximum=BLURRINESS_MAX, label="Blurriness Tolerance (higher-sharper image)", elem_id="blurriness-slider"
-        )
-        self.procrustes_distance_threshold = gr.Slider(
-            minimum=PROCRUSTES_DISTANCE_MIN, maximum=PROCRUSTES_DISTANCE_MAX, label="Face landmarks ratios (lower-closer to theoretical)", elem_id="procrustes-distance-slider"
+        self.lance_db_vector_search_classificaiton_confidence_threshold = gr.Slider(
+            minimum=CLASSIFICATION_THRESHOLD_MIN, maximum=CLASSIFICATION_THRESHOLD_MAX, label="Classificaiton confidence threshold", elem_id="classificaiton-confidence-threshold-slider"
         )
         self.skip_frames = gr.Slider(
             minimum=SKIP_FRAMES_MIN, maximum=SKIP_FRAMES_MAX, label="Frames to skip before trying to recognize", elem_id="skip-frames-slider"
@@ -107,24 +97,22 @@ class UIElements(BaseUIElements):
                 with gr.Column():
                     with gr.Row():
                         with gr.Column():
-                            self.min_face_pixels_tolerance.render()
-                            self.blurriness_tolerance.render()
+                            self.lance_db_vector_search_classificaiton_confidence_threshold.render()
                         with gr.Column():
-                            self.procrustes_distance_threshold.render()
                             self.skip_frames.render()
+                    with gr.Row():
+                        with gr.Column():
+                            self.save_btn.render()
                 with gr.Column():
                     self.ui_text_message.render()
-            # Row for save algo params button
             with gr.Row():
-                with gr.Column(scale=1, min_width=60):
-                    self.save_btn.render()
                 # Add the logo just above the footer
                 # Define the original file and the alias (symlink) paths
                 original_file = get_resource_path(pipeline_name=None, resource_type=DEFAULT_LOCAL_RESOURCES_PATH, model=HAILO_LOGO_PHOTO_NAME) 
                 alias_file = Path(Path(__file__).parent, HAILO_LOGO_PHOTO_NAME)
                 if not (alias_file.exists() or alias_file.is_symlink()):
                     alias_file.symlink_to(original_file)
-                with gr.Column(scale=20):
+                with gr.Column():
                     gr.HTML(
                         f"""
                             <img src=/gradio_api/file={Path(Path(__file__).parent, HAILO_LOGO_PHOTO_NAME)} style="display: block; margin: 0 auto; max-width: 300px;">
@@ -159,14 +147,10 @@ class UIElements(BaseUIElements):
                 )
 
             # Dynamically adjust initial values for sliders from pipeline
-            self.min_face_pixels_tolerance.value = pipeline.min_face_pixels_tolerance
-            self.blurriness_tolerance.value = pipeline.blurriness_tolerance
-            self.procrustes_distance_threshold.value = pipeline.procrustes_distance_threshold
+            self.lance_db_vector_search_classificaiton_confidence_threshold.value = pipeline.lance_db_vector_search_classificaiton_confidence_threshold
             self.skip_frames.value = pipeline.skip_frames
 
-            self.min_face_pixels_tolerance.change(ui_callbacks.on_min_face_pixels_change, inputs=self.min_face_pixels_tolerance)
-            self.blurriness_tolerance.change(ui_callbacks.on_blurriness_change, inputs=self.blurriness_tolerance)
-            self.procrustes_distance_threshold.change(ui_callbacks.on_procrustes_distance_change, inputs=self.procrustes_distance_threshold)
+            self.lance_db_vector_search_classificaiton_confidence_threshold.change(ui_callbacks.on_lance_db_vector_search_classificaiton_confidence_threshold_change, inputs=self.lance_db_vector_search_classificaiton_confidence_threshold)
             self.skip_frames.change(ui_callbacks.on_skip_frames_change, inputs=self.skip_frames)
             # endregion event handlers
 

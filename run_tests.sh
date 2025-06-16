@@ -18,6 +18,8 @@ pip install -r tests/test_resources/requirements.txt
 
 # Run pytest for all test files
 echo "Running tests..."
+python -m pytest --log-cli-level=INFO \
+    "${TESTS_DIR}/test_face_recon.py"
 # pytest --log-cli-level=INFO \
 #        #"$TESTS_DIR/test_sanity_check.py" \
 #        "$TESTS_DIR/test_hailo_rpi5_examples.py" \

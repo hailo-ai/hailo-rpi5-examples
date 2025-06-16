@@ -12,35 +12,12 @@ from gi.repository import Gst
 
 # Local application-specific imports
 import hailo
-try:
-    from hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
-except ImportError:
-    from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
-
-try:
-    from face_recognition_pipeline import GStreamerFaceRecognitionApp
-except ImportError:
-    from face_recognition_pipeline import GStreamerFaceRecognitionApp
-
-try:
-    from hailo_core.hailo_common.telegram_handler import TelegramHandler
-except ImportError:
-    from hailo_apps_infra.hailo_core.hailo_common.telegram_handler import TelegramHandler
-
-try:
-    from hailo_core.hailo_common.defines import HAILO_LOGO_PHOTO_NAME
-except ImportError:
-    from hailo_apps_infra.hailo_core.hailo_common.defines import HAILO_LOGO_PHOTO_NAME
-
-try:
-    from face_ui_callbacks import UICallbacks
-except ImportError:
-    from face_ui_callbacks import UICallbacks
-
-try:
-    from face_ui_elements import UIElements
-except ImportError:
-    from face_ui_elements import UIElements
+from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
+from hailo_apps_infra.hailo_apps.apps.face_recognition.face_recognition_pipeline import GStreamerFaceRecognitionApp
+from hailo_apps_infra.hailo_core.hailo_common.telegram_handler import TelegramHandler
+from hailo_apps_infra.hailo_core.hailo_common.defines import HAILO_LOGO_PHOTO_NAME
+from hailo_apps_infra.hailo_apps.apps.face_recognition.face_ui_callbacks import UICallbacks
+from hailo_apps_infra.hailo_apps.apps.face_recognition.face_ui_elements import UIElements
 # endregion
 
 # region Constants
@@ -68,7 +45,7 @@ class user_callbacks_class(app_callback_class):
             self.telegram_handler = TelegramHandler(self.telegram_token, self.telegram_chat_id)
 
     # region Core application functions that are part of the main program logic and are called directly during pipeline execution, but are not GStreamer callback handlers themselves
-    def send_notification(self, name, global_id, distance, frame):
+    def send_notification(self, name, global_id, confidence, frame):
         """
         Check if Telegram is enabled and send a notification via the TelegramHandler.
         """
@@ -77,7 +54,7 @@ class user_callbacks_class(app_callback_class):
 
         # Check if the notification should be sent
         if self.telegram_handler.should_send_notification(global_id):
-            self.telegram_handler.send_notification(name, global_id, distance, frame)
+            self.telegram_handler.send_notification(name, global_id, confidence, frame)
     # endregion
 
 def app_callback(pad, info, user_data):
@@ -99,7 +76,10 @@ def app_callback(pad, info, user_data):
             classifications = detection.get_objects_typed(hailo.HAILO_CLASSIFICATION)
             if len(classifications) > 0:
                 for classification in classifications:
-                    string_to_print += f'Person recognition: {classification.get_label()} (Confidence: {classification.get_confidence():.1f})'
+                    if classification.get_label() == 'Unknown':
+                        string_to_print += 'Unknown person detected'
+                    else:
+                        string_to_print += f'Person recognition: {classification.get_label()} (Confidence: {classification.get_confidence():.1f})'
                     if track_id > user_data.latest_track_id:
                         user_data.latest_track_id = track_id
                         if len(user_data.ui_text_message) >= MAX_UI_TEXT_MESSAGES:
