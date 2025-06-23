@@ -214,6 +214,8 @@ if [[ -n "$PYTAPPAS_PATH" ]]; then
   INSTALL_TAPPAS_CORE=true
 fi
 
+sudo apt install python3-gi python3-gi-cairo
+
 
 ###——— VENV SETUP —————————————————————————————————————————————————————
 arch=$(grep -q "Raspberry Pi" /proc/device-tree/model 2>/dev/null && echo "rpi" || uname -m)
@@ -225,11 +227,7 @@ if [[ -d "$VENV_NAME" ]]; then
   source "$VENV_NAME/bin/activate"
 else
   echo "🔧 Creating virtualenv '$VENV_NAME'…"
-  if $INSTALL_PYHAILORT && $INSTALL_TAPPAS_CORE && [[ "$arch" != "rpi" ]]; then
-    python3 -m venv "$VENV_NAME"
-  else
-    python3 -m venv --system-site-packages "$VENV_NAME"
-  fi
+  python3 -m venv --system-site-packages "$VENV_NAME"
   echo "✅ Created. Activating…"
   source "$VENV_NAME/bin/activate"
 fi
@@ -293,7 +291,6 @@ echo
 echo "📦 Upgrading pip/setuptools/wheel…"
 pip install --upgrade pip setuptools wheel
 
-sudo apt install python3-gi python3-gi-cairo
 
 pip install -r requirements.txt
 echo $"📦 Installing Hailo-Apps-Infra… $HAILO_INFRA_PATH"
