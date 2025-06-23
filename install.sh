@@ -290,6 +290,7 @@ fi
 echo
 echo "📦 Upgrading pip/setuptools/wheel…"
 pip install --upgrade pip setuptools wheel
+pip install "py>=1.8.0"
 
 
 pip install -r requirements.txt
