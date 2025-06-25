@@ -310,7 +310,7 @@ echo "📦 Installing shared runtime deps…"
 ###——— POST-INSTALL ———————————————————————————————————————————————————
 echo
 echo "⚙️  Running post-install…"
-python3 -m hailo_apps_infra.hailo_core.hailo_installation.post_install \
+hailo-post-install \
     --dotenv "$ENV_PATH" \
     --config "$CONFIG_PATH" \
     --group "$DOWNLOAD_ALL"
