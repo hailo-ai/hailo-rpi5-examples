@@ -7,12 +7,9 @@ import numpy as np
 import cv2
 import hailo
 
-from hailo_apps_infra.hailo_core.hailo_common.buffer_utils import (
-    get_caps_from_pad,
-    get_numpy_from_buffer,
-)
-from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
-from hailo_apps_infra.hailo_apps.hailo_pipelines.pose_estimation_pipeline import GStreamerPoseEstimationApp
+from hailo_apps.hailo_app_python.core.common.buffer_utils import get_caps_from_pad, get_numpy_from_buffer
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
+from hailo_apps.hailo_app_python.apps.pose_estimation.pose_estimation_pipeline import GStreamerPoseEstimationApp
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function

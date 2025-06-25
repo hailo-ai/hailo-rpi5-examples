@@ -5,8 +5,8 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 import numpy as np
 import hailo
-from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
-from hailo_apps_infra.hailo_apps.hailo_pipelines.depth_pipeline import GStreamerDepthApp
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
+from hailo_apps.hailo_app_python.apps.depth.depth_pipeline import GStreamerDepthApp
 
 # User-defined class to be used in the callback function: Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):

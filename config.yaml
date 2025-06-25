@@ -3,7 +3,7 @@
 # This is RPI specefic variables
 hailo_apps_infra_path: "auto" # Path to the Hailo Apps Infra repository, relative to the current working directory
 hailo_apps_infra_branch_tag: "dev" # Branch or tag of the Hailo Apps Infra repository to use
-hailo_apps_infra_repo_url:  https://github.com/omriax/hailo-apps-infra.git
+hailo_apps_infra_repo_url:  https://github.com/hailo-ai/hailo-apps-infra.git
 # This is Hailo Apps Infra variables
 hailort_version: "auto" # Options: "auto" (detect from device), "latest" (latest version), or specific version 
 tappas_version: "auto" # Version of the Tappas model to use, set to "auto" to detect automatically
@@ -11,7 +11,7 @@ model_zoo_version: "v2.14.0" # Version of the model zoo to use
 host_arch: "auto" # Options: "rpi" (Raspberry Pi), "x86" (desktop/server), "arm" (generic ARM board) or "auto" (detect from device)
 hailo_arch: "auto" # Options: "hailo8", "hailo8l", or "auto" (detect from device)
 resources_path: "resources" # Path to the resources directory, relative to the current working directory
-virtual_env_name: "hailo_rpi_examples_venv" # Name of the virtual environment to be created 
+virtual_env_name: "venv_hailo_rpi_examples" # Name of the virtual environment to be created 
 server_url: "http://dev-public.hailo.ai/2025_01" # URL of the server to download models from , This is static 
 storage_dir: "hailo_temp_resources" # Directory to store the deb and whl files , this is the default if set to auot or empty 
 tappas_variant: "auto" # Options : "tappas" or " tappa-core"  or "Auto"
