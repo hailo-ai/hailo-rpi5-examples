@@ -4,3 +4,4 @@ opencv-python
 pytest
 pytest-timeout
 pytest-mock
+python-dotenv
