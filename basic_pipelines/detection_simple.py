@@ -4,8 +4,8 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 import hailo
-from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
-from hailo_apps_infra.hailo_apps.hailo_pipelines.detection_pipeline_simple import GStreamerDetectionApp
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
+from hailo_apps.hailo_app_python.apps.detection.detection_pipeline import GStreamerDetectionApp
 
 # User-defined class to be used in the callback function: Inheritance from the app_callback_class
 class user_app_callback_class(app_callback_class):
