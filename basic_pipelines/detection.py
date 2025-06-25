@@ -7,12 +7,9 @@ import numpy as np
 import cv2
 import hailo
 
-from hailo_apps_infra.hailo_core.hailo_common.buffer_utils import (
-    get_caps_from_pad,
-    get_numpy_from_buffer,
-)
-from hailo_apps_infra.hailo_apps.hailo_gstreamer.gstreamer_app import app_callback_class
-from hailo_apps_infra.hailo_apps.hailo_pipelines.detection_pipeline import GStreamerDetectionApp
+from hailo_apps.hailo_app_python.core.common.buffer_utils import get_caps_from_pad, get_numpy_from_buffer
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
+from hailo_apps.hailo_app_python.apps.detection.detection_pipeline import GStreamerDetectionApp
 
 # -----------------------------------------------------------------------------------------------
 # User-defined class to be used in the callback function

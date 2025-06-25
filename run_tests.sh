@@ -14,7 +14,7 @@ source "$SETUP_ENV_PATH"
 pip install -r tests/test_resources/requirements.txt
 
 # Download all HEFs
-./download_resources.sh --all
+hailo-download-resources --group all
 
 # Run pytest for all test files
 echo "Running tests..."

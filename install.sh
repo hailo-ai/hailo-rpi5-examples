@@ -300,7 +300,7 @@ if [[ "$HAILO_INFRA_PATH" != "auto" ]]; then
   pip install -e "$HAILO_INFRA_PATH"
 else
     echo "📦 Installing hailo-apps-infra from Git ($hailo_apps_infra_branch_tag)…"
-    pip install "git+${hailo_apps_infra_repo_url}@${hailo_apps_infra_branch_tag}#egg=hailo-apps-infra"
+    pip install "git+${hailo_apps_infra_repo_url}@${hailo_apps_infra_branch_tag}#egg=hailo-apps"
 fi
 
 
