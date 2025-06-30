@@ -14,15 +14,23 @@ fi
 
 # Check kernel version
 check_kernel_version() {
-    REQUIRED_VERSION="6.12.20"
-    CURRENT_VERSION=$(uname -r)
+    MAX_VERSION="6.12.25"
+    CURRENT_VERSION=$(uname -r | cut -d '+' -f 1) # Extract numeric version part
 
-    if [[ "$(printf '%s\n' "$REQUIRED_VERSION" "$CURRENT_VERSION" | sort -V | head -n1)" == "$REQUIRED_VERSION" ]]; then
+    # Check if CURRENT_VERSION is greater than or equal to MAX_VERSION
+    if [[ "$(printf '%s\n' "$CURRENT_VERSION" "$MAX_VERSION" | sort -V | tail -n1)" == "$CURRENT_VERSION" ]]; then
         echo "Error: Kernel version $CURRENT_VERSION detected. This version is incompatible."
         echo "Please refer to the following link for more information:"
         echo "https://community.hailo.ai/t/raspberry-pi-kernel-compatibility-issue-temporary-fix/15322"
         return 1
     fi
+}
+
+echo "Checking kernel version..."
+# Call the kernel version check function
+check_kernel_version || {
+    echo "Exiting due to incompatible kernel version."
+    return 1
 }
 
 echo "🔧 Setting up environment..."
