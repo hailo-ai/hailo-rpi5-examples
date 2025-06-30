@@ -12,6 +12,19 @@ if ! is_sourced; then
     return 1
 fi
 
+# Check kernel version
+check_kernel_version() {
+    REQUIRED_VERSION="6.12.20"
+    CURRENT_VERSION=$(uname -r)
+
+    if [[ "$(printf '%s\n' "$REQUIRED_VERSION" "$CURRENT_VERSION" | sort -V | head -n1)" == "$REQUIRED_VERSION" ]]; then
+        echo "Error: Kernel version $CURRENT_VERSION detected. This version is incompatible."
+        echo "Please refer to the following link for more information:"
+        echo "https://community.hailo.ai/t/raspberry-pi-kernel-compatibility-issue-temporary-fix/15322"
+        return 1
+    fi
+}
+
 echo "🔧 Setting up environment..."
 
 # Look for any directory in the current folder that contains bin/activate
