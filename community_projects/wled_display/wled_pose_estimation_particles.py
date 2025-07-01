@@ -4,8 +4,9 @@ from gi.repository import Gst, GLib
 import numpy as np
 import hailo
 
-from hailo_apps_infra.hailo_rpi_common import app_callback_class, get_default_parser
-from hailo_apps_infra.pose_estimation_pipeline import GStreamerPoseEstimationApp
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
+from hailo_apps.hailo_app_python.apps.pose_estimation.pose_estimation_pipeline import GStreamerPoseEstimationApp
+from hailo_apps.hailo_app_python.core.common.core import get_default_parser
 
 from wled_display import WLEDDisplay, add_parser_args
 from particle_simulation import ParticleSimulation

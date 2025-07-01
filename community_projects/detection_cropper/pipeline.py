@@ -2,9 +2,10 @@ import gi
 gi.require_version('Gst', '1.0')
 import os
 import setproctitle
-from hailo_apps_infra.hailo_rpi_common import detect_hailo_arch, get_default_parser
-from hailo_apps_infra.gstreamer_helper_pipelines import CROPPER_PIPELINE, DISPLAY_PIPELINE, INFERENCE_PIPELINE, INFERENCE_PIPELINE_WRAPPER, SOURCE_PIPELINE, TRACKER_PIPELINE, USER_CALLBACK_PIPELINE
-from hailo_apps_infra.gstreamer_app import GStreamerApp
+from hailo_apps.hailo_app_python.core.common.core import get_default_parser
+from hailo_apps.hailo_app_python.core.common.installation_utils import detect_hailo_arch
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_helper_pipelines import CROPPER_PIPELINE, DISPLAY_PIPELINE, INFERENCE_PIPELINE, INFERENCE_PIPELINE_WRAPPER, SOURCE_PIPELINE, TRACKER_PIPELINE, USER_CALLBACK_PIPELINE
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import GStreamerApp
 
 # User Gstreamer Application: This class inherits from the hailo_rpi_common.GStreamerApp class
 class GStreamerDetectionCropperApp(GStreamerApp):
