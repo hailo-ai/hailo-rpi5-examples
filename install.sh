@@ -35,7 +35,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # —————————————————————————————
-# 1. Read config 
+# 1. Read config
 # —————————————————————————————
 CONFIG_FILE="config.yaml"
 if [[ -n "$CONFIG_FILE" ]]; then
@@ -321,7 +321,7 @@ cat <<EOF
 
 🎉  All done!
 
-To reactivate your environment later:
-    source $VENV_NAME/bin/activate
+To setup your environment:
+    source setup_env.sh
 
 EOF
