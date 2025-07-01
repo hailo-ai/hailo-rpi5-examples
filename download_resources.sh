@@ -54,13 +54,9 @@ H8L_HEFS=(
   "https://hailo-model-zoo.s3.eu-west-2.amazonaws.com/ModelZoo/Compiled/v2.14.0/hailo8l/yolov5n_seg.hef"
 )
 
-RETRAIN_HEFS=(
-  "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/hefs/h8l_rpi/yolov8s-hailo8l-barcode.hef"
-)
 
 VIDEOS=(
   "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/example.mp4"
-  "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/barcode.mp4"
   "https://hailo-csdata.s3.eu-west-2.amazonaws.com/resources/video/example_640.mp4"
 )
 
@@ -69,7 +65,7 @@ if [ "$1" == "--all" ]; then
   echo "Downloading all models and video resources..."
   for url in "${H8_HEFS[@]}" "${H8L_HEFS[@]}"; do
     download_model "$url" &
-  done 
+  done
 else
   if [ "$DEVICE_ARCHITECTURE" == "HAILO8L" ]; then
     echo "Downloading HAILO8L models..."
@@ -85,7 +81,7 @@ else
 fi
 
 # Download additional videos
-for url in "${RETRAIN_HEFS[@]}" "${VIDEOS[@]}"; do
+for url in "${VIDEOS[@]}"; do
   download_model "$url" &
 done
 

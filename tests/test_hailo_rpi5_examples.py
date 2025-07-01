@@ -89,9 +89,9 @@ def get_detection_compatible_hefs(architecture):
     if architecture == 'hailo8':
         hef_list = H8_HEFS
         return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
-    
+
     return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
-    
+
 
 def get_pose_compatible_hefs(architecture):
     """Get a list of compatible HEF files based on the device architecture."""
@@ -106,9 +106,9 @@ def get_pose_compatible_hefs(architecture):
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
         # check both HAILO8 and HAILO8L
-        hef_list = H8_HEFS        
+        hef_list = H8_HEFS
         return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
-    
+
     return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
 
 def get_seg_compatible_hefs(architecture):
@@ -124,9 +124,9 @@ def get_seg_compatible_hefs(architecture):
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
         # check both HAILO8 and HAILO8L
-        hef_list = H8_HEFS        
+        hef_list = H8_HEFS
         return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
-    
+
     return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
 
 def get_depth_compatible_hefs(architecture):
@@ -140,9 +140,9 @@ def get_depth_compatible_hefs(architecture):
     ]
     hef_list = H8L_HEFS
     if architecture == 'hailo8':
-        hef_list =  H8_HEFS       
+        hef_list =  H8_HEFS
         return [os.path.join("resources","models","hailo8", hef) for hef in hef_list]
-    
+
     return [os.path.join("resources","models","hailo8l", hef) for hef in hef_list]
 
 def test_all_pipelines():
@@ -440,36 +440,6 @@ def test_depth_hefs():
             assert "Error" not in stderr.decode(), f"depth with {hef_name} (video input) encountered an error: {stderr.decode()}"
             assert "frame" in stdout.decode().lower(), f"depth with {hef_name} (video input) did not process any frames"
 
-def test_detection_retraining():
-    """
-    Test the detection pipeline with a retrained model.
-    """
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-
-    retrained_hef = "resources/models/hailo8/yolov8s-hailo8l-barcode.hef"
-    labels_json = "local_resources/barcode-labels.json"
-    video_path = "resources/videos/barcode.mp4"
-    log_file_path = os.path.join(log_dir, "detection_retrained_video_test.log")
-    logging.info("Running detection with retrained model (video input)")
-    with open(log_file_path, "w") as log_file:
-        cmd = ['python', '-u', 'basic_pipelines/detection.py', '--labels-json', labels_json, '--hef-path', retrained_hef, '--input', video_path]
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        try:
-            time.sleep(TEST_RUN_TIME)
-            process.send_signal(signal.SIGTERM)
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            pytest.fail(f"Detection with retrained model (video input) could not be terminated within 5 seconds after running for {TEST_RUN_TIME} seconds")
-
-        stdout, stderr = process.communicate()
-        log_file.write(f"Detection with retrained model (video input) stdout:\n{stdout.decode()}\n")
-        log_file.write(f"Detection with retrained model (video input) stderr:\n{stderr.decode()}\n")
-
-        assert "Traceback" not in stderr.decode(), f"Detection with retrained model (video input) encountered an exception: {stderr.decode()}"
-        assert "Error" not in stderr.decode(), f"Detection with retrained model (video input) encountered an error: {stderr.decode()}"
-
 def test_frame_rate():
     """Test that pipelines honor the --frame-rate flag by checking output FPS values"""
     log_dir = "logs"
@@ -494,32 +464,32 @@ def test_frame_rate():
             stdout, stderr = process.communicate()
             stdout_str = stdout.decode()
             stderr_str = stderr.decode()
-            
+
             # Log outputs
             log_file.write(f"{pipeline} (frame rate) stdout:\n{stdout_str}\n")
             log_file.write(f"{pipeline} (frame rate) stderr:\n{stderr_str}\n")
-            
+
             # Check for errors
             assert "Traceback" not in stderr_str, f"{pipeline} (frame rate) encountered an exception: {stderr_str}"
             assert "Error" not in stderr_str, f"{pipeline} (frame rate) encountered an error: {stderr_str}"
-            
+
             # Extract FPS values using regex
             fps_pattern = re.compile(r'FPS: (\d+\.\d+)')
             fps_matches = fps_pattern.findall(stdout_str)
-            
+
             # Only check FPS if we found some values
             if fps_matches:
                 # Convert matches to float values
                 fps_values = [float(match) for match in fps_matches]
-                
+
                 # Skip first few values as they might be during startup
                 if len(fps_values) > 3:
                     fps_values = fps_values[3:]
-                
+
                 # Calculate average FPS
                 avg_fps = sum(fps_values) / len(fps_values)
                 log_file.write(f"Average FPS: {avg_fps:.2f}\n")
-                
+
                 # Assert that average FPS is within acceptable range of target (10)
                 # Using a 10% tolerance
                 #assert 9.0 <= avg_fps <= 11.0, f"FPS not within expected range. Got average {avg_fps:.2f}, expected around 10.0"

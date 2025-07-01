@@ -99,7 +99,7 @@ python basic_pipelines/detection.py --help
 ```
 
 #### Retrained Networks Support
-This application includes support for using retrained detection models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
+The retrain guide is available in the [Hailo Apps Infra repo: Retraining Example](https://github.com/hailo-ai/hailo-apps-infra/blob/main/doc/developer_guide/retraining_example.md).
 
 ### Pose Estimation Example
 For more information see [Pose Estimation Example Documentation.](doc/basic-pipelines.md#pose-estimation-example)
@@ -191,8 +191,7 @@ The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to 
 The DFC is available for download from the [Hailo Developer Zone](https://hailo.ai/developer-zone/software-downloads/) (Registration required).
 For examples, tutorials, and retrain instructions, see the [Hailo Model Zoo Repo](https://github.com/hailo-ai/hailo_model_zoo).
 Additional documentation and [tutorials](https://hailo.ai/developer-zone/documentation/dataflow-compiler/latest/?sp_referrer=tutorials/tutorials.html) can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
-For a full end-to-end training and deployment example, see the [Retraining Example](doc/retraining-example.md).
-The detection basic pipeline example includes support for retrained models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
+For a full end-to-end training and deployment example, see the [Hailo Apps Infra repo: Retraining Example](https://github.com/hailo-ai/hailo-apps-infra/blob/main/doc/developer_guide/retraining_example.md).
 
 ## Contributing
 
