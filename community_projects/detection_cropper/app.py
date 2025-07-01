@@ -4,7 +4,7 @@ from gi.repository import Gst
 import numpy as np
 import pathlib
 import hailo
-from hailo_apps_infra.hailo_rpi_common import app_callback_class
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
 from pipeline import GStreamerDetectionCropperApp
 
 # User-defined class to be used in the callback function: Inheritance from the app_callback_class

@@ -19,13 +19,11 @@ except :
 
 from collections import Counter
 
-from hailo_apps_infra.hailo_rpi_common import (
-    get_caps_from_pad,
-    get_numpy_from_buffer,
-    app_callback_class,
-    get_default_parser,
-)
-from hailo_apps_infra.detection_pipeline import GStreamerDetectionApp
+from hailo_apps.hailo_app_python.core.common.buffer_utils import get_caps_from_pad, get_numpy_from_buffer
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
+from hailo_apps.hailo_app_python.apps.detection.detection_pipeline import GStreamerDetectionApp
+from hailo_apps.hailo_app_python.core.common.core import get_default_parser
+
 
 
 class Pet_State(Enum):    

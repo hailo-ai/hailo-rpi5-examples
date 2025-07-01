@@ -7,8 +7,8 @@ import asyncio
 import pathlib
 import csv
 import hailo
-from hailo_apps_infra.hailo_rpi_common import app_callback_class
-from hailo_apps_infra.detection_pipeline import GStreamerDetectionApp
+from hailo_apps.hailo_app_python.core.gstreamer.gstreamer_app import app_callback_class
+from hailo_apps.hailo_app_python.apps.detection.detection_pipeline import GStreamerDetectionApp
 from get_usb_gps import get_usb_gps_devices
 from gps_calculations import gps_task, latest_gps_data
 
