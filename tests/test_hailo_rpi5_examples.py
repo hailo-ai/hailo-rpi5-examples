@@ -8,9 +8,7 @@ import glob
 import logging
 import re
 
-# Adjust the sys.path to include the parent directory of the test folder
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from hailo_apps_infra.hailo_core.hailo_common.camera_utils import get_usb_video_devices
+from hailo_apps.hailo_app_python.core.common.camera_utils import get_usb_video_devices
 
 try:
     from picamera2 import Picamera2
@@ -167,9 +165,6 @@ def test_all_pipelines():
             log_file_path = os.path.join(log_dir, f"test_{pipeline}{arch_parameter}_video_test.log")
             with open(log_file_path, "w") as log_file:
                 cmd = ['python', '-u', f'basic_pipelines/{pipeline}']
-                if pipeline == "instance_segmentation.py":
-                    cmd += ['--labels-json', 'local_resources/yolov5m_seg.json']
-
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 logging.info(f"Running {pipeline} {arch_parameter} with video input")
                 try:
@@ -388,7 +383,7 @@ def test_seg_hefs():
         log_file_path = os.path.join(log_dir, f"seg_{hef_name}_video_test.log")
         logging.info(f"Running seg with {hef_name} (video input)")
         with open(log_file_path, "w") as log_file:
-            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef , '--labels-json', f'local_resources/{hef_base_name}.json'],
+            process = subprocess.Popen(['python', 'basic_pipelines/instance_segmentation.py', '--input', 'resources/videos/example.mp4', '--hef-path', hef],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 time.sleep(TEST_RUN_TIME)
