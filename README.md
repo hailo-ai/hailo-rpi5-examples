@@ -4,14 +4,17 @@
 # Hailo Raspberry Pi 5 Examples
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/hailo-ai/hailo-rpi5-examples)
 
-Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases various examples demonstrating the capabilities of the Hailo AI processor on a Raspberry Pi 5. These examples will help you get started with AI on embedded devices.
-The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors. The examples can also be run on an x86_64 Ubuntu machine with the Hailo8/8L AI processor.
+Welcome to the Hailo Raspberry Pi 5 Examples repository. This project showcases various community projects and examples demonstrating the capabilities of the Hailo AI processor. These examples will help you get started with AI on embedded devices.
+The examples in this repository are designed to work with the Raspberry Pi AI Kit and AI HAT, and x86_64 Ubuntu machine supporting both the Hailo8 (26 TOPS) and Hailo8L (13 TOPS) AI processors.
 Visit the [Hailo Official Website](https://hailo.ai/) and [Hailo Community Forum](https://community.hailo.ai/) for more information.
+
+## Hailo Apps Infra Repository
+Hailo's official examples and pipelines are available in the [Hailo Apps Infra repo](https://github.com/hailo-ai/hailo-apps-infra) repository.
+See the Hailo Apps Infra repo for more information and documentation on how to use the pipelines and development guide.
 
 ## Install Hailo Hardware and Software Setup on Raspberry Pi
 
 For instructions on how to set up Hailo's hardware and software on the Raspberry Pi 5, see the [Hailo Raspberry Pi 5 installation guide](doc/install-raspberry-pi5.md#how-to-set-up-raspberry-pi-5-and-hailo).
-
 
 # Hailo RPi5 Basic Pipelines
 The basic pipelines examples demonstrate object detection, human pose estimation, and instance segmentation, providing a solid foundation for your own projects.
@@ -96,7 +99,7 @@ python basic_pipelines/detection.py --help
 ```
 
 #### Retrained Networks Support
-This application includes support for using retrained detection models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
+The retrain guide is available in the [Hailo Apps Infra repo: Retraining Example](https://github.com/hailo-ai/hailo-apps-infra/blob/main/doc/developer_guide/retraining_example.md).
 
 ### Pose Estimation Example
 For more information see [Pose Estimation Example Documentation.](doc/basic-pipelines.md#pose-estimation-example)
@@ -141,8 +144,6 @@ Check out our [Community Projects](community_projects/community_projects.md) for
 
 # Additional Examples and Resources
 
-![Hailo Examples Code Structure](doc/images/hailo_examples_code_structure.svg)
-
 ## Hailo Apps Infra
 Hailo RPi5 Examples are using the [Hailo Apps Infra Repository](https://github.com/hailo-ai/hailo-apps-infra) as a dependency. The Hailo Apps Infra repository contains the infrastructure of Hailo applications and pipelines.
 It is aimed for to provide tools for developers who want to create their own custom pipelines and applications. It features a simple and easy-to-use API for creating custom pipelines and applications.
@@ -157,9 +158,11 @@ Click the image below to watch the demo on YouTube.
 [![Watch the demo on YouTube](https://img.youtube.com/vi/XXizBHtCLew/0.jpg)](https://youtu.be/XXizBHtCLew)
 
 
-#### Frigate Integration - Coming Soon
+#### Frigate Integration
 
-Frigate is an open-source video surveillance software that runs on a Raspberry Pi. This integration will allow you to use the Hailo-8L AI processor for object detection in real-time video streams.
+Frigate is an open-source video surveillance software that runs on a Raspberry Pi.
+Hailo is officially integrated into Frigate framework starting from version 0.16.0.
+See [Hailo Official Integration with Frigate](https://community.hailo.ai/t/hailo-official-integration-with-frigate/13679) for more information.
 
 
 ### Raspberry Pi Official Examples
@@ -188,8 +191,7 @@ The Hailo Dataflow Compiler (DFC) is a software tool that enables developers to 
 The DFC is available for download from the [Hailo Developer Zone](https://hailo.ai/developer-zone/software-downloads/) (Registration required).
 For examples, tutorials, and retrain instructions, see the [Hailo Model Zoo Repo](https://github.com/hailo-ai/hailo_model_zoo).
 Additional documentation and [tutorials](https://hailo.ai/developer-zone/documentation/dataflow-compiler/latest/?sp_referrer=tutorials/tutorials.html) can be found in the [Hailo Developer Zone Documentation](https://hailo.ai/developer-zone/documentation/).
-For a full end-to-end training and deployment example, see the [Retraining Example](doc/retraining-example.md).
-The detection basic pipeline example includes support for retrained models. For more information, see [Using Retrained Models](doc/basic-pipelines.md#using-retrained-models).
+For a full end-to-end training and deployment example, see the [Hailo Apps Infra repo: Retraining Example](https://github.com/hailo-ai/hailo-apps-infra/blob/main/doc/developer_guide/retraining_example.md).
 
 ## Contributing
 
