@@ -44,22 +44,15 @@ Demonstrates parsing `HAILO_DETECTION` metadata. Each GStreamer buffer contains 
 ### Additional Features
 Shows how to add more command-line options using the `argparse` library. For instance, the added flag in this example allows changing the model used.
 
+### Additional Supported Models
+By default, the package contains a single model depending on the device architecture.
+You can download additional models by running `hailo-download-resources --all`.
+The models are downloaded to the `resources/models/` directory.
+This application supports all models that are compiled with HailoRT NMS post process.
+
 ### Using Retrained Models
-Supports using retrained detection models compiled with HailoRT NMS Post Process (`HailortPP`). Load a custom model’s HEF using the `--hef-path` flag. Default labels are COCO labels ([80 classes](https://github.com/hailo-ai/tappas/blob/4341aa360b7f8b9eac9b2d3b26f79fca562b34e4/core/hailo/libs/postprocesses/common/labels/coco_eighty.hpp)). For custom models with different labels, use the `--labels-path` flag to load your labels file (e.g., `resources/barcode-labels.json`).
+The retrain guide is available in the [Hailo Apps Infra repo: Retraining Example](https://github.com/hailo-ai/hailo-apps-infra/blob/main/doc/developer_guide/retraining_example.md).
 
-The `download_resources.sh` script downloads the network trained in the [Retraining Example](retraining-example.md#using-yolov8-retraining-docker), which can be used as a reference.
-
-#### To run the example with a custom model:
-```bash
-python basic_pipelines/detection.py --labels-json resources/barcode-labels.json --hef-path resources/yolov8s-hailo8l-barcode.hef --input resources/barcode.mp4
-```
-
-By default, the package contains the following YOLO-based detection models: YOLOv6n, YOLOv8s, YOLOv8m, YOLOv11n, and YOLOv11s.
-The files located under the hailo-rpi5-examples/resources directory, for example:
-`/.../hailo-rpi5-examples/resources/yolov8m.hef`
-
-**Example Output:**
-![Barcode Detection Example](images/barcode-example.png)
 
 # Pose Estimation Example
 ![Banner](images/pose_estimation.gif)

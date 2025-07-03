@@ -5,6 +5,18 @@ Here, you’ll find all our awesome community examples, based on **Hailo** and *
 Check out how you can get involved and share your own creations here:
 [How to Add a Community Project](../doc/contributing-community-project.md)
 
+
+## WLED display controller
+This project provides a Python interface for controlling WLED-based LED matrix displays, with specific integration for Hailo AI pipelines. It enables real-time visualization of AI processing results on LED matrices, making it perfect for interactive AI demonstrations and visual feedback systems.
+
+For more information see [WLED display project.](wled_display/README.md)
+
+## Fruit Ninja
+
+A real-time Fruit Ninja game that uses hand tracking through pose estimation to slice fruits. The game integrates with Hailo's pose estimation pipeline and runs a separate pygame process for the game logic.
+
+For more information see [Fruit Ninja project.](fruit_ninja/README.md)
+
 ## TAILO
 A smart device that keeps pets happy, active, and monitored through tracking and interactive play.
 
