@@ -126,7 +126,7 @@ detect_system_pkg_version() {
 detect_pip_pkg_version() {
   if pip show "$1" >/dev/null 2>&1; then
     pip show "$1" \
-      | awk -F': ' '/^Version: /{print $2; exit}'
+      | awk -F': ' '/^Version: /{print $2}'
   else
     echo ""
   fi
